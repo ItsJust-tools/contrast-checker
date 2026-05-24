@@ -32,7 +32,7 @@ function ColorSwatch({ color, label }: { color: string; label: string }) {
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        const input = document.getElementById(`swatch-color-${color}`);
+        const input = document.getElementById(`swatch-color-${color}`) as HTMLInputElement | null;
         if (input) {
           input.value = color;
           input.dispatchEvent(new Event('change', { bubbles: true }));

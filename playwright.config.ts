@@ -43,9 +43,6 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
-  use: {
-    baseline: 'master',
-  },
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',

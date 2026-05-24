@@ -3,27 +3,28 @@
 import { useCallback, useRef } from 'react';
 import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar, templateMetadata } from '@/tool';
 import { useToolState, useExport, useShare } from '@itsjust/core';
+import type { ExportFormat } from '@itsjust/core';
 
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  const toolConfig = contrastTool.config;
+
   const state = useToolState<typeof contrastTool.initialState>(contrastTool.initialState, {
     key: 'contrast-checker',
-    maxHistory: 100,
-    autoSaveDelay: 0,
+    maxHistoryEntries: 100,
+    debounceMs: 0,
   });
 
   const { exportTo, supportedFormats, isExporting } = useExport(
     canvasRef,
     toolConfig,
-    state.serialize,
+    () => contrastTool.serialize(state.data),
   );
 
   const { downloadShareFile, shareViaWeb } = useShare();
 
-  const toolConfig = contrastTool.config;
-
-  const handleExport = useCallback(async (format: string) => {
+  const handleExport = useCallback(async (format: ExportFormat) => {
     await exportTo(format);
   }, [exportTo]);
 
@@ -51,7 +52,7 @@ export default function ToolClient() {
           onClick={async () => {
             await downloadShareFile({
               toolId: toolConfig.id,
-              content: state.serialize(),
+              content: contrastTool.serialize(state.data),
               metadata: { schemaVersion: '1.0' },
             });
           }}
@@ -76,7 +77,7 @@ export default function ToolClient() {
           onClick={async () => {
             await shareViaWeb({
               toolId: toolConfig.id,
-              content: state.serialize(),
+              content: contrastTool.serialize(state.data),
               metadata: { schemaVersion: '1.0' },
             });
           }}
