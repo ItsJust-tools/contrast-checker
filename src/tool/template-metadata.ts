@@ -1,14 +1,14 @@
-import toolConfig from './tool.config';
+import toolConfig from "./tool.config";
 
-const DEFAULT_DEV_URL = 'http://localhost:3000';
+const DEFAULT_DEV_URL = "http://localhost:3000";
 
 export const templateMetadata = {
-  htmlLang: 'en',
-  locale: 'en_US',
+  htmlLang: "en",
+  locale: "en_US",
   appName: toolConfig.name,
-  shortName: 'Contrast Checker',
+  shortName: "Contrast Checker",
   appDescription: toolConfig.description,
-  iconPath: '/icon.svg',
+  iconPath: "/icon.svg",
 };
 
 export function getPublicSiteUrl(): string {

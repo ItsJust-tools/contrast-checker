@@ -14,7 +14,7 @@
  */
 function getRelativeLuminance(hex) {
   // Remove '#' if present
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
 
   // Convert to RGB
   let r, g, b;
@@ -27,18 +27,15 @@ function getRelativeLuminance(hex) {
     g = parseInt(hex.slice(2, 4), 16) / 255;
     b = parseInt(hex.slice(6, 8), 16) / 255;
   } else {
-    throw new Error('Invalid hex color format');
+    throw new Error("Invalid hex color format");
   }
 
-  // Apply gamma correction
+  // Apply gamma correction (c is already 0-1 range)
   const adjust = (c) => {
-    c = c * 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   };
 
-  return (
-    0.2126 * adjust(r) + 0.7152 * adjust(g) + 0.0722 * adjust(b)
-  );
+  return 0.2126 * adjust(r) + 0.7152 * adjust(g) + 0.0722 * adjust(b);
 }
 
 /**
@@ -104,7 +101,7 @@ function checkCompliance(ratio, level, standard) {
  *   actualRatio: number
  * }}
  */
-function checkContrast(fgColor, bgColor, level = 'normal', standard = 'AA') {
+function checkContrast(fgColor, bgColor, level = "normal", standard = "AA") {
   const lighter = Math.max(
     getRelativeLuminance(fgColor),
     getRelativeLuminance(bgColor),
@@ -142,7 +139,7 @@ function generatePassingColors(bgColor, minContrast = 4.5) {
   for (let i = 0; i <= 255; i += step) {
     for (let j = 0; j <= 255; j += step) {
       for (let k = 0; k <= 255; k += step) {
-        const hex = `#${(i.toString(16).padStart(2, '0'))}${(j.toString(16).padStart(2, '0'))}${(k.toString(16).padStart(2, '0'))}`;
+        const hex = `#${i.toString(16).padStart(2, "0")}${j.toString(16).padStart(2, "0")}${k.toString(16).padStart(2, "0")}`;
         const fg = hex;
         const fgLum = getRelativeLuminance(fg);
         const bgLum = getRelativeLuminance(bgColor);
@@ -178,9 +175,9 @@ function formatRatio(ratio) {
  */
 function getBrightnessCategory(hex) {
   const lum = getRelativeLuminance(hex);
-  if (lum > 0.18) return 'light';
-  if (lum < 0.06) return 'dark';
-  return 'medium';
+  if (lum > 0.18) return "light";
+  if (lum < 0.06) return "dark";
+  return "medium";
 }
 
 export {

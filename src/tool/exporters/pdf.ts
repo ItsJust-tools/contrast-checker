@@ -3,36 +3,40 @@
  * Creates a PDF document with contrast accessibility data
  */
 
-import type { Exporter } from '@itsjust/core';
+import type { Exporter } from "@itsjust/core";
 
 export const exporter: Exporter = {
-  format: 'pdf',
+  format: "pdf",
   export: async (element, options, stateSerializer) => {
     try {
       // For PDF export, we'll use the print stylesheet approach
       // Create a print-friendly container
-      const container = document.createElement('div');
-      container.style.cssText = 'width: 100%; padding: 2rem;';
+      const container = document.createElement("div");
+      container.style.cssText = "width: 100%; padding: 2rem;";
 
       // Add title
-      const title = document.createElement('h1');
-      title.textContent = 'Contrast Checker Report';
-      title.style.cssText = 'font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;';
+      const title = document.createElement("h1");
+      title.textContent = "Contrast Checker Report";
+      title.style.cssText =
+        "font-size: 1.5rem; margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;";
 
       // Add canvas screenshot (for simplicity, we embed as image or use html2canvas)
       // This is a simplified version - in production you might use html-to-image
-      const screenshotCanvas = document.createElement('canvas');
+      const screenshotCanvas = document.createElement("canvas");
       screenshotCanvas.width = element.offsetWidth;
       screenshotCanvas.height = element.offsetHeight;
-      const ctx = screenshotCanvas.getContext('2d');
+      const ctx = screenshotCanvas.getContext("2d");
       if (ctx && element) {
-        const imageData = ctx.createImageData(screenshotCanvas.width, screenshotCanvas.height);
+        const imageData = ctx.createImageData(
+          screenshotCanvas.width,
+          screenshotCanvas.height,
+        );
         // Simplified: for PDF, we'll just use print media
       }
 
       // For this simplified version, we'll return a base64 encoded PDF-like structure
       // In production, you'd use a library like jspdf or html-to-image with PDF support
-      const serializer = stateSerializer?.() || '{}';
+      const serializer = stateSerializer?.() || "{}";
 
       // Create a simple PDF with just the JSON data for now
       // A proper implementation would capture the canvas and embed it
@@ -73,22 +77,23 @@ startxref
 254
 %%EOF`;
 
-      const blob = new Blob([pdfContent], { type: 'application/pdf' });
+      const blob = new Blob([pdfContent], { type: "application/pdf" });
 
       return {
         success: true,
         data: blob,
-        filename: options?.filename ?? `contrast-check-report-${Date.now()}.pdf`,
-        format: 'pdf',
+        filename:
+          options?.filename ?? `contrast-check-report-${Date.now()}.pdf`,
+        format: "pdf",
       };
     } catch (error) {
-      console.error('[PDF Exporter]', error);
+      console.error("[PDF Exporter]", error);
       return {
         success: false,
         data: null,
         filename: options?.filename ?? `contrast-check-report-${Date.now()}`,
-        format: 'pdf',
-        error: error instanceof Error ? error.message : 'PDF export failed',
+        format: "pdf",
+        error: error instanceof Error ? error.message : "PDF export failed",
       };
     }
   },

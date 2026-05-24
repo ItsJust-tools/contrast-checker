@@ -2,10 +2,10 @@ export default function robots() {
   return {
     rules: [
       {
-        userAgent: '*',
-        allow: '/',
+        userAgent: "*",
+        allow: "/",
       },
     ],
-    sitemap: process.env.NEXT_PUBLIC_URL + '/sitemap.xml',
+    sitemap: process.env.NEXT_PUBLIC_URL + "/sitemap.xml",
   };
 }

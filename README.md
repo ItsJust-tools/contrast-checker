@@ -41,11 +41,11 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 
 ## WCAG Requirements
 
-| Text Type | Minimum Ratio | Purpose |
-|-----------|--------------|---------|
-| Normal text (18pt or less) | 4.5:1 (AA) / 7:1 (AAA) | Body text readability |
-| Large text (18pt+ or 14pt bold) | 3:1 (AA) / 4.5:1 (AAA) | Headings, captions |
-| UI Components | 3:1 (AA) | Buttons, form elements |
+| Text Type                       | Minimum Ratio          | Purpose                |
+| ------------------------------- | ---------------------- | ---------------------- |
+| Normal text (18pt or less)      | 4.5:1 (AA) / 7:1 (AAA) | Body text readability  |
+| Large text (18pt+ or 14pt bold) | 3:1 (AA) / 4.5:1 (AAA) | Headings, captions     |
+| UI Components                   | 3:1 (AA)               | Buttons, form elements |
 
 ## Supported Formats
 
@@ -61,6 +61,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 ## Accessibility
 
 This tool is fully accessible:
+
 - Keyboard navigation support
 - Screen reader compatible
 - High contrast mode support

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface ToolCanvasProps {
   fgColor: string;
@@ -10,7 +10,13 @@ interface ToolCanvasProps {
   onBgChange?: (color: string) => void;
   label?: string;
   onLabelChange?: (label: string) => void;
-  onContrastChange?: (result: { fg: string; bg: string; ratio: number; passAA: boolean; passAAA: boolean }) => void;
+  onContrastChange?: (result: {
+    fg: string;
+    bg: string;
+    ratio: number;
+    passAA: boolean;
+    passAAA: boolean;
+  }) => void;
 }
 
 interface ColorPreviewProps {
@@ -20,27 +26,36 @@ interface ColorPreviewProps {
 
 function ColorPreview({ color, label }: ColorPreviewProps) {
   return (
-    <div className="color-preview-container" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+    <div
+      className="color-preview-container"
+      style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+    >
       <div
         className="color-swatch"
         style={{
-          width: '56px',
-          height: '56px',
+          width: "56px",
+          height: "56px",
           background: color,
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-          cursor: 'pointer',
-          transition: 'transform 0.1s',
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius)",
+          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+          cursor: "pointer",
+          transition: "transform 0.1s",
         }}
         aria-label={label || `Color preview: ${color}`}
         role="img"
         tabIndex={0}
-        onClick={() => document.getElementById(`color-${color}`)?.dispatchEvent(new Event('click', { bubbles: true }))}
+        onClick={() =>
+          document
+            .getElementById(`color-${color}`)
+            ?.dispatchEvent(new Event("click", { bubbles: true }))
+        }
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            document.getElementById(`color-${color}`)?.dispatchEvent(new Event('click', { bubbles: true }));
+            document
+              .getElementById(`color-${color}`)
+              ?.dispatchEvent(new Event("click", { bubbles: true }));
           }
         }}
       />
@@ -49,42 +64,46 @@ function ColorPreview({ color, label }: ColorPreviewProps) {
         id={`color-${color}`}
         value={color}
         onChange={(e) => {}}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         aria-hidden="true"
         title="Click to pick a color"
       />
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <label htmlFor={`color-${color}`} className="color-label" style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-          {label || 'Color'}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <label
+          htmlFor={`color-${color}`}
+          className="color-label"
+          style={{ fontSize: "0.8125rem", fontWeight: 600 }}
+        >
+          {label || "Color"}
         </label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <input
             id={`color-${color}`}
             type="text"
             value={color}
             onChange={(e) => {}}
             style={{
-              width: '100%',
-              padding: '0.375rem 0.5rem',
-              fontSize: '0.8125rem',
-              fontFamily: 'ui-monospace, Menlo, Monaco, monospace',
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              outline: 'none',
+              width: "100%",
+              padding: "0.375rem 0.5rem",
+              fontSize: "0.8125rem",
+              fontFamily: "ui-monospace, Menlo, Monaco, monospace",
+              background: "var(--background)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius)",
+              outline: "none",
             }}
-            aria-label={`Hex value for ${label || 'color'}`}
+            aria-label={`Hex value for ${label || "color"}`}
             title="Click or select to change color"
           />
           <span
             style={{
-              display: 'inline-block',
-              width: '14px',
-              height: '14px',
+              display: "inline-block",
+              width: "14px",
+              height: "14px",
               background: color,
-              borderRadius: '50%',
-              border: '1px solid var(--border)',
+              borderRadius: "50%",
+              border: "1px solid var(--border)",
             }}
             aria-hidden="true"
           />
@@ -94,27 +113,37 @@ function ColorPreview({ color, label }: ColorPreviewProps) {
   );
 }
 
-function ContrastBadge({ pass, standard, ratio }: { pass: boolean; standard: 'AA' | 'AAA'; ratio: number }) {
-  const color = pass ? 'var(--success)' : 'var(--error)';
+function ContrastBadge({
+  pass,
+  standard,
+  ratio,
+}: {
+  pass: boolean;
+  standard: "AA" | "AAA";
+  ratio: number;
+}) {
+  const color = pass ? "var(--success)" : "var(--error)";
 
   return (
     <div
       className="contrast-badge"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.5rem 0.75rem',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius)',
-        background: pass ? 'var(--card)' : 'var(--error, rgba(244, 63, 94, 0.1))',
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        padding: "0.5rem 0.75rem",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        background: pass
+          ? "var(--card)"
+          : "var(--error, rgba(244, 63, 94, 0.1))",
       }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
-        style={{ width: '18px', height: '18px' }}
+        style={{ width: "18px", height: "18px" }}
         aria-hidden="true"
       >
         {pass ? (
@@ -131,11 +160,13 @@ function ContrastBadge({ pass, standard, ratio }: { pass: boolean; standard: 'AA
           />
         )}
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>{standard}</span>
-        <span style={{ fontSize: '0.65rem', color: color, opacity: 0.9 }}>
-          {ratio < 7 && ratio < 4.5 ? `${ratio.toFixed(1)}:1 - ` : ''}
-          {pass ? 'Pass' : 'Fail'}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
+          {standard}
+        </span>
+        <span style={{ fontSize: "0.65rem", color: color, opacity: 0.9 }}>
+          {ratio < 7 && ratio < 4.5 ? `${ratio.toFixed(1)}:1 - ` : ""}
+          {pass ? "Pass" : "Fail"}
         </span>
       </div>
     </div>
@@ -148,7 +179,7 @@ export function ToolCanvas({
   canvasRef,
   onFgChange,
   onBgChange,
-  label = '',
+  label = "",
   onLabelChange,
   onContrastChange,
 }: ToolCanvasProps) {
@@ -157,9 +188,15 @@ export function ToolCanvas({
   const [localLabel, setLocalLabel] = useState(label);
   const canvasInnerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setLocalFg(fgColor); }, [fgColor]);
-  useEffect(() => { setLocalBg(bgColor); }, [bgColor]);
-  useEffect(() => { setLocalLabel(label); }, [label]);
+  useEffect(() => {
+    setLocalFg(fgColor);
+  }, [fgColor]);
+  useEffect(() => {
+    setLocalBg(bgColor);
+  }, [bgColor]);
+  useEffect(() => {
+    setLocalLabel(label);
+  }, [label]);
 
   const fgDisplay = useMemo(() => {
     const rgb = parseInt(localFg.slice(1), 16);
@@ -196,7 +233,7 @@ export function ToolCanvas({
         onContrastChange({ fg: newColor, bg: bgColor, ratio, passAA, passAAA });
       }
     },
-    [bgColor, ratio, passAA, passAAA, onFgChange, onContrastChange]
+    [bgColor, ratio, passAA, passAAA, onFgChange, onContrastChange],
   );
 
   const handleBgChange = useCallback(
@@ -207,19 +244,27 @@ export function ToolCanvas({
       if (onContrastChange) {
         const fgLum = parseInt(localFg.slice(1), 16);
         const fgR = (fgLum >> 16) & 255;
-        const fgG = ((fgLum >> 8) & 255);
+        const fgG = (fgLum >> 8) & 255;
         const fgB = fgLum & 255;
         const fgDisp = (fgR * 299 + fgG * 587 + fgB * 114) / 1000;
         const newBgLum = parseInt(newColor.slice(1), 16);
         const newBgR = (newBgLum >> 16) & 255;
-        const newBgG = ((newBgLum >> 8) & 255);
+        const newBgG = (newBgLum >> 8) & 255;
         const newBgB = newBgLum & 255;
         const newBgDisp = (newBgR * 299 + newBgG * 587 + newBgB * 114) / 1000;
-        const newRatio = (Math.max(fgDisp, newBgDisp) + 0.05) / (Math.min(fgDisp, newBgDisp) + 0.05);
-        onContrastChange?.({ fg: localFg, bg: newColor, ratio: newRatio, passAA: newRatio >= 4.5, passAAA: newRatio >= 7 });
+        const newRatio =
+          (Math.max(fgDisp, newBgDisp) + 0.05) /
+          (Math.min(fgDisp, newBgDisp) + 0.05);
+        onContrastChange?.({
+          fg: localFg,
+          bg: newColor,
+          ratio: newRatio,
+          passAA: newRatio >= 4.5,
+          passAAA: newRatio >= 7,
+        });
       }
     },
-    [localFg, onBgChange, onContrastChange]
+    [localFg, onBgChange, onContrastChange],
   );
 
   const handleLabelChange = useCallback(
@@ -228,11 +273,16 @@ export function ToolCanvas({
       setLocalLabel(newLabel);
       onLabelChange?.(newLabel);
     },
-    [onLabelChange]
+    [onLabelChange],
   );
 
   return (
-    <div ref={canvasRef} className="contrast-canvas" role="application" aria-label="Contrast Checker">
+    <div
+      ref={canvasRef}
+      className="contrast-canvas"
+      role="application"
+      aria-label="Contrast Checker"
+    >
       {/* Color Selection Section */}
       <div className="contrast-section">
         <h3 className="contrast-section-title">Color Selection</h3>
@@ -242,7 +292,9 @@ export function ToolCanvas({
           <div className="contrast-row-label">
             <span>Foreground</span>
             {fgDisplay > 0.18 && (
-              <span style={{ fontSize: '0.6875rem', color: 'var(--muted)' }}>({(fgDisplay * 100).toFixed(0)}% brightness)</span>
+              <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
+                ({(fgDisplay * 100).toFixed(0)}% brightness)
+              </span>
             )}
           </div>
           <ColorPreview color={localFg} label="Foreground" />
@@ -253,7 +305,9 @@ export function ToolCanvas({
           <div className="contrast-row-label">
             <span>Background</span>
             {bgDisplay < 0.179 && (
-              <span style={{ fontSize: '0.6875rem', color: 'var(--muted)' }}>({(bgDisplay * 100).toFixed(0)}% brightness)</span>
+              <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
+                ({(bgDisplay * 100).toFixed(0)}% brightness)
+              </span>
             )}
           </div>
           <ColorPreview color={localBg} label="Background" />
@@ -261,7 +315,14 @@ export function ToolCanvas({
 
         {/* Contrast Preview Bar */}
         <div className="contrast-preview-section">
-          <h4 style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem', marginTop: '0' }}>
+          <h4
+            style={{
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              marginBottom: "0.5rem",
+              marginTop: "0",
+            }}
+          >
             Live Contrast Preview
           </h4>
 
@@ -269,48 +330,51 @@ export function ToolCanvas({
           <div
             className="contrast-preview-bar"
             style={{
-              width: '100%',
-              height: '48px',
+              width: "100%",
+              height: "48px",
               background: `${localBg} ${localFg}`,
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              marginTop: '0.5rem',
-              position: 'relative',
-              overflow: 'hidden',
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius)",
+              marginTop: "0.5rem",
+              position: "relative",
+              overflow: "hidden",
             }}
             aria-label={`Contrast preview bar showing ${localFg} on ${localBg}`}
           >
             <div
               className="contrast-preview-overlay"
               style={{
-                position: 'absolute',
+                position: "absolute",
                 inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1rem',
-                fontSize: '0.875rem',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "1rem",
+                fontSize: "0.875rem",
                 fontWeight: 500,
                 color: ratio > 4.5 ? localFg : localBg,
-                textShadow: ratio > 4.5 ? `0 0 1px ${localBg}` : `0 0 1px ${localFg}`,
+                textShadow:
+                  ratio > 4.5 ? `0 0 1px ${localBg}` : `0 0 1px ${localFg}`,
               }}
             >
               <span
                 style={{
-                  display: 'inline-block',
-                  width: '24px',
-                  height: '24px',
+                  display: "inline-block",
+                  width: "24px",
+                  height: "24px",
                   background: localFg,
-                  borderRadius: '4px',
+                  borderRadius: "4px",
                   border: `1px solid ${localBg}`,
                 }}
               />
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
-                  style={{ width: '16px', height: '16px', flexShrink: 0 }}
+                  style={{ width: "16px", height: "16px", flexShrink: 0 }}
                   aria-hidden="true"
                 >
                   {passAA ? (
@@ -327,10 +391,10 @@ export function ToolCanvas({
                     />
                   )}
                 </svg>
-                <span style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ display: "flex", flexDirection: "column" }}>
                   <span style={{ fontWeight: 700 }}>{ratio.toFixed(2)}:1</span>
-                  <span style={{ fontSize: '0.65rem', opacity: 0.8 }}>
-                    {passAA ? '✓ WCAG AA Pass' : '✗ WCAG AA Fail'}
+                  <span style={{ fontSize: "0.65rem", opacity: 0.8 }}>
+                    {passAA ? "✓ WCAG AA Pass" : "✗ WCAG AA Fail"}
                   </span>
                 </span>
               </span>
@@ -338,25 +402,52 @@ export function ToolCanvas({
           </div>
 
           {/* Compliance Badges */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              flexWrap: "wrap",
+              marginTop: "0.5rem",
+            }}
+          >
             <ContrastBadge pass={passAAA} standard="AAA" ratio={ratio} />
             <ContrastBadge pass={passAA} standard="AA" ratio={ratio} />
           </div>
 
           {/* WCAG Guidelines Info */}
-          <div className="wcag-guidelines" style={{ marginTop: '0.5rem', fontSize: '0.6875rem', color: 'var(--muted)' }}>
-            <div>Normal text (18pt or less): <strong>{passAA ? '✓' : '✗'}</strong> 4.5:1 minimum</div>
-            <div>Large text (18pt+ or 14pt bold): <strong>{ratio >= 3 ? '✓' : '✗'}</strong> 3:1 minimum</div>
-            <div>UI Components: <strong>{ratio >= 3 ? '✓' : '✗'}</strong> 3:1 minimum</div>
+          <div
+            className="wcag-guidelines"
+            style={{
+              marginTop: "0.5rem",
+              fontSize: "0.6875rem",
+              color: "var(--muted)",
+            }}
+          >
+            <div>
+              Normal text (18pt or less): <strong>{passAA ? "✓" : "✗"}</strong>{" "}
+              4.5:1 minimum
+            </div>
+            <div>
+              Large text (18pt+ or 14pt bold):{" "}
+              <strong>{ratio >= 3 ? "✓" : "✗"}</strong> 3:1 minimum
+            </div>
+            <div>
+              UI Components: <strong>{ratio >= 3 ? "✓" : "✗"}</strong> 3:1
+              minimum
+            </div>
           </div>
         </div>
       </div>
 
       {/* Label Input */}
-      <div className="contrast-section" style={{ marginTop: '1rem' }}>
+      <div className="contrast-section" style={{ marginTop: "1rem" }}>
         <h3 className="contrast-section-title">Preview</h3>
         <div className="contrast-row">
-          <label htmlFor="contrast-label" className="contrast-row-label" style={{ fontWeight: 600 }}>
+          <label
+            htmlFor="contrast-label"
+            className="contrast-row-label"
+            style={{ fontWeight: 600 }}
+          >
             Text Preview
           </label>
           <input
@@ -367,14 +458,14 @@ export function ToolCanvas({
             placeholder="Sample text preview"
             style={{
               flex: 1,
-              padding: '0.5rem 0.75rem',
-              fontSize: '0.875rem',
-              fontFamily: 'inherit',
+              padding: "0.5rem 0.75rem",
+              fontSize: "0.875rem",
+              fontFamily: "inherit",
               background: localBg,
               color: localFg,
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius)',
-              outline: 'none',
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius)",
+              outline: "none",
             }}
             aria-label="Text preview label"
           />
@@ -382,17 +473,18 @@ export function ToolCanvas({
         <div
           className="contrast-preview-text"
           style={{
-            marginTop: '0.5rem',
-            padding: '0.75rem',
+            marginTop: "0.5rem",
+            padding: "0.75rem",
             background: localBg,
             color: localFg,
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            fontSize: '1rem',
-            lineHeight: '1.5',
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius)",
+            fontSize: "1rem",
+            lineHeight: "1.5",
           }}
         >
-          {localLabel || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}
+          {localLabel ||
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
         </div>
       </div>
     </div>
