@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("page loads and shows title", async ({ page }) => {
+test("page loads and shows contrast checker title", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("h1")).toBeVisible();
+  await expect(page.getByText("Contrast Checker").first()).toBeVisible();
 });
