@@ -2,6 +2,9 @@
   "name": "contrast-checker",
   "version": "1.2.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "npm run build -w @itsjust/core && next build",
