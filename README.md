@@ -69,7 +69,7 @@ This tool is fully accessible:
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+This is an open-source project. Contributions, issues, and feature requests are welcome.
 
 ## License
 

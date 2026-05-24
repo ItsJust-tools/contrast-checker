@@ -67,6 +67,7 @@ describe("Contrast Checker Tool", () => {
 
       const result = contrastTool.deserialize(serialized);
       expect(result.success).toBe(true);
+      if (!result.success) return;
       expect(result.data.fgColor).toBe("#333333");
       expect(result.data.bgColor).toBe("#ffffff");
     });
@@ -74,6 +75,7 @@ describe("Contrast Checker Tool", () => {
     it("should fail to deserialize invalid state", () => {
       const result = contrastTool.deserialize("invalid");
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.error).toContain("Invalid data format");
     });
 
@@ -122,7 +124,7 @@ describe("Contrast Checker Tool", () => {
     });
 
     it("should have accent color configured", () => {
-      expect(contrastTool.config.theme.accent).toBe("#ef4444");
+      expect(contrastTool.config.theme!.accent).toBe("#ef4444");
     });
   });
 });

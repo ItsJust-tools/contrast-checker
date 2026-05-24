@@ -188,15 +188,12 @@ export function ToolCanvas({
   const [localLabel, setLocalLabel] = useState(label);
   const canvasInnerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setLocalFg(fgColor);
-  }, [fgColor]);
-  useEffect(() => {
-    setLocalBg(bgColor);
-  }, [bgColor]);
-  useEffect(() => {
-    setLocalLabel(label);
-  }, [label]);
+  // Sync props to local state (intentional controlled-component pattern)
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => { setLocalFg(fgColor); }, [fgColor]);
+  useEffect(() => { setLocalBg(bgColor); }, [bgColor]);
+  useEffect(() => { setLocalLabel(label); }, [label]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const fgDisplay = useMemo(() => {
     const rgb = parseInt(localFg.slice(1), 16);

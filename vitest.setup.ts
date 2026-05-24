@@ -27,6 +27,7 @@ Object.defineProperty(window, "localStorage", {
 
 // Enable testing library matchers
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Vitest {
     interface Suite {
       only?: unknown;
