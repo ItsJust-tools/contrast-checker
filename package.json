@@ -23,7 +23,7 @@
     "preflight": "node scripts/preflight.mjs"
   },
   "dependencies": {
-    "@itsjust/core": "file:../../template/packages/core",
+    "@itsjust/core": "*",
     "html-to-image": "^1.11.13",
     "lz-string": "^1.5.0",
     "next": "^16.2.4",
