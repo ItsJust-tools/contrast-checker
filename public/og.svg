@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="url(#gradient)" fill-rule="evenodd"/>
+  <defs>
+    <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Logo icon -->
+  <g transform="translate(60, 40)">
+    <circle cx="120" cy="120" r="96" fill="#ffffff"/>
+    <circle cx="120" cy="120" r="80" fill="#000000"/>
+    <text x="120" y="138" font-family="system-ui, sans-serif" font-size="72" font-weight="600" text-anchor="middle" fill="#ef4444">AC</text>
+  </g>
+
+  <!-- Title -->
+  <text x="320" y="160" font-family="system-ui, sans-serif" font-size="56" font-weight="600" fill="#ffffff">Contrast Checker</text>
+
+  <!-- Description -->
+  <text x="320" y="250" font-family="system-ui, sans-serif" font-size="40" fill="#ffffff" opacity="0.9">
+    Test color contrast ratios against WCAG guidelines. Check accessibility compliance for AA and AAA levels.
+  </text>
+
+  <!-- Footer -->
+  <text x="320" y="550" font-family="system-ui, sans-serif" font-size="28" fill="#ffffff" opacity="0.8">
+    itsjust.tools
+  </text>
+</svg>
