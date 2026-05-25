@@ -2,6 +2,12 @@
   "name": "contrast-checker",
   "version": "1.2.0",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ItsJust-tools/contrast-checker.git"
+  },
+  "description": "A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines.",
   "workspaces": [
     "packages/*"
   ],
