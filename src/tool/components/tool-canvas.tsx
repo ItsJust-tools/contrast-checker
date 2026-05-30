@@ -1,6 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  getRelativeLuminance,
+  getContrastRatio,
+} from "@/lib/contrast";
 
 interface ToolCanvasProps {
   fgColor: string;
@@ -24,7 +28,42 @@ interface ColorPreviewProps {
   label?: string;
 }
 
-function ColorPreview({ color, label }: ColorPreviewProps) {
+interface ColorPreviewProps {
+  color: string;
+  label?: string;
+  onChange?: (color: string) => void;
+  instanceId?: string;
+}
+
+function ColorPreview({ color, label, onChange, instanceId = "default" }: ColorPreviewProps) {
+  const colorInputId = `color-picker-${instanceId}`;
+
+  const handleColorPickerChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onChange?.(e.target.value);
+    },
+    [onChange],
+  );
+
+  const handleHexInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value.trim();
+      // Allow typing a hex value, auto-complete with # if missing
+      const fullHex = val.startsWith("#") ? val : `#${val}`;
+      if (/^#[0-9a-fA-F]{6}$/.test(fullHex)) {
+        onChange?.(fullHex);
+      }
+    },
+    [onChange],
+  );
+
+  const openColorPicker = useCallback(() => {
+    const input = document.getElementById(colorInputId) as HTMLInputElement | null;
+    if (input) {
+      input.click();
+    }
+  }, [colorInputId]);
+
   return (
     <div
       className="color-preview-container"
@@ -43,34 +82,28 @@ function ColorPreview({ color, label }: ColorPreviewProps) {
           transition: "transform 0.1s",
         }}
         aria-label={label || `Color preview: ${color}`}
-        role="img"
+        role="button"
         tabIndex={0}
-        onClick={() =>
-          document
-            .getElementById(`color-${color}`)
-            ?.dispatchEvent(new Event("click", { bubbles: true }))
-        }
+        onClick={openColorPicker}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            document
-              .getElementById(`color-${color}`)
-              ?.dispatchEvent(new Event("click", { bubbles: true }));
+            openColorPicker();
           }
         }}
       />
       <input
         type="color"
-        id={`color-${color}`}
+        id={colorInputId}
         value={color}
-        onChange={(e) => {}}
+        onChange={handleColorPickerChange}
         style={{ display: "none" }}
         aria-hidden="true"
         title="Click to pick a color"
       />
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <label
-          htmlFor={`color-${color}`}
+          htmlFor={colorInputId}
           className="color-label"
           style={{ fontSize: "0.8125rem", fontWeight: 600 }}
         >
@@ -78,10 +111,10 @@ function ColorPreview({ color, label }: ColorPreviewProps) {
         </label>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <input
-            id={`color-${color}`}
+            id={`hex-${colorInputId}`}
             type="text"
             value={color}
-            onChange={(e) => {}}
+            onChange={handleHexInputChange}
             style={{
               width: "100%",
               padding: "0.375rem 0.5rem",
@@ -94,7 +127,7 @@ function ColorPreview({ color, label }: ColorPreviewProps) {
               outline: "none",
             }}
             aria-label={`Hex value for ${label || "color"}`}
-            title="Click or select to change color"
+            title="Type a hex color value (e.g. #ff0000)"
           />
           <span
             style={{
@@ -104,6 +137,7 @@ function ColorPreview({ color, label }: ColorPreviewProps) {
               background: color,
               borderRadius: "50%",
               border: "1px solid var(--border)",
+              flexShrink: 0,
             }}
             aria-hidden="true"
           />
@@ -201,73 +235,47 @@ export function ToolCanvas({
   }, [label]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const fgDisplay = useMemo(() => {
-    const rgb = parseInt(localFg.slice(1), 16);
-    const r = (rgb >> 16) & 255;
-    const g = (rgb >> 8) & 255;
-    const b = rgb & 255;
-    return (r * 299 + g * 587 + b * 114) / 1000;
+  const ratio = useMemo(() => {
+    try {
+      return getContrastRatio(localFg, localBg);
+    } catch {
+      return 0;
+    }
+  }, [localFg, localBg]);
+
+  const fgBrightness = useMemo(() => {
+    try {
+      return getRelativeLuminance(localFg);
+    } catch {
+      return 0;
+    }
   }, [localFg]);
 
-  const bgDisplay = useMemo(() => {
-    const rgb = parseInt(localBg.slice(1), 16);
-    const r = (rgb >> 16) & 255;
-    const g = (rgb >> 8) & 255;
-    const b = rgb & 255;
-    return (r * 299 + g * 587 + b * 114) / 1000;
+  const bgBrightness = useMemo(() => {
+    try {
+      return getRelativeLuminance(localBg);
+    } catch {
+      return 0;
+    }
   }, [localBg]);
-
-  const ratio = useMemo(() => {
-    if (fgDisplay === 0 || bgDisplay === 0) return 0;
-    const lighter = Math.max(fgDisplay, bgDisplay);
-    const darker = Math.min(fgDisplay, bgDisplay);
-    return (lighter + 0.05) / (darker + 0.05);
-  }, [fgDisplay, bgDisplay]);
 
   const passAA = ratio >= 4.5;
   const passAAA = ratio >= 7;
 
   const handleFgChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newColor = e.target.value;
-      setLocalFg(newColor);
-      onFgChange?.(newColor);
-      if (onContrastChange) {
-        onContrastChange({ fg: newColor, bg: bgColor, ratio, passAA, passAAA });
-      }
+    (color: string) => {
+      setLocalFg(color);
+      onFgChange?.(color);
     },
-    [bgColor, ratio, passAA, passAAA, onFgChange, onContrastChange],
+    [onFgChange],
   );
 
   const handleBgChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newColor = e.target.value;
-      setLocalBg(newColor);
-      onBgChange?.(newColor);
-      if (onContrastChange) {
-        const fgLum = parseInt(localFg.slice(1), 16);
-        const fgR = (fgLum >> 16) & 255;
-        const fgG = (fgLum >> 8) & 255;
-        const fgB = fgLum & 255;
-        const fgDisp = (fgR * 299 + fgG * 587 + fgB * 114) / 1000;
-        const newBgLum = parseInt(newColor.slice(1), 16);
-        const newBgR = (newBgLum >> 16) & 255;
-        const newBgG = (newBgLum >> 8) & 255;
-        const newBgB = newBgLum & 255;
-        const newBgDisp = (newBgR * 299 + newBgG * 587 + newBgB * 114) / 1000;
-        const newRatio =
-          (Math.max(fgDisp, newBgDisp) + 0.05) /
-          (Math.min(fgDisp, newBgDisp) + 0.05);
-        onContrastChange?.({
-          fg: localFg,
-          bg: newColor,
-          ratio: newRatio,
-          passAA: newRatio >= 4.5,
-          passAAA: newRatio >= 7,
-        });
-      }
+    (color: string) => {
+      setLocalBg(color);
+      onBgChange?.(color);
     },
-    [localFg, onBgChange, onContrastChange],
+    [onBgChange],
   );
 
   const handleLabelChange = useCallback(
@@ -294,26 +302,26 @@ export function ToolCanvas({
         <div className="contrast-row">
           <div className="contrast-row-label">
             <span>Foreground</span>
-            {fgDisplay > 0.18 && (
+            {fgBrightness > 0.18 && (
               <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-                ({(fgDisplay * 100).toFixed(0)}% brightness)
+                ({(fgBrightness * 100).toFixed(0)}% luminance)
               </span>
             )}
           </div>
-          <ColorPreview color={localFg} label="Foreground" />
+          <ColorPreview color={localFg} label="Foreground" onChange={handleFgChange} instanceId="fg" />
         </div>
 
         {/* Background Color */}
         <div className="contrast-row">
           <div className="contrast-row-label">
             <span>Background</span>
-            {bgDisplay < 0.179 && (
+            {bgBrightness < 0.179 && (
               <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-                ({(bgDisplay * 100).toFixed(0)}% brightness)
+                ({(bgBrightness * 100).toFixed(0)}% luminance)
               </span>
             )}
           </div>
-          <ColorPreview color={localBg} label="Background" />
+          <ColorPreview color={localBg} label="Background" onChange={handleBgChange} instanceId="bg" />
         </div>
 
         {/* Contrast Preview Bar */}

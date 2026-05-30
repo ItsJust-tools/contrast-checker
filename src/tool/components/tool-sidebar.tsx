@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { getRelativeLuminance, getContrastRatio } from "@/lib/contrast";
 
 interface ToolSidebarProps {
   fgColor: string;
@@ -14,7 +15,32 @@ interface ToolSidebarProps {
   }[];
 }
 
-function ColorSwatch({ color, label }: { color: string; label: string }) {
+function ColorSwatch({
+  color,
+  label,
+  onColorChange,
+  inputId,
+}: {
+  color: string;
+  label: string;
+  onColorChange?: (color: string) => void;
+  inputId: string;
+}) {
+
+  const handleClick = useCallback(() => {
+    const input = document.getElementById(inputId) as HTMLInputElement | null;
+    if (input) {
+      input.click();
+    }
+  }, [inputId]);
+
+  const handleColorChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onColorChange?.(e.target.value);
+    },
+    [onColorChange],
+  );
+
   return (
     <div
       style={{
@@ -35,37 +61,28 @@ function ColorSwatch({ color, label }: { color: string; label: string }) {
       tabIndex={0}
       aria-label={`Click to pick ${label} color. Current: ${color}`}
       title={`Click to pick ${label} color`}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const input = document.getElementById(
-          `swatch-color-${color}`,
-        ) as HTMLInputElement | null;
-        if (input) {
-          input.value = color;
-          input.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-      }}
+      onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          const input = document.getElementById(`swatch-color-${color}`);
-          if (input) {
-            input.dispatchEvent(new Event("change", { bubbles: true }));
-          }
+          handleClick();
         }
       }}
     >
-      <span style={{ fontSize: "0.6875rem", textShadow: `0 0 2px ${color}` }}>
+      <span
+        style={{
+          fontSize: "0.6875rem",
+          textShadow: "0 0 2px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.5)",
+          color: getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000",
+        }}
+      >
         {label.slice(0, 2).toUpperCase()}
       </span>
       <input
         type="color"
-        id={`swatch-color-${color}`}
+        id={inputId}
         value={color}
-        onChange={() => {
-          // Color picker opened
-        }}
+        onChange={handleColorChange}
         style={{ display: "none" }}
         aria-hidden="true"
       />
@@ -79,19 +96,19 @@ export function ToolSidebar({
   combinations,
 }: ToolSidebarProps) {
   const fgPreview = useMemo(() => {
-    const rgb = parseInt(fgColor.slice(1), 16);
-    const r = (rgb >> 16) & 255;
-    const g = (rgb >> 8) & 255;
-    const b = rgb & 255;
-    return (r * 299 + g * 587 + b * 114) / 1000;
+    try {
+      return getRelativeLuminance(fgColor);
+    } catch {
+      return 0;
+    }
   }, [fgColor]);
 
   const bgPreview = useMemo(() => {
-    const rgb = parseInt(bgColor.slice(1), 16);
-    const r = (rgb >> 16) & 255;
-    const g = (rgb >> 8) & 255;
-    const b = rgb & 255;
-    return (r * 299 + g * 587 + b * 114) / 1000;
+    try {
+      return getRelativeLuminance(bgColor);
+    } catch {
+      return 0;
+    }
   }, [bgColor]);
 
   const averageContrast = useMemo(() => {
@@ -168,9 +185,8 @@ export function ToolSidebar({
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
             <span style={{ fontWeight: 600 }}>Average Contrast Ratio</span>
             <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-              {fgPreview > 0.18 &&
-                (fgPreview > 0.1 ? (fgPreview * 100).toFixed(0) : 0)}
-              % brightness on {(bgPreview * 100).toFixed(0)}%
+              {(fgPreview * 100).toFixed(0)}% luminance on{" "}
+              {(bgPreview * 100).toFixed(0)}%
             </span>
           </div>
         </div>
@@ -286,8 +302,8 @@ export function ToolSidebar({
           Click any color swatch to open the color picker
         </p>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
-          <ColorSwatch color={fgColor} label="Foreground" />
-          <ColorSwatch color={bgColor} label="Background" />
+          <ColorSwatch color={fgColor} label="Foreground" onColorChange={() => {}} inputId="side-fg" />
+          <ColorSwatch color={bgColor} label="Background" onColorChange={() => {}} inputId="side-bg" />
         </div>
       </div>
 
