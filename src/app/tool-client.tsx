@@ -1,13 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import {
-  contrastTool,
-  ToolCanvas,
-  ToolToolbar,
-  ToolSidebar,
-  templateMetadata,
-} from "@/tool";
+import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
 import { useToolState, useExport, useShare } from "@itsjust/core";
 import type { ExportFormat } from "@itsjust/core";
 
@@ -25,10 +19,8 @@ export default function ToolClient() {
     },
   );
 
-  const { exportTo, supportedFormats, isExporting } = useExport(
-    canvasRef,
-    toolConfig,
-    () => contrastTool.serialize(state.data),
+  const { exportTo, isExporting } = useExport(canvasRef, toolConfig, () =>
+    contrastTool.serialize(state.data),
   );
 
   const { downloadShareFile, shareViaWeb } = useShare();

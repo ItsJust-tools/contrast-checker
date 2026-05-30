@@ -7,7 +7,7 @@ import type { Exporter } from "@itsjust/core";
 
 export const exporter: Exporter = {
   format: "webp",
-  export: async (element, options, stateSerializer) => {
+  export: async (element, options, _stateSerializer) => {
     try {
       const { toBlob } = await import("html-to-image");
       const blob = await toBlob(element, {

@@ -101,7 +101,7 @@ function checkCompliance(ratio, level, standard) {
  *   actualRatio: number
  * }}
  */
-function checkContrast(fgColor, bgColor, level = "normal", standard = "AA") {
+function checkContrast(fgColor, bgColor, level = "normal") {
   const lighter = Math.max(
     getRelativeLuminance(fgColor),
     getRelativeLuminance(bgColor),

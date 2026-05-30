@@ -1,6 +1,6 @@
 import type { Tool } from "@itsjust/core";
 import toolConfig from "./tool.config";
-import type { ContrastState, ContrastCombination } from "./types";
+import type { ContrastState } from "./types";
 
 function isContrastState(value: unknown): value is ContrastState {
   if (typeof value !== "object" || value === null) return false;

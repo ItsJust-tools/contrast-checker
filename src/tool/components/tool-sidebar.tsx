@@ -26,7 +26,6 @@ function ColorSwatch({
   onColorChange?: (color: string) => void;
   inputId: string;
 }) {
-
   const handleClick = useCallback(() => {
     const input = document.getElementById(inputId) as HTMLInputElement | null;
     if (input) {
@@ -73,7 +72,8 @@ function ColorSwatch({
         style={{
           fontSize: "0.6875rem",
           textShadow: "0 0 2px rgba(0,0,0,0.5), 0 0 2px rgba(255,255,255,0.5)",
-          color: getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000",
+          color:
+            getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000",
         }}
       >
         {label.slice(0, 2).toUpperCase()}
@@ -302,8 +302,18 @@ export function ToolSidebar({
           Click any color swatch to open the color picker
         </p>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
-          <ColorSwatch color={fgColor} label="Foreground" onColorChange={() => {}} inputId="side-fg" />
-          <ColorSwatch color={bgColor} label="Background" onColorChange={() => {}} inputId="side-bg" />
+          <ColorSwatch
+            color={fgColor}
+            label="Foreground"
+            onColorChange={() => {}}
+            inputId="side-fg"
+          />
+          <ColorSwatch
+            color={bgColor}
+            label="Background"
+            onColorChange={() => {}}
+            inputId="side-bg"
+          />
         </div>
       </div>
 

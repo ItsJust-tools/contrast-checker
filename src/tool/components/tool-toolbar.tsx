@@ -1,15 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback } from "react";
 
 interface ToolToolbarProps {
   onExport?: () => void;
 }
 
 export function ToolToolbar({ onExport }: ToolToolbarProps) {
-  const [open, setOpen] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
   const actions = useCallback(() => {
     return (
       <>

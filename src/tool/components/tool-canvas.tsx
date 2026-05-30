@@ -1,10 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  getRelativeLuminance,
-  getContrastRatio,
-} from "@/lib/contrast";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { getRelativeLuminance, getContrastRatio } from "@/lib/contrast";
 
 interface ToolCanvasProps {
   fgColor: string;
@@ -14,13 +11,6 @@ interface ToolCanvasProps {
   onBgChange?: (color: string) => void;
   label?: string;
   onLabelChange?: (label: string) => void;
-  onContrastChange?: (result: {
-    fg: string;
-    bg: string;
-    ratio: number;
-    passAA: boolean;
-    passAAA: boolean;
-  }) => void;
 }
 
 interface ColorPreviewProps {
@@ -35,7 +25,12 @@ interface ColorPreviewProps {
   instanceId?: string;
 }
 
-function ColorPreview({ color, label, onChange, instanceId = "default" }: ColorPreviewProps) {
+function ColorPreview({
+  color,
+  label,
+  onChange,
+  instanceId = "default",
+}: ColorPreviewProps) {
   const colorInputId = `color-picker-${instanceId}`;
 
   const handleColorPickerChange = useCallback(
@@ -58,7 +53,9 @@ function ColorPreview({ color, label, onChange, instanceId = "default" }: ColorP
   );
 
   const openColorPicker = useCallback(() => {
-    const input = document.getElementById(colorInputId) as HTMLInputElement | null;
+    const input = document.getElementById(
+      colorInputId,
+    ) as HTMLInputElement | null;
     if (input) {
       input.click();
     }
@@ -215,12 +212,10 @@ export function ToolCanvas({
   onBgChange,
   label = "",
   onLabelChange,
-  onContrastChange,
 }: ToolCanvasProps) {
   const [localFg, setLocalFg] = useState(fgColor);
   const [localBg, setLocalBg] = useState(bgColor);
   const [localLabel, setLocalLabel] = useState(label);
-  const canvasInnerRef = useRef<HTMLDivElement>(null);
 
   // Sync props to local state (intentional controlled-component pattern)
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -308,7 +303,12 @@ export function ToolCanvas({
               </span>
             )}
           </div>
-          <ColorPreview color={localFg} label="Foreground" onChange={handleFgChange} instanceId="fg" />
+          <ColorPreview
+            color={localFg}
+            label="Foreground"
+            onChange={handleFgChange}
+            instanceId="fg"
+          />
         </div>
 
         {/* Background Color */}
@@ -321,7 +321,12 @@ export function ToolCanvas({
               </span>
             )}
           </div>
-          <ColorPreview color={localBg} label="Background" onChange={handleBgChange} instanceId="bg" />
+          <ColorPreview
+            color={localBg}
+            label="Background"
+            onChange={handleBgChange}
+            instanceId="bg"
+          />
         </div>
 
         {/* Contrast Preview Bar */}

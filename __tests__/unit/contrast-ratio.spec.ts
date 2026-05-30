@@ -253,7 +253,7 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
       },
     ];
 
-    testCases.forEach((testCase, i) => {
+    testCases.forEach((testCase) => {
       it(`should ${testCase.description}`, () => {
         const result = checkContrast(testCase.fg, testCase.bg, "normal", "AA");
         expect(result.passAA).toBe(testCase.expectedAA);

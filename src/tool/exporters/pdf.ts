@@ -27,10 +27,6 @@ export const exporter: Exporter = {
       screenshotCanvas.height = element.offsetHeight;
       const ctx = screenshotCanvas.getContext("2d");
       if (ctx && element) {
-        const imageData = ctx.createImageData(
-          screenshotCanvas.width,
-          screenshotCanvas.height,
-        );
         // Simplified: for PDF, we'll just use print media
       }
 
