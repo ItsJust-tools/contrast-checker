@@ -52,6 +52,21 @@ function ColorPreview({
     [onChange],
   );
 
+  const [hexInputError, setHexInputError] = useState(false);
+
+  const handleHexInputBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const val = e.target.value.trim();
+      if (!val) {
+        setHexInputError(false);
+        return;
+      }
+      const cleaned = val.startsWith("#") ? val : `#${val}`;
+      setHexInputError(!/^#[0-9a-fA-F]{6}$/.test(cleaned));
+    },
+    [],
+  );
+
   const openColorPicker = useCallback(() => {
     const input = document.getElementById(
       colorInputId,
@@ -77,6 +92,7 @@ function ColorPreview({
           boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
           cursor: "pointer",
           transition: "transform 0.1s",
+          outline: "none",
         }}
         aria-label={label || `Color preview: ${color}`}
         role="button"
@@ -87,6 +103,13 @@ function ColorPreview({
             e.preventDefault();
             openColorPicker();
           }
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.outline = "2px solid var(--ring)";
+          e.currentTarget.style.outlineOffset = "2px";
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.outline = "none";
         }}
       />
       <input
@@ -112,6 +135,7 @@ function ColorPreview({
             type="text"
             value={color}
             onChange={handleHexInputChange}
+            onBlur={handleHexInputBlur}
             style={{
               width: "100%",
               padding: "0.375rem 0.5rem",
@@ -119,11 +143,14 @@ function ColorPreview({
               fontFamily: "ui-monospace, Menlo, Monaco, monospace",
               background: "var(--background)",
               color: "var(--foreground)",
-              border: "1px solid var(--border)",
+              border: hexInputError
+                ? "1px solid var(--error)"
+                : "1px solid var(--border)",
               borderRadius: "var(--radius)",
               outline: "none",
             }}
             aria-label={`Hex value for ${label || "color"}`}
+            aria-invalid={hexInputError}
             title="Type a hex color value (e.g. #ff0000)"
           />
           <span

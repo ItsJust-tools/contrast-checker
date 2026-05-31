@@ -29,6 +29,7 @@ function ColorSwatch({
   const handleClick = useCallback(() => {
     const input = document.getElementById(inputId) as HTMLInputElement | null;
     if (input) {
+      input.focus();
       input.click();
     }
   }, [inputId]);
@@ -42,6 +43,7 @@ function ColorSwatch({
 
   return (
     <div
+      className="color-swatch"
       style={{
         width: "48px",
         height: "48px",
@@ -55,17 +57,24 @@ function ColorSwatch({
         cursor: "pointer",
         position: "relative",
         transition: "transform 0.1s, box-shadow 0.1s",
+        outline: "none",
       }}
       role="button"
       tabIndex={0}
-      aria-label={`Click to pick ${label} color. Current: ${color}`}
-      title={`Click to pick ${label} color`}
+      aria-label={`${label} color: ${color}. Click to change.`}
+      title={`Click to pick ${label} color. Current: ${color}`}
       onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           handleClick();
         }
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.boxShadow = "0 0 0 2px var(--ring)";
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.boxShadow = "none";
       }}
     >
       <span
@@ -332,11 +341,8 @@ export function ToolSidebar({
               alignItems: "center",
               justifyContent: "center",
               fontSize: "0.6875rem",
-              cursor: "pointer",
-              position: "relative",
             }}
             aria-label={`Foreground color: ${fgColor}`}
-            title="Click to pick foreground color"
           >
             FG {fgColor.slice(-6)}
           </div>
@@ -351,11 +357,8 @@ export function ToolSidebar({
               alignItems: "center",
               justifyContent: "center",
               fontSize: "0.6875rem",
-              cursor: "pointer",
-              position: "relative",
             }}
             aria-label={`Background color: ${bgColor}`}
-            title="Click to pick background color"
           >
             BG {bgColor.slice(-6)}
           </div>
