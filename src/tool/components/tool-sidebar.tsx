@@ -13,6 +13,8 @@ interface ToolSidebarProps {
     passAA: boolean;
     passAAA: boolean;
   }[];
+  onFgChange?: (color: string) => void;
+  onBgChange?: (color: string) => void;
 }
 
 function ColorSwatch({
@@ -103,6 +105,8 @@ export function ToolSidebar({
   fgColor,
   bgColor,
   combinations,
+  onFgChange,
+  onBgChange,
 }: ToolSidebarProps) {
   const fgPreview = useMemo(() => {
     try {
@@ -314,13 +318,13 @@ export function ToolSidebar({
           <ColorSwatch
             color={fgColor}
             label="Foreground"
-            onColorChange={() => {}}
+            onColorChange={onFgChange}
             inputId="side-fg"
           />
           <ColorSwatch
             color={bgColor}
             label="Background"
-            onColorChange={() => {}}
+            onColorChange={onBgChange}
             inputId="side-bg"
           />
         </div>

@@ -55,6 +55,12 @@ export default function ToolClient() {
           fgColor={state.data.fgColor}
           bgColor={state.data.bgColor}
           combinations={state.data.combinations}
+          onFgChange={(fg) =>
+            state.setData((prev) => ({ ...prev, fgColor: fg }))
+          }
+          onBgChange={(bg) =>
+            state.setData((prev) => ({ ...prev, bgColor: bg }))
+          }
         />
       </main>
       {/* Share Actions - visible only when data is ready */}

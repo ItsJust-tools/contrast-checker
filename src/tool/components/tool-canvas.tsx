@@ -16,11 +16,6 @@ interface ToolCanvasProps {
 interface ColorPreviewProps {
   color: string;
   label?: string;
-}
-
-interface ColorPreviewProps {
-  color: string;
-  label?: string;
   onChange?: (color: string) => void;
   instanceId?: string;
 }
