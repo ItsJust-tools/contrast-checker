@@ -40,8 +40,12 @@ export default function ToolClient() {
           fgColor={state.data.fgColor}
           bgColor={state.data.bgColor}
           canvasRef={canvasRef}
-          onFgChange={(fg) => state.setData((prev) => ({ ...prev, fgColor: fg }))}
-          onBgChange={(bg) => state.setData((prev) => ({ ...prev, bgColor: bg }))}
+          onFgChange={(fg) =>
+            state.setData((prev) => ({ ...prev, fgColor: fg }))
+          }
+          onBgChange={(bg) =>
+            state.setData((prev) => ({ ...prev, bgColor: bg }))
+          }
           label={state.data.label}
           onLabelChange={(label) =>
             state.setData((prev) => ({ ...prev, label: label }))

@@ -279,7 +279,9 @@ body {
     font-size: 0.8125rem;
     font-weight: 500;
     font-family: inherit;
-    transition: background-color 0.15s, border-color 0.15s;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s;
   }
 
   .btn-secondary:hover {

@@ -124,7 +124,43 @@ function checkCompliance(ratio, level, standard = "AA") {
  *   actualRatio: number
  * }}
  */
-function checkContrast(fgColor, bgColor, level = "normal") {
+const WCAG_THRESHOLDS = {
+  AA: { normal: 4.5, large: 3, ui: 3 },
+  AAA: { normal: 7, large: 4.5, ui: 3 },
+};
+
+/**
+ * Get the minimum contrast ratio required for a given WCAG level and text size.
+ * @param {'AA' | 'AAA'} standard - WCAG conformance level
+ * @param {'normal' | 'large' | 'ui'} level - Text / UI component size
+ * @returns {number} Minimum required contrast ratio
+ */
+function getRequiredRatio(standard, level) {
+  return (
+    (WCAG_THRESHOLDS[standard] || WCAG_THRESHOLDS.AA)[level] ||
+    WCAG_THRESHOLDS.AA.normal
+  );
+}
+
+/**
+ * Main contrast check function
+ * Calculates and returns pass/fail status for AA and AAA WCAG standards
+ * @param {string} fgColor - Foreground color (hex)
+ * @param {string} bgColor - Background color (hex)
+ * @param {'normal' | 'large' | 'ui'} [level='normal'] - Text size level
+ * @param {'AA' | 'AAA'} [standard='AA'] - WCAG conformance level
+ * @returns {{
+ *   fg: string,
+ *   bg: string,
+ *   ratio: number,
+ *   passAA: boolean,
+ *   passAAA: boolean,
+ *   level: string,
+ *   requiredRatio: number,
+ *   actualRatio: number
+ * }}
+ */
+function checkContrast(fgColor, bgColor, level = "normal", standard = "AA") {
   const lighter = Math.max(
     getRelativeLuminance(fgColor),
     getRelativeLuminance(bgColor),
@@ -135,6 +171,7 @@ function checkContrast(fgColor, bgColor, level = "normal") {
   );
 
   const ratio = (lighter + 0.05) / (darker + 0.05);
+  const requiredForLevel = getRequiredRatio(standard, level);
 
   return {
     fg: fgColor,
@@ -143,7 +180,7 @@ function checkContrast(fgColor, bgColor, level = "normal") {
     passAA: ratio >= 4.5,
     passAAA: ratio >= 7,
     level,
-    requiredRatio: 4.5,
+    requiredRatio: requiredForLevel,
     actualRatio: ratio,
   };
 }
@@ -158,15 +195,14 @@ function generatePassingColors(bgColor, minContrast = 4.5) {
   const bgLum = getRelativeLuminance(bgColor);
   const colors = [];
   const step = 8;
-  // Pre-allocate to reduce array resizing
-  const estimatedSize = Math.ceil((256 / step) ** 3);
 
   for (let i = 0; i <= 255; i += step) {
     for (let j = 0; j <= 255; j += step) {
       for (let k = 0; k <= 255; k += step) {
         const hex = `#${i.toString(16).padStart(2, "0")}${j.toString(16).padStart(2, "0")}${k.toString(16).padStart(2, "0")}`;
         const fgLum = getRelativeLuminance(hex);
-        const ratio = (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
+        const ratio =
+          (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
 
         if (ratio >= minContrast) {
           colors.push({
@@ -212,4 +248,5 @@ export {
   formatRatio,
   getBrightnessCategory,
   generatePassingColors,
+  getRequiredRatio,
 };
