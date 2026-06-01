@@ -101,6 +101,81 @@ function ColorSwatch({
   );
 }
 
+/** Check icon SVG */
+function CheckIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "18px", height: "18px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/** X icon SVG */
+function XIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "18px", height: "18px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function ComplianceBadge({
+  pass,
+  label,
+  rate,
+}: {
+  pass: boolean;
+  label: string;
+  rate: number;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        padding: "0.5rem 0.75rem",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        background:
+          rate > 0
+            ? "var(--card)"
+            : "var(--error, rgba(244, 63, 94, 0.1))",
+      }}
+    >
+      {rate > 0 ? <CheckIcon /> : <XIcon />}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
+          {label}
+        </span>
+        <span style={{ fontSize: "0.6875rem" }}>
+          {rate.toFixed(0)}% Pass
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function ToolSidebar({
   fgColor,
   bgColor,
@@ -142,13 +217,7 @@ export function ToolSidebar({
     return (passed / combinations.length) * 100;
   }, [combinations]);
 
-  const getLevelIndicator = (ratio: number): "fail" | "aa" | "aaa" => {
-    if (ratio >= 7) return "aaa";
-    if (ratio >= 4.5) return "aa";
-    return "fail";
-  };
-
-  const levelIndicator = getLevelIndicator(averageContrast);
+  const levelIndicator = averageContrast >= 7 ? "aaa" as const : averageContrast >= 4.5 ? "aa" as const : "fail" as const;
 
   return (
     <div className="contrast-sidebar">
@@ -213,92 +282,8 @@ export function ToolSidebar({
             flexWrap: "wrap",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.5rem 0.75rem",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              background:
-                passRateAAA > 0
-                  ? "var(--card)"
-                  : "var(--error, rgba(244, 63, 94, 0.1))",
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              style={{ width: "18px", height: "18px" }}
-              aria-hidden="true"
-            >
-              {passRateAAA > 0 ? (
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3-12a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V6zM8 9a1 1 0 001 1h2a1 1 0 001-1V6a1 1 0 00-1-1H9a1 1 0 00-1 1v3z"
-                  clipRule="evenodd"
-                />
-              ) : (
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              )}
-            </svg>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
-                AAA
-              </span>
-              <span style={{ fontSize: "0.6875rem" }}>
-                {passRateAAA.toFixed(0)}% Pass
-              </span>
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.5rem 0.75rem",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              background:
-                passRateAA > 0
-                  ? "var(--card)"
-                  : "var(--error, rgba(244, 63, 94, 0.1))",
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              style={{ width: "18px", height: "18px" }}
-              aria-hidden="true"
-            >
-              {passRateAA > 0 ? (
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3-12a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V6zM8 9a1 1 0 001 1h2a1 1 0 001-1V6a1 1 0 00-1-1H9a1 1 0 00-1 1v3z"
-                  clipRule="evenodd"
-                />
-              ) : (
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              )}
-            </svg>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>AA</span>
-              <span style={{ fontSize: "0.6875rem" }}>
-                {passRateAA.toFixed(0)}% Pass
-              </span>
-            </div>
-          </div>
+          <ComplianceBadge pass={passRateAAA > 0} label="AAA" rate={passRateAAA} />
+          <ComplianceBadge pass={passRateAA > 0} label="AA" rate={passRateAA} />
         </div>
       </div>
 
@@ -406,9 +391,7 @@ export function ToolSidebar({
                     border: `1px solid ${c.bg}`,
                   }}
                 />
-                <div
-                  style={{ display: "flex", flexDirection: "column", flex: 1 }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                   <span
                     style={{ fontSize: "0.75rem", fontFamily: "monospace" }}
                   >

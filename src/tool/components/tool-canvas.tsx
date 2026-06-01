@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getRelativeLuminance, getContrastRatio } from "@/lib/contrast";
+import {
+  getRelativeLuminance,
+  getContrastRatio,
+  getRequiredRatio,
+  formatRatio,
+} from "@/lib/contrast";
 
 interface ToolCanvasProps {
   fgColor: string;
@@ -166,6 +171,44 @@ function ColorPreview({
   );
 }
 
+/** Check icon SVG */
+function CheckIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "18px", height: "18px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+/** X icon SVG */
+function XIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "18px", height: "18px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
 function ContrastBadge({
   pass,
   standard,
@@ -175,8 +218,6 @@ function ContrastBadge({
   standard: "AA" | "AAA";
   ratio: number;
 }) {
-  const color = pass ? "var(--success)" : "var(--error)";
-
   return (
     <div
       className="contrast-badge"
@@ -192,34 +233,13 @@ function ContrastBadge({
           : "var(--error, rgba(244, 63, 94, 0.1))",
       }}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        style={{ width: "18px", height: "18px" }}
-        aria-hidden="true"
-      >
-        {pass ? (
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3-12a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V6zM8 9a1 1 0 001 1h2a1 1 0 001-1V6a1 1 0 00-1-1H9a1 1 0 00-1 1v3z"
-            clipRule="evenodd"
-          />
-        ) : (
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-            clipRule="evenodd"
-          />
-        )}
-      </svg>
+      {pass ? <CheckIcon /> : <XIcon />}
       <div style={{ display: "flex", flexDirection: "column" }}>
         <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
           {standard}
         </span>
-        <span style={{ fontSize: "0.65rem", color: color, opacity: 0.9 }}>
-          {ratio < 7 && ratio < 4.5 ? `${ratio.toFixed(1)}:1 - ` : ""}
-          {pass ? "Pass" : "Fail"}
+        <span style={{ fontSize: "0.65rem", opacity: 0.9 }}>
+          {pass ? "Pass" : `Fail (needs ${getRequiredRatio(standard, "normal").toFixed(1)}:1)`}
         </span>
       </div>
     </div>
@@ -276,8 +296,10 @@ export function ToolCanvas({
     }
   }, [localBg]);
 
-  const passAA = ratio >= 4.5;
-  const passAAA = ratio >= 7;
+  const passAA = useMemo(() => ratio >= getRequiredRatio("AA", "normal"), [ratio]);
+  const passAAA = useMemo(() => ratio >= getRequiredRatio("AAA", "normal"), [ratio]);
+  const passLargeAA = useMemo(() => ratio >= getRequiredRatio("AA", "large"), [ratio]);
+  const passUIAA = useMemo(() => ratio >= getRequiredRatio("AA", "ui"), [ratio]);
 
   const handleFgChange = useCallback(
     (color: string) => {
@@ -319,11 +341,9 @@ export function ToolCanvas({
         <div className="contrast-row">
           <div className="contrast-row-label">
             <span>Foreground</span>
-            {fgBrightness > 0.18 && (
-              <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-                ({(fgBrightness * 100).toFixed(0)}% luminance)
-              </span>
-            )}
+            <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
+              {" "}({(fgBrightness * 100).toFixed(0)}% luminance)
+            </span>
           </div>
           <ColorPreview
             color={localFg}
@@ -337,11 +357,9 @@ export function ToolCanvas({
         <div className="contrast-row">
           <div className="contrast-row-label">
             <span>Background</span>
-            {bgBrightness < 0.179 && (
-              <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-                ({(bgBrightness * 100).toFixed(0)}% luminance)
-              </span>
-            )}
+            <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
+              {" "}({(bgBrightness * 100).toFixed(0)}% luminance)
+            </span>
           </div>
           <ColorPreview
             color={localBg}
@@ -370,7 +388,7 @@ export function ToolCanvas({
             style={{
               width: "100%",
               height: "48px",
-              background: `${localBg} ${localFg}`,
+              background: localBg,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",
               marginTop: "0.5rem",
@@ -408,29 +426,9 @@ export function ToolCanvas({
               <span
                 style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  style={{ width: "16px", height: "16px", flexShrink: 0 }}
-                  aria-hidden="true"
-                >
-                  {passAA ? (
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3-12a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1h2a1 1 0 001-1V6zm2.588 2.712a1 1 0 00-.586-1.295l-7-3.435A1 1 0 006.286 6l.296 5.669a1 1 0 102 0zM11.716 12.288a1 1 0 00-.296-5.669 1 1 0 00-1.988.296l-.296 5.669a1 1 0 001.988.296l7-3.435a1 1 0 00.586-1.295z"
-                      clipRule="evenodd"
-                    />
-                  ) : (
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  )}
-                </svg>
+                {passAA ? <CheckIcon /> : <XIcon />}
                 <span style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontWeight: 700 }}>{ratio.toFixed(2)}:1</span>
+                  <span style={{ fontWeight: 700 }}>{formatRatio(ratio)}</span>
                   <span style={{ fontSize: "0.65rem", opacity: 0.8 }}>
                     {passAA ? "✓ WCAG AA Pass" : "✗ WCAG AA Fail"}
                   </span>
@@ -462,16 +460,18 @@ export function ToolCanvas({
             }}
           >
             <div>
-              Normal text (18pt or less): <strong>{passAA ? "✓" : "✗"}</strong>{" "}
-              4.5:1 minimum
+              Normal text (18pt or less):{" "}
+              <strong>{passAA ? "✓" : "✗"}</strong>{" "}
+              {getRequiredRatio("AA", "normal").toFixed(1)}:1 minimum
             </div>
             <div>
               Large text (18pt+ or 14pt bold):{" "}
-              <strong>{ratio >= 3 ? "✓" : "✗"}</strong> 3:1 minimum
+              <strong>{passLargeAA ? "✓" : "✗"}</strong>{" "}
+              {getRequiredRatio("AA", "large").toFixed(1)}:1 minimum
             </div>
             <div>
-              UI Components: <strong>{ratio >= 3 ? "✓" : "✗"}</strong> 3:1
-              minimum
+              UI Components: <strong>{passUIAA ? "✓" : "✗"}</strong>{" "}
+              {getRequiredRatio("AA", "ui").toFixed(1)}:1 minimum
             </div>
           </div>
         </div>
