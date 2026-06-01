@@ -56,8 +56,8 @@ function getRelativeLuminance(hex: string): number {
   } else if (cleaned.length === 8) {
     r = parseInt(cleaned.slice(0, 2), 16) / 255;
     g = parseInt(cleaned.slice(2, 4), 16) / 255;
-    b = parseInt(cleaned.slice(6, 8), 16) / 255;
-    // Alpha channel (cleaned.slice(4, 6)) is intentionally ignored
+    b = parseInt(cleaned.slice(4, 6), 16) / 255;
+    // Alpha channel (cleaned.slice(6, 8)) is intentionally ignored
     // as WCAG contrast ratio is calculated on opaque colors
   } else {
     throw new Error(

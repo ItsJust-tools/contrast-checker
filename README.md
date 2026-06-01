@@ -16,6 +16,7 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 - **Brightness Information**: Display percentage brightness for accurate contrast calculations
 - **Text Level Support**: Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
 - **Share & Export**: Export results as JSON or share via `.itsjust.json` files
+- **Dark Mode**: Full dark mode support with system preference detection
 
 ## Live Demo
 
@@ -40,6 +41,15 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
    - WCAG AA compliance (requires 4.5:1 for normal text)
    - WCAG AAA compliance (requires 7:1 for normal text)
    - Large text and UI component requirements (3:1)
+
+## Tech Stack
+
+- **[Next.js 16](https://nextjs.org/)** — React framework with Turbopack
+- **[React 19](https://react.dev/)** — UI library
+- **[TypeScript 6](https://www.typescriptlang.org/)** — Type safety
+- **[Tailwind CSS v4](https://tailwindcss.com/)** — Utility-first CSS
+- **[Vitest](https://vitest.dev/)** — Unit testing
+- **[Playwright](https://playwright.dev/)** — E2E testing
 
 ## WCAG Requirements
 

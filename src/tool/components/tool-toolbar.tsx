@@ -1,15 +1,19 @@
 "use client";
 
-import { useCallback } from "react";
+import type { ReactNode } from "react";
 
 interface ToolToolbarProps {
   onExport?: () => void;
+  children?: ReactNode;
 }
 
-export function ToolToolbar({ onExport }: ToolToolbarProps) {
-  const actions = useCallback(() => {
-    return (
-      <>
+export function ToolToolbar({ onExport, children }: ToolToolbarProps) {
+  return (
+    <div
+      className="contrast-toolbar"
+      style={{ padding: "0.5rem", display: "flex", justifyContent: "flex-end" }}
+    >
+      {children ?? (
         <button
           type="button"
           onClick={onExport}
@@ -44,16 +48,7 @@ export function ToolToolbar({ onExport }: ToolToolbarProps) {
           </svg>
           Export
         </button>
-      </>
-    );
-  }, [onExport]);
-
-  return (
-    <div
-      className="contrast-toolbar"
-      style={{ padding: "0.5rem", display: "flex", justifyContent: "flex-end" }}
-    >
-      {actions()}
+      )}
     </div>
   );
 }
