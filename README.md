@@ -1,22 +1,25 @@
 # Contrast Checker
 
-A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines.
+A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines. Check any color combination against WCAG 2.1 AA and AAA standards.
 
 [![Version](https://img.shields.io/badge/Version-1.3.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/LICENSE)
 [![CI](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md)
+[![WCAG 2.1](https://img.shields.io/badge/WCAG-2.1-blueviolet)](https://www.w3.org/TR/WCAG21/)
 
 ## Features
 
-- **WCAG AA/AAA Compliance Checking**: Test color combinations against WCAG 2.1 accessibility standards
-- **Click-to-Select Colors**: Click any color swatch to open the native color picker
-- **Live Contrast Preview**: See your contrast ratio in real-time as you adjust colors
-- **Pass/Fail Indicators**: Clear visual indicators showing which WCAG standards are met
-- **Brightness Information**: Display percentage brightness for accurate contrast calculations
-- **Text Level Support**: Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
-- **Share & Export**: Export results as JSON or share via `.itsjust.json` files
-- **Dark Mode**: Full dark mode support with system preference detection
+- **WCAG AA/AAA Compliance Checking** — Test color combinations against WCAG 2.1 accessibility standards
+- **Click-to-Select Colors** — Click any color swatch to open the native color picker
+- **Live Contrast Preview** — See your contrast ratio in real-time as you adjust colors
+- **Pass/Fail Indicators** — Clear visual indicators showing which WCAG standards are met
+- **Brightness Information** — Display percentage brightness for accurate contrast calculations
+- **Text Level Support** — Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
+- **Share & Export** — Export results as JSON, PNG, WebP, or PDF; share via `.itsjust.json` files
+- **Dark Mode** — Full dark mode support with system preference detection
+- **Keyboard Accessible** — Full keyboard navigation with focus indicators
+- **Screen Reader Friendly** — ARIA labels and live regions announce contrast results
 
 ## Live Demo
 
@@ -61,27 +64,65 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 
 ## Supported Formats
 
-- **JSON**: Export contrast combinations as JSON
-- **.itsjust.json**: Share file format for preserving state
+- **JSON** — Export contrast combinations as JSON
+- **PNG / WebP** — Export screenshot of the current view
+- **PDF** — Export as PDF document
+- **.itsjust.json** — Share file format for preserving state
 
 ## Keyboard Navigation
 
-- `Tab` / `Shift+Tab`: Navigate between controls
-- `Enter` / `Space`: Activate clickable elements (color swatches)
-- `Esc`: Close color picker
+| Key                  | Action                       |
+| -------------------- | ---------------------------- |
+| `Tab` / `Shift+Tab`  | Navigate between controls    |
+| `Enter` / `Space`    | Activate clickable elements  |
+| `Esc`                | Close color picker           |
+| `Ctrl+Shift+E`       | Export as JSON               |
+| `Ctrl+Shift+P`       | Export as PNG                |
 
 ## Accessibility
 
 This tool is fully accessible:
 
 - Keyboard navigation support
-- Screen reader compatible
+- Screen reader compatible with live region announcements
 - High contrast mode support
 - Clear focus indicators
+- ARIA labels on all interactive elements
+
+## Scripts
+
+| Command                | Description                      |
+| ---------------------- | -------------------------------- |
+| `npm run dev`          | Start development server         |
+| `npm run build`        | Build for production             |
+| `npm test`             | Run unit tests (Vitest)          |
+| `npm run test:e2e`     | Run E2E tests (Playwright)       |
+| `npm run coverage`     | Run tests with coverage report   |
+| `npm run lint`         | Run ESLint                       |
+| `npm run format`       | Format code with Prettier        |
+| `npm run deps:check`   | Check for unused dependencies    |
+
+## Project Structure
+
+```
+contrast-checker/
+├── src/
+│   ├── app/           # Next.js app router pages
+│   ├── lib/           # Core contrast calculation logic
+│   └── tool/
+│       ├── components/  # React components (canvas, sidebar, toolbar)
+│       ├── exporters/   # Export plugins (PNG, WebP, PDF)
+│       └── tool-definition.ts  # Tool configuration
+├── packages/
+│   └── core/          # Shared @itsjust/core library
+├── __tests__/         # Unit and E2E tests
+└── public/            # Static assets
+```
 
 ## Contributing
 
 This is an open-source project. Contributions, issues, and feature requests are welcome.
+See [CONTRIBUTING.md](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md) to get started.
 
 ## License
 

@@ -32,6 +32,22 @@ export default function ToolClient() {
     [exportTo],
   );
 
+  const handleAddCombination = useCallback(
+    (combination: {
+      fg: string;
+      bg: string;
+      ratio: number;
+      passAA: boolean;
+      passAAA: boolean;
+    }) => {
+      state.setData((prev) => ({
+        ...prev,
+        combinations: [...prev.combinations, combination],
+      }));
+    },
+    [state],
+  );
+
   return (
     <div className="contrast-tool-layout">
       <ToolToolbar onExport={() => handleExport("json")} />
@@ -50,6 +66,7 @@ export default function ToolClient() {
           onLabelChange={(label) =>
             state.setData((prev) => ({ ...prev, label: label }))
           }
+          onAddCombination={handleAddCombination}
         />
         <ToolSidebar
           fgColor={state.data.fgColor}

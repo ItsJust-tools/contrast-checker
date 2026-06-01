@@ -16,6 +16,13 @@ interface ToolCanvasProps {
   onBgChange?: (color: string) => void;
   label?: string;
   onLabelChange?: (label: string) => void;
+  onAddCombination?: (combination: {
+    fg: string;
+    bg: string;
+    ratio: number;
+    passAA: boolean;
+    passAAA: boolean;
+  }) => void;
 }
 
 interface ColorPreviewProps {
@@ -288,6 +295,7 @@ export function ToolCanvas({
   onBgChange,
   label = "",
   onLabelChange,
+  onAddCombination,
 }: ToolCanvasProps) {
   const [localFg, setLocalFg] = useState(fgColor);
   const [localBg, setLocalBg] = useState(bgColor);
@@ -442,9 +450,11 @@ export function ToolCanvas({
                 gap: "1rem",
                 fontSize: "0.875rem",
                 fontWeight: 500,
-                color: ratio > 4.5 ? localFg : localBg,
+                color: localFg,
                 textShadow:
-                  ratio > 4.5 ? `0 0 1px ${localBg}` : `0 0 1px ${localFg}`,
+                  passAA
+                    ? `0 0 2px ${localBg}, 0 0 1px ${localBg}`
+                    : `0 0 3px ${localBg}, 0 0 1px ${localBg}`,
               }}
             >
               <span
@@ -469,6 +479,28 @@ export function ToolCanvas({
                 </span>
               </span>
             </div>
+          </div>
+
+          {/* Live Announcement for Screen Readers */}
+          <div
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+            style={{
+              position: "absolute",
+              width: "1px",
+              height: "1px",
+              padding: 0,
+              margin: "-1px",
+              overflow: "hidden",
+              clip: "rect(0, 0, 0, 0)",
+              whiteSpace: "nowrap",
+              border: 0,
+            }}
+          >
+            Contrast ratio {formatRatio(ratio)}.
+            WCAG AA {passAA ? "pass" : "fail"} for normal text.
+            WCAG AAA {passAAA ? "pass" : "fail"} for normal text.
           </div>
 
           {/* Compliance Badges */}
@@ -509,6 +541,46 @@ export function ToolCanvas({
             </div>
           </div>
         </div>
+
+        {/* Save Combination Button */}
+        {onAddCombination && (
+          <button
+            type="button"
+            onClick={() =>
+              onAddCombination({
+                fg: localFg,
+                bg: localBg,
+                ratio: Math.round(ratio * 100) / 100,
+                passAA,
+                passAAA,
+              })
+            }
+            className="btn-secondary"
+            style={{ alignSelf: "flex-start", marginTop: "0.25rem" }}
+            aria-label={`Save current combination ${localFg} on ${localBg} (ratio ${formatRatio(ratio)})`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              style={{
+                width: "16px",
+                height: "16px",
+                display: "inline-block",
+                verticalAlign: "middle",
+                marginRight: "0.25rem",
+              }}
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Save Combination
+          </button>
+        )}
       </div>
 
       {/* Label Input */}
