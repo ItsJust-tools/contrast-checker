@@ -46,23 +46,45 @@ function ColorPreview({
       // Allow typing a hex value, auto-complete with # if missing
       const fullHex = val.startsWith("#") ? val : `#${val}`;
       if (/^#[0-9a-fA-F]{6}$/.test(fullHex)) {
+        setHexInputError(false);
         onChange?.(fullHex);
+      } else if (/^#[0-9a-fA-F]{3}$/.test(fullHex)) {
+        // Convert shorthand 3-char hex to 6-char
+        const expanded =
+          "#" +
+          fullHex[1] + fullHex[1] +
+          fullHex[2] + fullHex[2] +
+          fullHex[3] + fullHex[3];
+        setHexInputError(false);
+        onChange?.(expanded);
+      } else if (val.length >= 7) {
+        setHexInputError(true);
+      } else {
+        setHexInputError(false);
       }
     },
     [onChange],
   );
 
   const [hexInputError, setHexInputError] = useState(false);
+  const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
 
   const handleHexInputBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const val = e.target.value.trim();
       if (!val) {
         setHexInputError(false);
+        setHexInputMessage(null);
         return;
       }
       const cleaned = val.startsWith("#") ? val : `#${val}`;
-      setHexInputError(!/^#[0-9a-fA-F]{6}$/.test(cleaned));
+      const isValid = /^#[0-9a-fA-F]{6}$/.test(cleaned) || /^#[0-9a-fA-F]{3}$/.test(cleaned);
+      setHexInputError(!isValid);
+      if (!isValid) {
+        setHexInputMessage("Expected format: #RRGGBB");
+      } else {
+        setHexInputMessage(null);
+      }
     },
     [],
   );
@@ -151,8 +173,20 @@ function ColorPreview({
             }}
             aria-label={`Hex value for ${label || "color"}`}
             aria-invalid={hexInputError}
-            title="Type a hex color value (e.g. #ff0000)"
+            title="Type a hex color value (e.g. #ff0000 or #f00)"
           />
+          {hexInputMessage && (
+            <span
+              style={{
+                fontSize: "0.625rem",
+                color: "var(--error)",
+                whiteSpace: "nowrap",
+              }}
+              role="alert"
+            >
+              {hexInputMessage}
+            </span>
+          )}
           <span
             style={{
               display: "inline-block",

@@ -11,27 +11,30 @@
 const WCAG_THRESHOLDS = {
   AA: { normal: 4.5, large: 3, ui: 3 },
   AAA: { normal: 7, large: 4.5, ui: 3 },
-};
+} as const;
+
+type WcagStandard = "AA" | "AAA";
+type TextLevel = "normal" | "large" | "ui";
 
 /**
  * Get the minimum contrast ratio required for a given WCAG level and text size.
- * @param {'AA' | 'AAA'} standard - WCAG conformance level
- * @param {'normal' | 'large' | 'ui'} level - Text / UI component size
- * @returns {number} Minimum required contrast ratio
+ * @param standard - WCAG conformance level
+ * @param level - Text / UI component size
+ * @returns Minimum required contrast ratio
  */
-function getRequiredRatio(standard, level) {
-  const levels = (WCAG_THRESHOLDS[standard] || WCAG_THRESHOLDS.AA);
-  return levels[level] || WCAG_THRESHOLDS.AA.normal;
+function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
+  const levels = WCAG_THRESHOLDS[standard] ?? WCAG_THRESHOLDS.AA;
+  return levels[level] ?? WCAG_THRESHOLDS.AA.normal;
 }
 
 /**
  * Calculate relative luminance of a color
  * Implements WCAG 2.1 relative luminance calculation
- * @param {string} hex - Hex color value (e.g., '#ffffff' or 'ffffff')
- * @returns {number} Relative luminance (0-1)
+ * @param hex - Hex color value (e.g., '#ffffff' or 'ffffff')
+ * @returns Relative luminance (0-1)
  * @throws {Error} If hex color format is invalid
  */
-function getRelativeLuminance(hex) {
+function getRelativeLuminance(hex: string): number {
   if (!hex || typeof hex !== "string") {
     throw new Error("Invalid hex color: must be a non-empty string");
   }
@@ -40,7 +43,7 @@ function getRelativeLuminance(hex) {
   const cleaned = hex.replace(/^#/, "");
 
   // Convert to RGB
-  let r, g, b;
+  let r: number, g: number, b: number;
   if (cleaned.length === 6) {
     r = parseInt(cleaned.slice(0, 2), 16) / 255;
     g = parseInt(cleaned.slice(2, 4), 16) / 255;
@@ -68,7 +71,7 @@ function getRelativeLuminance(hex) {
   }
 
   // Apply gamma correction (c is already 0-1 range)
-  const adjust = (c) => {
+  const adjust = (c: number): number => {
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   };
 
@@ -78,12 +81,12 @@ function getRelativeLuminance(hex) {
 /**
  * Calculate contrast ratio between two colors
  * Uses the WCAG 2.1 formula: (L1 + 0.05) / (L2 + 0.05)
- * @param {string} colorA - First color (hex)
- * @param {string} colorB - Second color (hex)
- * @returns {number} Contrast ratio (1:1 to 21:1)
+ * @param colorA - First color (hex)
+ * @param colorB - Second color (hex)
+ * @returns Contrast ratio (1:1 to 21:1)
  * @throws {Error} If either color is invalid
  */
-function getContrastRatio(colorA, colorB) {
+function getContrastRatio(colorA: string, colorB: string): number {
   const lum1 = getRelativeLuminance(colorA);
   const lum2 = getRelativeLuminance(colorB);
 
@@ -95,12 +98,15 @@ function getContrastRatio(colorA, colorB) {
 
 /**
  * Check WCAG compliance for a given contrast ratio
- * @param {number} ratio - Contrast ratio (1-21)
- * @param {'normal' | 'large' | 'ui'} level - Text size level
- * @param {'AA' | 'AAA'} [standard='AA'] - WCAG standard level
- * @returns {{ compliant: boolean; requiredRatio: number }}
+ * @param ratio - Contrast ratio (1-21)
+ * @param level - Text size level
+ * @param standard - WCAG standard level (defaults to AA)
  */
-function checkCompliance(ratio, level, standard = "AA") {
+function checkCompliance(
+  ratio: number,
+  level: TextLevel,
+  standard: WcagStandard = "AA",
+): { compliant: boolean; requiredRatio: number } {
   const min = getRequiredRatio(standard, level);
   return {
     compliant: ratio >= min,
@@ -111,22 +117,26 @@ function checkCompliance(ratio, level, standard = "AA") {
 /**
  * Main contrast check function
  * Calculates and returns pass/fail status for AA and AAA WCAG standards
- * @param {string} fgColor - Foreground color (hex)
- * @param {string} bgColor - Background color (hex)
- * @param {'normal' | 'large' | 'ui'} [level='normal'] - Text size level
- * @param {'AA' | 'AAA'} [standard='AA'] - WCAG conformance level
- * @returns {{
- *   fg: string,
- *   bg: string,
- *   ratio: number,
- *   passAA: boolean,
- *   passAAA: boolean,
- *   level: string,
- *   requiredRatio: number,
- *   actualRatio: number
- * }}
+ * @param fgColor - Foreground color (hex)
+ * @param bgColor - Background color (hex)
+ * @param level - Text size level (defaults to 'normal')
+ * @param standard - WCAG conformance level (defaults to 'AA')
  */
-function checkContrast(fgColor, bgColor, level = "normal", standard = "AA") {
+function checkContrast(
+  fgColor: string,
+  bgColor: string,
+  level: TextLevel = "normal",
+  standard: WcagStandard = "AA",
+): {
+  fg: string;
+  bg: string;
+  ratio: number;
+  passAA: boolean;
+  passAAA: boolean;
+  level: string;
+  requiredRatio: number;
+  actualRatio: number;
+} {
   const ratio = getContrastRatio(fgColor, bgColor);
   const requiredForLevel = getRequiredRatio(standard, level);
   const levelAA = getRequiredRatio("AA", level);
@@ -146,18 +156,17 @@ function checkContrast(fgColor, bgColor, level = "normal", standard = "AA") {
 
 /**
  * Format contrast ratio for display
- * @param {number} ratio - Contrast ratio
- * @returns {string} Formatted ratio string (e.g., "4.50:1")
+ * @param ratio - Contrast ratio
+ * @returns Formatted ratio string (e.g., "4.50:1")
  */
-const formatRatio = (ratio) => `${ratio.toFixed(2)}:1`;
+const formatRatio = (ratio: number): string => `${ratio.toFixed(2)}:1`;
 
 /**
  * Get color brightness category (light, medium, or dark)
  * Based on WCAG relative luminance thresholds
- * @param {string} hex - Hex color value
- * @returns {'light' | 'dark' | 'medium'}
+ * @param hex - Hex color value
  */
-function getBrightnessCategory(hex) {
+function getBrightnessCategory(hex: string): "light" | "dark" | "medium" {
   const lum = getRelativeLuminance(hex);
   if (lum > 0.18) return "light";
   if (lum < 0.06) return "dark";
