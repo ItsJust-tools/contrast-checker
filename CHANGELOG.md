@@ -23,6 +23,22 @@ All notable changes to the Contrast Checker will be documented in this file.
 - Updated dependencies: eslint to ^10, typescript to ^6, lucide-react to ^1.17
 - Removed misleading `cursor: pointer` from non-interactive Color Reference display elements
 
+## [1.4.0] - 2026-06-02
+
+### Added
+
+- Clear Combinations button in sidebar to remove all saved color pairs
+- Shared SVG icon components (`icons.tsx`) reducing code duplication across canvas and sidebar
+
+### Fixed
+
+- Sidebar compliance badges now correctly show pass/fail based on majority pass rate (>= 50%) instead of showing a checkmark when only a single combination passes
+- Removed inline-duplicated CheckIcon, XIcon, and PlusIcon SVG definitions in favor of shared components
+
+### Changed
+
+- Updated version to 1.4.0
+
 ## [Unreleased]
 
 ### Added

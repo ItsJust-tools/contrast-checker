@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import { getRelativeLuminance, getContrastRatio } from "@/lib/contrast";
+import { CheckIcon, XIcon, TrashIcon } from "./icons";
 
 interface ToolSidebarProps {
   fgColor: string;
@@ -15,6 +16,7 @@ interface ToolSidebarProps {
   }[];
   onFgChange?: (color: string) => void;
   onBgChange?: (color: string) => void;
+  onClearCombinations?: () => void;
 }
 
 function ColorSwatch({
@@ -101,43 +103,7 @@ function ColorSwatch({
   );
 }
 
-/** Check icon SVG */
-function CheckIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      style={{ width: "18px", height: "18px" }}
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
 
-/** X icon SVG */
-function XIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      style={{ width: "18px", height: "18px" }}
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
 
 function ComplianceBadge({
   pass,
@@ -181,6 +147,7 @@ export function ToolSidebar({
   combinations,
   onFgChange,
   onBgChange,
+  onClearCombinations,
 }: ToolSidebarProps) {
   const fgPreview = useMemo(() => {
     try {
@@ -272,7 +239,7 @@ export function ToolSidebar({
           </div>
         </div>
 
-        {/* Compliance Badges */}
+        {/* Compliance Badges — show check when at least half of saved combos pass */}
         <div
           style={{
             display: "flex",
@@ -281,8 +248,8 @@ export function ToolSidebar({
             flexWrap: "wrap",
           }}
         >
-          <ComplianceBadge pass={passRateAAA > 0} label="AAA" rate={passRateAAA} />
-          <ComplianceBadge pass={passRateAA > 0} label="AA" rate={passRateAA} />
+          <ComplianceBadge pass={combinations.length > 0 && passRateAA >= 50} label="AA" rate={passRateAA} />
+          <ComplianceBadge pass={combinations.length > 0 && passRateAAA >= 50} label="AAA" rate={passRateAAA} />
         </div>
       </div>
 
@@ -356,7 +323,34 @@ export function ToolSidebar({
       {/* Combinations Export */}
       {combinations.length > 0 && (
         <div className="sidebar-section">
-          <h3>Combinations</h3>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <h3>Combinations ({combinations.length})</h3>
+            {onClearCombinations && (
+              <button
+                type="button"
+                onClick={onClearCombinations}
+                className="btn-secondary"
+                style={{
+                  fontSize: "0.6875rem",
+                  padding: "0.25rem 0.5rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
+                  color: "var(--error)",
+                }}
+                aria-label="Clear all saved combinations"
+              >
+                <TrashIcon />
+                Clear
+              </button>
+            )}
+          </div>
           <div
             style={{
               maxHeight: "200px",

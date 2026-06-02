@@ -48,6 +48,13 @@ export default function ToolClient() {
     [state],
   );
 
+  const handleClearCombinations = useCallback(() => {
+    state.setData((prev) => ({
+      ...prev,
+      combinations: [],
+    }));
+  }, [state]);
+
   return (
     <div className="contrast-tool-layout">
       <ToolToolbar onExport={() => handleExport("json")} />
@@ -78,6 +85,7 @@ export default function ToolClient() {
           onBgChange={(bg) =>
             state.setData((prev) => ({ ...prev, bgColor: bg }))
           }
+          onClearCombinations={handleClearCombinations}
         />
       </main>
       {/* Share Actions - visible only when data is ready */}
