@@ -1,10 +1,13 @@
 /**
  * WCAG Contrast Ratio Calculator
  *
- * Implements the WCAG 2.1 contrast ratio algorithm for determining
+ * Implements the WCAG 2.1 & 2.2 contrast ratio algorithm for determining
  * accessibility compliance.
  *
+ * All calculations are client-side and stateless — no server calls.
+ *
  * @see https://www.w3.org/WAI/WCAG21/Techniques/calc#contrast
+ * @see https://www.w3.org/TR/WCAG22/#contrast-enhanced
  */
 
 /** WCAG 2.1 minimum contrast ratio thresholds */
@@ -28,13 +31,17 @@ function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
 }
 
 /**
- * Calculate relative luminance of a color
- * Implements WCAG 2.1 relative luminance calculation
- * @param hex - Hex color value (e.g., '#ffffff' or 'ffffff')
- * @returns Relative luminance (0-1)
- * @throws {Error} If hex color format is invalid
+ * Normalize a hex color string: strips '#' prefix, validates length,
+ * and returns the cleaned hex digits along with parsed R/G/B values (0-1 range).
+ *
+ * Supports 3-digit (#RGB), 6-digit (#RRGGBB), and 8-digit (#RRGGBBAA) formats.
+ * Alpha channel from 8-digit values is intentionally discarded per WCAG spec.
+ *
+ * @param hex - Raw hex color input (with or without '#' prefix)
+ * @returns Object with cleaned hex string and parsed r/g/b components
+ * @throws {Error} If the input is not a valid hex color
  */
-function getRelativeLuminance(hex: string): number {
+function _normalizeHex(hex: string): { r: number; g: number; b: number; cleaned: string } {
   if (!hex || typeof hex !== "string") {
     throw new Error("Invalid hex color: must be a non-empty string");
   }
@@ -42,14 +49,13 @@ function getRelativeLuminance(hex: string): number {
   // Remove '#' if present
   const cleaned = hex.replace(/^#/, "");
 
-  // Convert to RGB
   let r: number, g: number, b: number;
   if (cleaned.length === 6) {
     r = parseInt(cleaned.slice(0, 2), 16) / 255;
     g = parseInt(cleaned.slice(2, 4), 16) / 255;
     b = parseInt(cleaned.slice(4, 6), 16) / 255;
   } else if (cleaned.length === 3) {
-    // Handle shorthand hex like #fff
+    // Shorthand hex like #fff → #ffffff
     r = parseInt(cleaned[0] + cleaned[0], 16) / 255;
     g = parseInt(cleaned[1] + cleaned[1], 16) / 255;
     b = parseInt(cleaned[2] + cleaned[2], 16) / 255;
@@ -58,19 +64,32 @@ function getRelativeLuminance(hex: string): number {
     g = parseInt(cleaned.slice(2, 4), 16) / 255;
     b = parseInt(cleaned.slice(4, 6), 16) / 255;
     // Alpha channel (cleaned.slice(6, 8)) is intentionally ignored
-    // as WCAG contrast ratio is calculated on opaque colors
+    // per WCAG spec: contrast is calculated on opaque colors only
   } else {
     throw new Error(
       `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
     );
   }
 
-  // Validate parsed values
+  // Validate parsed values are actual numbers
   if (isNaN(r) || isNaN(g) || isNaN(b)) {
     throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
   }
 
-  // Apply gamma correction (c is already 0-1 range)
+  return { r, g, b, cleaned };
+}
+
+/**
+ * Calculate relative luminance of a color
+ * Implements WCAG 2.1 relative luminance calculation
+ * @param hex - Hex color value (e.g., '#ffffff' or 'ffffff')
+ * @returns Relative luminance (0-1)
+ * @throws {Error} If hex color format is invalid
+ */
+function getRelativeLuminance(hex: string): number {
+  const { r, g, b } = _normalizeHex(hex);
+
+  // Apply gamma correction using the sRGB transfer function
   const adjust = (c: number): number => {
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   };
