@@ -19,8 +19,11 @@ export default function ToolClient() {
     },
   );
 
-  const { exportTo, isExporting } = useExport(canvasRef, toolConfig, () =>
-    contrastTool.serialize(state.data),
+  const { exportTo, isExporting } = useExport(
+    canvasRef,
+    toolConfig,
+    () => contrastTool.serialize(state.data),
+    contrastTool.exporters,
   );
 
   const { downloadShareFile, shareViaWeb } = useShare();

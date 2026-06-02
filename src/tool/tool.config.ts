@@ -9,7 +9,7 @@ const toolConfig = {
   description:
     "Test color contrast ratios against WCAG guidelines. Check accessibility compliance for AA and AAA levels with normal and large text.",
   version: "1.4.0",
-  exportFormats: ["json", "png", "jpeg", "webp", "pdf"],
+  exportFormats: ["json", "png", "webp", "pdf"],
   features: {
     export: true,
     autoSave: false,

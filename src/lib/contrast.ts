@@ -79,11 +79,13 @@ function getRelativeLuminance(hex: string): number {
 }
 
 /**
- * Calculate contrast ratio between two colors
+ * Calculate contrast ratio between two colors.
  * Uses the WCAG 2.1 formula: (L1 + 0.05) / (L2 + 0.05)
+ * where L1 is the lighter luminance and L2 is the darker.
+ *
  * @param colorA - First color (hex)
  * @param colorB - Second color (hex)
- * @returns Contrast ratio (1:1 to 21:1)
+ * @returns Contrast ratio (1:1 to 21:1). Order-independent.
  * @throws {Error} If either color is invalid
  */
 function getContrastRatio(colorA: string, colorB: string): number {
@@ -97,10 +99,12 @@ function getContrastRatio(colorA: string, colorB: string): number {
 }
 
 /**
- * Check WCAG compliance for a given contrast ratio
+ * Check WCAG compliance for a given contrast ratio.
+ *
  * @param ratio - Contrast ratio (1-21)
  * @param level - Text size level
  * @param standard - WCAG standard level (defaults to AA)
+ * @returns Object with `compliant` boolean and `requiredRatio`
  */
 function checkCompliance(
   ratio: number,
@@ -115,12 +119,15 @@ function checkCompliance(
 }
 
 /**
- * Main contrast check function
+ * Main contrast check function.
  * Calculates and returns pass/fail status for AA and AAA WCAG standards
- * @param fgColor - Foreground color (hex)
- * @param bgColor - Background color (hex)
+ * for the given color pair.
+ *
+ * @param fgColor - Foreground color (hex, e.g. "#000000")
+ * @param bgColor - Background color (hex, e.g. "#ffffff")
  * @param level - Text size level (defaults to 'normal')
  * @param standard - WCAG conformance level (defaults to 'AA')
+ * @returns Object with contrast ratio, pass/fail for AA/AAA, and required ratio
  */
 function checkContrast(
   fgColor: string,
@@ -153,16 +160,19 @@ function checkContrast(
 }
 
 /**
- * Format contrast ratio for display
+ * Format contrast ratio for display.
+ *
  * @param ratio - Contrast ratio
  * @returns Formatted ratio string (e.g., "4.50:1")
  */
 const formatRatio = (ratio: number): string => `${ratio.toFixed(2)}:1`;
 
 /**
- * Get color brightness category (light, medium, or dark)
- * Based on WCAG relative luminance thresholds
+ * Get color brightness category (light, medium, or dark).
+ * Based on WCAG relative luminance thresholds.
+ *
  * @param hex - Hex color value
+ * @returns "light", "dark", or "medium" category
  */
 function getBrightnessCategory(hex: string): "light" | "dark" | "medium" {
   const lum = getRelativeLuminance(hex);

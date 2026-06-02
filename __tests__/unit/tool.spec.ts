@@ -112,7 +112,7 @@ describe("Contrast Checker Tool", () => {
     it("should have all export formats configured", () => {
       expect(contrastTool.config.exportFormats).toContain("json");
       expect(contrastTool.config.exportFormats).toContain("png");
-      expect(contrastTool.config.exportFormats).toContain("jpeg");
+      expect(contrastTool.config.exportFormats).toContain("png");
       expect(contrastTool.config.exportFormats).toContain("webp");
       expect(contrastTool.config.exportFormats).toContain("pdf");
     });
