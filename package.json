@@ -7,6 +7,20 @@
     "type": "git",
     "url": "git+https://github.com/ItsJust-tools/contrast-checker.git"
   },
+  "bugs": {
+    "url": "https://github.com/ItsJust-tools/contrast-checker/issues"
+  },
+  "keywords": [
+    "wcag",
+    "contrast",
+    "accessibility",
+    "a11y",
+    "color",
+    "checker",
+    "itsjust",
+    "nextjs",
+    "react"
+  ],
   "description": "A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines.",
   "workspaces": [
     "packages/*"

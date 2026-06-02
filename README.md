@@ -6,20 +6,25 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/LICENSE)
 [![CI](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md)
+[![WCAG 2.2](https://img.shields.io/badge/WCAG-2.2-blueviolet)](https://www.w3.org/TR/WCAG22/)
 [![WCAG 2.1](https://img.shields.io/badge/WCAG-2.1-blueviolet)](https://www.w3.org/TR/WCAG21/)
+[![a11y](https://img.shields.io/badge/a11y-passing-brightgreen)](https://www.w3.org/WAI/)
 
 ## Features
 
-- **WCAG AA/AAA Compliance Checking** — Test color combinations against WCAG 2.1 accessibility standards
+- **WCAG 2.1 & 2.2 Compliance Checking** — Test color combinations against latest accessibility standards
 - **Click-to-Select Colors** — Click any color swatch to open the native color picker
 - **Live Contrast Preview** — See your contrast ratio in real-time as you adjust colors
 - **Pass/Fail Indicators** — Clear visual indicators showing which WCAG standards are met
-- **Brightness Information** — Display percentage brightness for accurate contrast calculations
+- **Brightness Information** — Display relative luminance for accurate contrast calculations
 - **Text Level Support** — Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
 - **Share & Export** — Export results as JSON, PNG, WebP, or PDF; share via `.itsjust.json` files
 - **Dark Mode** — Full dark mode support with system preference detection
 - **Keyboard Accessible** — Full keyboard navigation with focus indicators
 - **Screen Reader Friendly** — ARIA labels and live regions announce contrast results
+- **Short Hex (3-digit) Support** — Supports shorthand hex like `#fff` in addition to `#ffffff`
+- **8-digit Hex (RGBA) Support** — Accepts 8-digit hex values (alpha channel ignored per WCAG spec)
+- **Export Accuracy** — All exports use the full-precision contrast ratio for accurate records
 
 ## Live Demo
 
@@ -61,6 +66,8 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 | Normal text (18pt or less)      | 4.5:1 (AA) / 7:1 (AAA) | Body text readability  |
 | Large text (18pt+ or 14pt bold) | 3:1 (AA) / 4.5:1 (AAA) | Headings, captions     |
 | UI Components                   | 3:1 (AA)               | Buttons, form elements |
+
+> These thresholds are identical under WCAG 2.1 and WCAG 2.2 guidelines.
 
 ## Supported Formats
 

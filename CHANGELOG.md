@@ -25,14 +25,23 @@ All notable changes to the Contrast Checker will be documented in this file.
 
 ## [Unreleased]
 
-- Initial release of Contrast Checker v1.2.0
-- WCAG AA/AAA compliance checking for color contrast ratios
-- Click-to-select color feature with native color picker
-- Pass/fail indicators for accessibility standards
-- Support for normal text, large text, and UI component requirements
-- Export results as JSON, PNG, JPEG, WebP, PDF (image export support added)
-- Share via `.itsjust.json` files
-- Color pickers for foreground and background colors
+### Added
+
+- WCAG 2.2 compliance badge and references in README
+- CONTRIBUTING.md with development and PR guidelines
+- Missing `description` field in package.json
+
+### Fixed
+
+- Reordered `useState` hooks before `useCallback` that referenced their setters in `tool-canvas.tsx` to follow React hooks rules
+- Removed redundant `actualRatio` field from `checkContrast` return type (`ratio` provides the display value; full precision is available via `getContrastRatio()`)
+
+### Changed
+
+- Updated README with expanded feature list (short hex, 8-digit hex, export accuracy)
+- Added WCAG 2.2 badge alongside existing WCAG 2.1 badge
+
+## [1.3.0] - 2026-05-31
 
 ## [1.1.0] - 2026-05-24
 

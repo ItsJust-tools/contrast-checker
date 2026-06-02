@@ -135,7 +135,6 @@ function checkContrast(
   passAAA: boolean;
   level: string;
   requiredRatio: number;
-  actualRatio: number;
 } {
   const ratio = getContrastRatio(fgColor, bgColor);
   const requiredForLevel = getRequiredRatio(standard, level);
@@ -150,7 +149,6 @@ function checkContrast(
     passAAA: ratio >= levelAAA,
     level,
     requiredRatio: requiredForLevel,
-    actualRatio: ratio,
   };
 }
 

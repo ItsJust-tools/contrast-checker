@@ -40,6 +40,9 @@ function ColorPreview({
 }: ColorPreviewProps) {
   const colorInputId = `color-picker-${instanceId}`;
 
+  const [hexInputError, setHexInputError] = useState(false);
+  const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
+
   const handleColorPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e.target.value);
@@ -72,9 +75,6 @@ function ColorPreview({
     },
     [onChange],
   );
-
-  const [hexInputError, setHexInputError] = useState(false);
-  const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
 
   const handleHexInputBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -253,11 +253,9 @@ function XIcon() {
 function ContrastBadge({
   pass,
   standard,
-  ratio,
 }: {
   pass: boolean;
   standard: "AA" | "AAA";
-  ratio: number;
 }) {
   return (
     <div
@@ -512,8 +510,8 @@ export function ToolCanvas({
               marginTop: "0.5rem",
             }}
           >
-            <ContrastBadge pass={passAAA} standard="AAA" ratio={ratio} />
-            <ContrastBadge pass={passAA} standard="AA" ratio={ratio} />
+            <ContrastBadge pass={passAAA} standard="AAA" />
+            <ContrastBadge pass={passAA} standard="AA" />
           </div>
 
           {/* WCAG Guidelines Info */}
