@@ -110,27 +110,11 @@ function ComplianceBadge({
   rate: number;
 }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        padding: "0.5rem 0.75rem",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        background: pass
-          ? "var(--card)"
-          : "var(--error, rgba(244, 63, 94, 0.1))",
-      }}
-    >
+    <div className={`contrast-badge sidebar-compliance ${pass ? "pass" : "fail"}`}>
       {pass ? <CheckIcon /> : <XIcon />}
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
-          {label}
-        </span>
-        <span style={{ fontSize: "0.6875rem" }}>
-          {rate.toFixed(0)}% Pass
-        </span>
+      <div className="contrast-badge-text">
+        <span className="contrast-badge-label">{label}</span>
+        <span className="contrast-badge-status">{rate.toFixed(0)}% Pass</span>
       </div>
     </div>
   );

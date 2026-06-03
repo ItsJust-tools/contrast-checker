@@ -179,6 +179,33 @@ body {
     border-color: var(--error);
   }
 
+  /* Sidebar compliance badges use transparent backgrounds to blend */
+  .sidebar-compliance {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+  }
+
+  .sidebar-compliance.fail {
+    background: var(--accent-subtle);
+    color: var(--foreground);
+  }
+
+  .contrast-badge-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .contrast-badge-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .contrast-badge-status {
+    font-size: 0.65rem;
+    opacity: 0.9;
+  }
+
   .wcag-guidelines {
     font-size: 0.6875rem;
     color: var(--muted);

@@ -209,6 +209,12 @@ function ColorPreview({
 
 
 
+/** Minimum contrast ratio needed per WCAG level (normal text). */
+const WCAG_MIN_RATIO: Record<"AA" | "AAA", number> = {
+  AA: 4.5,
+  AAA: 7,
+};
+
 function ContrastBadge({
   pass,
   standard,
@@ -219,22 +225,14 @@ function ContrastBadge({
   return (
     <div
       className={`contrast-badge ${pass ? "pass" : "fail"}`}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.5rem",
-        padding: "0.5rem 0.75rem",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-      }}
     >
       {pass ? <CheckIcon /> : <XIcon />}
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        <span style={{ fontSize: "0.8125rem", fontWeight: 600 }}>
+      <div className="contrast-badge-text">
+        <span className="contrast-badge-label">
           {standard}
         </span>
-        <span style={{ fontSize: "0.65rem", opacity: 0.9 }}>
-          {pass ? "Pass" : `Fail (needs ${getRequiredRatio(standard, "normal").toFixed(1)}:1)`}
+        <span className="contrast-badge-status">
+          {pass ? "Pass" : `Fail (needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1)`}
         </span>
       </div>
     </div>
