@@ -58,6 +58,13 @@ export default function ToolClient() {
     }));
   }, [state]);
 
+  const handleRemoveCombination = useCallback((index: number) => {
+    state.setData((prev) => ({
+      ...prev,
+      combinations: prev.combinations.filter((_, i) => i !== index),
+    }));
+  }, [state]);
+
   return (
     <div className="contrast-tool-layout">
       <ToolToolbar onExport={() => handleExport("json")} />
@@ -89,6 +96,7 @@ export default function ToolClient() {
             state.setData((prev) => ({ ...prev, bgColor: bg }))
           }
           onClearCombinations={handleClearCombinations}
+          onRemoveCombination={handleRemoveCombination}
         />
       </main>
       {/* Share Actions - visible only when data is ready */}
