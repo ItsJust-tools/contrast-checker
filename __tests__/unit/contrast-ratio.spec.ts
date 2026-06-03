@@ -5,6 +5,7 @@ import {
   getRelativeLuminance,
   checkCompliance,
   getBrightnessCategory,
+  suggestAccessibleColor,
 } from "@/lib/contrast.js";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
@@ -301,6 +302,70 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
         expect(result.passAA).toBe(testCase.expectedAA);
         expect(result.passAAA).toBe(testCase.expectedAAA);
       });
+    });
+  });
+
+  describe("suggestAccessibleColor", () => {
+    it("should suggest white for a dark background", () => {
+      const result = suggestAccessibleColor("#000000");
+      expect(result.best).not.toBeNull();
+      expect(result.best!.passAA).toBe(true);
+      expect(result.best!.ratio).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it("should suggest black for a light background", () => {
+      const result = suggestAccessibleColor("#ffffff");
+      expect(result.best).not.toBeNull();
+      expect(result.best!.passAA).toBe(true);
+      expect(result.best!.ratio).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it("should return a light candidate for a dark background", () => {
+      const result = suggestAccessibleColor("#333333");
+      expect(result.light).not.toBeNull();
+    });
+
+    it("should return white as best suggestion for very dark bg", () => {
+      const result = suggestAccessibleColor("#0a0a0a");
+      expect(result.best?.color).toBe("#ffffff");
+      expect(result.best!.passAAA).toBe(true);
+    });
+
+    it("should return black as best suggestion for very light bg", () => {
+      const result = suggestAccessibleColor("#ffffff");
+      expect(result.best?.color).toBe("#000000");
+      expect(result.best!.passAAA).toBe(true);
+    });
+
+    it("should handle mid-tone backgrounds", () => {
+      const result = suggestAccessibleColor("#808080");
+      expect(result.best).not.toBeNull();
+      expect(result.best!.passAA).toBe(true);
+    });
+
+    it("should return light candidate with correct brightness label", () => {
+      const result = suggestAccessibleColor("#1a1a2e");
+      expect(result.light).not.toBeNull();
+      expect(result.light!.brightness).toBe("light");
+    });
+
+    it("should not crash on an invalid background hex", () => {
+      const result = suggestAccessibleColor("invalid");
+      expect(result.light).toBeNull();
+      expect(result.dark).toBeNull();
+      expect(result.best).toBeNull();
+    });
+
+    it("should suggest a light foreground that passes AA", () => {
+      const result = suggestAccessibleColor("#0d1117");
+      expect(result.light).not.toBeNull();
+      expect(result.light!.passAA).toBe(true);
+    });
+
+    it("should suggest a dark foreground that passes AA when bg is light", () => {
+      const result = suggestAccessibleColor("#f0f0f0");
+      expect(result.dark).not.toBeNull();
+      expect(result.dark!.passAA).toBe(true);
     });
   });
 });

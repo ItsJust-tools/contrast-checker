@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { getRelativeLuminance, getContrastRatio } from "@/lib/contrast";
+import {
+  getRelativeLuminance,
+  getContrastRatio,
+  formatRatio,
+  suggestAccessibleColor,
+} from "@/lib/contrast";
+import type { SuggestionResult } from "@/lib/contrast";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
 
 interface ToolSidebarProps {
@@ -165,6 +171,14 @@ export function ToolSidebar({
 
   const levelIndicator = averageContrast >= 7 ? "aaa" as const : averageContrast >= 4.5 ? "aa" as const : "fail" as const;
 
+  const accessibleSuggestions = useMemo<SuggestionResult>(() => {
+    try {
+      return suggestAccessibleColor(bgColor);
+    } catch {
+      return { light: null, dark: null, best: null };
+    }
+  }, [bgColor]);
+
   return (
     <div className="contrast-sidebar">
       {/* Stats */}
@@ -298,6 +312,146 @@ export function ToolSidebar({
             BG {bgColor.slice(-6)}
           </div>
         </div>
+      </div>
+
+      {/* Accessible Color Suggestions */}
+      <div className="sidebar-section">
+        <h3>Accessible Color Suggestions</h3>
+        <p
+          style={{
+            fontSize: "0.6875rem",
+            color: "var(--muted)",
+            marginBottom: "0.5rem",
+          }}
+        >
+          Suggested foreground colors that pass WCAG AA on this background.
+          Click a suggestion to apply it.
+        </p>
+
+        {accessibleSuggestions.light && (
+          <div
+            className="sidebar-suggestion-row"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.375rem 0.5rem",
+              borderRadius: "var(--radius)",
+              cursor: "pointer",
+              marginBottom: "0.25rem",
+              transition: "background-color 0.15s",
+            }}
+            role="button"
+            tabIndex={0}
+            title={`Apply ${accessibleSuggestions.light.color}`}
+            aria-label={`Apply light foreground ${accessibleSuggestions.light.color} with ratio ${formatRatio(accessibleSuggestions.light.ratio)}`}
+            onClick={() => onFgChange?.(accessibleSuggestions.light!.color)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onFgChange?.(accessibleSuggestions.light!.color);
+              }
+            }}
+          >
+            <div
+              style={{
+                width: "28px",
+                height: "28px",
+                background: accessibleSuggestions.light.color,
+                border: "1px solid var(--border)",
+                borderRadius: "4px",
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  fontFamily: "monospace",
+                  fontWeight: 500,
+                }}
+              >
+                {accessibleSuggestions.light.color}
+              </span>
+              <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
+                Light · {formatRatio(accessibleSuggestions.light.ratio)}
+                {accessibleSuggestions.light.passAAA ? " · AAA✓" : " · AA✓"}
+              </span>
+            </div>
+            <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
+              Click to apply
+            </span>
+          </div>
+        )}
+
+        {accessibleSuggestions.dark && (
+          <div
+            className="sidebar-suggestion-row"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.375rem 0.5rem",
+              borderRadius: "var(--radius)",
+              cursor: "pointer",
+              marginBottom: "0.25rem",
+              transition: "background-color 0.15s",
+            }}
+            role="button"
+            tabIndex={0}
+            title={`Apply ${accessibleSuggestions.dark.color}`}
+            aria-label={`Apply dark foreground ${accessibleSuggestions.dark.color} with ratio ${formatRatio(accessibleSuggestions.dark.ratio)}`}
+            onClick={() => onFgChange?.(accessibleSuggestions.dark!.color)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onFgChange?.(accessibleSuggestions.dark!.color);
+              }
+            }}
+          >
+            <div
+              style={{
+                width: "28px",
+                height: "28px",
+                background: accessibleSuggestions.dark.color,
+                border: "1px solid var(--border)",
+                borderRadius: "4px",
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  fontFamily: "monospace",
+                  fontWeight: 500,
+                }}
+              >
+                {accessibleSuggestions.dark.color}
+              </span>
+              <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
+                Dark · {formatRatio(accessibleSuggestions.dark.ratio)}
+                {accessibleSuggestions.dark.passAAA ? " · AAA✓" : " · AA✓"}
+              </span>
+            </div>
+            <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
+              Click to apply
+            </span>
+          </div>
+        )}
+
+        {!accessibleSuggestions.light && !accessibleSuggestions.dark && (
+          <div
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--muted)",
+              fontStyle: "italic",
+              padding: "0.25rem 0",
+            }}
+          >
+            No passing suggestion found for this background color.
+          </div>
+        )}
       </div>
 
       {/* Combinations Export */}

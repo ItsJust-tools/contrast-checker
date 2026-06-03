@@ -200,6 +200,120 @@ function getBrightnessCategory(hex: string): "light" | "dark" | "medium" {
   return "medium";
 }
 
+/**
+ * Result of a suggested accessible color search.
+ */
+interface ColorSuggestion {
+  /** The suggested hex color (e.g. "#ffffff" or "#000000") */
+  color: string;
+  /** The actual contrast ratio achieved with the background */
+  ratio: number;
+  /** Whether AA normal-text passes */
+  passAA: boolean;
+  /** Whether AAA normal-text passes */
+  passAAA: boolean;
+  /** Luminance category of the suggested color */
+  brightness: "light" | "dark" | "medium";
+}
+
+/**
+ * The set of candidate colors tried when suggesting an accessible counterpart.
+ * Ordered by likelihood of providing sufficient contrast.
+ */
+const SUGGESTION_PALETTE_LIGHT: string[] = [
+  "#ffffff",
+  "#f8f9fa",
+  "#e9ecef",
+  "#dee2e6",
+  "#ced4da",
+  "#d4edda",
+  "#d1ecf1",
+  "#fcefb2",
+  "#fff3cd",
+  "#f8d7da",
+];
+
+const SUGGESTION_PALETTE_DARK: string[] = [
+  "#000000",
+  "#212529",
+  "#343a40",
+  "#495057",
+  "#6c757d",
+  "#721c24",
+  "#0c5460",
+  "#856404",
+  "#155724",
+  "#1a1a2e",
+];
+
+interface SuggestionResult {
+  light: ColorSuggestion | null;
+  dark: ColorSuggestion | null;
+  best: ColorSuggestion | null;
+}
+
+/**
+ * Given a background color, suggest accessible foreground color candidates.
+ *
+ * Returns the best light and dark foreground suggestions that pass WCAG AA
+ * for normal text, plus whichever candidate has the best ratio overall.
+ *
+ * Handy for designers who need quick "can I use white/black text on this bg?"
+ * answers.
+ *
+ * @param bgColor - Background hex color
+ * @returns Object with `light`, `dark`, and `best` suggestion candidates.
+ *          Each is null if no candidate in that direction meets AA normal-text.
+ */
+function suggestAccessibleColor(bgColor: string): SuggestionResult {
+  const lightSuggestions: ColorSuggestion[] = [];
+  const darkSuggestions: ColorSuggestion[] = [];
+
+  for (const fg of SUGGESTION_PALETTE_LIGHT) {
+    try {
+      const ratio = getContrastRatio(fg, bgColor);
+      lightSuggestions.push({
+        color: fg,
+        ratio: Math.round(ratio * 100) / 100,
+        passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
+        passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
+        brightness: "light",
+      });
+    } catch {
+      // ignore invalid colors
+    }
+  }
+
+  for (const fg of SUGGESTION_PALETTE_DARK) {
+    try {
+      const ratio = getContrastRatio(fg, bgColor);
+      darkSuggestions.push({
+        color: fg,
+        ratio: Math.round(ratio * 100) / 100,
+        passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
+        passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
+        brightness: "dark",
+      });
+    } catch {
+      // ignore invalid colors
+    }
+  }
+
+  // Pick best (highest ratio) passing candidate in each direction
+  const bestLight = lightSuggestions
+    .filter((s) => s.passAA)
+    .sort((a, b) => b.ratio - a.ratio)[0] ?? null;
+
+  const bestDark = darkSuggestions
+    .filter((s) => s.passAA)
+    .sort((a, b) => b.ratio - a.ratio)[0] ?? null;
+
+  const all = [...lightSuggestions, ...darkSuggestions].filter((s) => s.passAA);
+  const best = all.sort((a, b) => b.ratio - a.ratio)[0] ?? null;
+
+  return { light: bestLight, dark: bestDark, best };
+}
+
 export {
   checkContrast,
   getContrastRatio,
@@ -208,4 +322,7 @@ export {
   formatRatio,
   getBrightnessCategory,
   getRequiredRatio,
+  suggestAccessibleColor,
 };
+
+export type { ColorSuggestion, SuggestionResult };
