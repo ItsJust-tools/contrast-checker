@@ -185,6 +185,48 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
       const result = checkContrast("#FfFfFf", "#000000", "normal", "AA");
       expect(result.passAA).toBe(true);
     });
+
+    it("should handle shorthand 3-digit hex (#RGB)", () => {
+      const result = checkContrast("#fff", "#000", "normal", "AA");
+      expect(result.passAA).toBe(true);
+      expect(result.ratio).toBeCloseTo(21, 3);
+    });
+
+    it("should throw for empty string color", () => {
+      expect(() => getRelativeLuminance("")).toThrow(
+        "Invalid hex color: must be a non-empty string",
+      );
+    });
+
+    it("should throw for invalid hex with non-hex characters", () => {
+      expect(() => getRelativeLuminance("#gggggg")).toThrow(
+        "Invalid hex color: non-hex characters",
+      );
+    });
+
+    it("should throw for invalid hex length (1 digit)", () => {
+      expect(() => getRelativeLuminance("#f")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for invalid hex length (2 digits)", () => {
+      expect(() => getRelativeLuminance("#ff")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for invalid hex length (5 digits)", () => {
+      expect(() => getRelativeLuminance("#12345")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for null input", () => {
+      expect(() => getRelativeLuminance(null as unknown as string)).toThrow(
+        "Invalid hex color: must be a non-empty string",
+      );
+    });
   });
 
   describe("Common Color Combinations", () => {

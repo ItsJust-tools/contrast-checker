@@ -86,10 +86,11 @@ function ColorPreview({
         return;
       }
       const cleaned = val.startsWith("#") ? val : `#${val}`;
-      const isValid = /^#[0-9a-fA-F]{6}$/.test(cleaned) || /^#[0-9a-fA-F]{3}$/.test(cleaned);
-      setHexInputError(!isValid);
-      if (!isValid) {
-        setHexInputMessage("Expected format: #RRGGBB");
+      const isValidFull = /^#[0-9a-fA-F]{6}$/.test(cleaned);
+      const isValidShort = /^#[0-9a-fA-F]{3}$/.test(cleaned);
+      setHexInputError(!isValidFull && !isValidShort);
+      if (!isValidFull && !isValidShort) {
+        setHexInputMessage("Expected format: #RRGGBB (e.g. #ff0000) or shorthand #RGB");
       } else {
         setHexInputMessage(null);
       }
@@ -133,13 +134,6 @@ function ColorPreview({
             e.preventDefault();
             openColorPicker();
           }
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.outline = "2px solid var(--ring)";
-          e.currentTarget.style.outlineOffset = "2px";
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.outline = "none";
         }}
       />
       <input
@@ -224,7 +218,7 @@ function ContrastBadge({
 }) {
   return (
     <div
-      className="contrast-badge"
+      className={`contrast-badge ${pass ? "pass" : "fail"}`}
       style={{
         display: "flex",
         alignItems: "center",
@@ -232,9 +226,6 @@ function ContrastBadge({
         padding: "0.5rem 0.75rem",
         border: "1px solid var(--border)",
         borderRadius: "var(--radius)",
-        background: pass
-          ? "var(--card)"
-          : "var(--error, rgba(244, 63, 94, 0.1))",
       }}
     >
       {pass ? <CheckIcon /> : <XIcon />}

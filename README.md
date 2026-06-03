@@ -2,7 +2,7 @@
 
 A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines. Check any color combination against WCAG 2.1 AA and AAA standards.
 
-[![Version](https://img.shields.io/badge/Version-1.4.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
+[![Version](https://img.shields.io/badge/Version-1.5.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/LICENSE)
 [![CI](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md)
@@ -16,6 +16,8 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 - **Click-to-Select Colors** — Click any color swatch to open the native color picker
 - **Live Contrast Preview** — See your contrast ratio in real-time as you adjust colors
 - **Pass/Fail Indicators** — Clear visual indicators showing which WCAG standards are met
+- **Combine & Compare** — Save multiple color combinations and view them in the sidebar
+- **Individual Deletion** — Remove specific saved combinations without clearing the entire list
 - **Brightness Information** — Display relative luminance for accurate contrast calculations
 - **Text Level Support** — Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
 - **Share & Export** — Export results as JSON, PNG, WebP, or PDF; share via `.itsjust.json` files
@@ -49,6 +51,8 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
    - WCAG AA compliance (requires 4.5:1 for normal text)
    - WCAG AAA compliance (requires 7:1 for normal text)
    - Large text and UI component requirements (3:1)
+4. **Save combinations** for side-by-side comparison
+5. **Remove individual combinations** with the × button or clear all with a single click
 
 ## Tech Stack
 

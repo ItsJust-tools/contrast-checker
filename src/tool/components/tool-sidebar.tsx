@@ -17,6 +17,7 @@ interface ToolSidebarProps {
   onFgChange?: (color: string) => void;
   onBgChange?: (color: string) => void;
   onClearCombinations?: () => void;
+  onRemoveCombination?: (index: number) => void;
 }
 
 function ColorSwatch({
@@ -73,12 +74,6 @@ function ColorSwatch({
           e.preventDefault();
           handleClick();
         }
-      }}
-      onFocus={(e) => {
-        e.currentTarget.style.boxShadow = "0 0 0 2px var(--ring)";
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = "none";
       }}
     >
       <span
@@ -148,6 +143,7 @@ export function ToolSidebar({
   onFgChange,
   onBgChange,
   onClearCombinations,
+  onRemoveCombination,
 }: ToolSidebarProps) {
   const fgPreview = useMemo(() => {
     try {
@@ -419,7 +415,7 @@ export function ToolSidebar({
                       color: c.passAAA ? "var(--success)" : "var(--muted)",
                     }}
                   >
-                    {c.passAAA ? "✓ AAA" : "✗ AAA"}
+                    {c.passAAA ? "\u2713 AAA" : "\u2717 AAA"}
                   </span>
                   <span
                     style={{
@@ -427,9 +423,47 @@ export function ToolSidebar({
                       color: c.passAA ? "var(--success)" : "var(--muted)",
                     }}
                   >
-                    {c.passAA ? "✓ AA" : "✗ AA"}
+                    {c.passAA ? "\u2713 AA" : "\u2717 AA"}
                   </span>
                 </div>
+                {onRemoveCombination && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveCombination(i)}
+                    className="btn-icon"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "24px",
+                      height: "24px",
+                      padding: 0,
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius)",
+                      background: "transparent",
+                      color: "var(--muted)",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      transition: "color 0.1s, border-color 0.1s",
+                    }}
+                    aria-label={`Delete combination ${c.fg} on ${c.bg}`}
+                    title="Remove this combination"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      style={{ width: "14px", height: "14px" }}
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
             ))}
           </div>

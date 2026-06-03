@@ -23,6 +23,19 @@ All notable changes to the Contrast Checker will be documented in this file.
 - Updated dependencies: eslint to ^10, typescript to ^6, lucide-react to ^1.17
 - Removed misleading `cursor: pointer` from non-interactive Color Reference display elements
 
+## [1.5.0] - 2026-06-03
+
+### Added
+
+- Individual combination deletion in sidebar — remove specific saved color pairs with the × button
+- How It Works section updated in README with combination management steps
+
+### Changed
+
+- Updated version to 1.5.0
+- Improved hex validation error message to include example format (#RRGGBB)
+- Removed inline onFocus/onBlur style manipulation on color swatches in favor of CSS :focus-visible approach
+
 ## [1.4.0] - 2026-06-02
 
 ### Added
