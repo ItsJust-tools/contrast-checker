@@ -68,6 +68,10 @@ function ColorPreview({
           fullHex[3] + fullHex[3];
         setHexInputError(false);
         onChange?.(expanded);
+      } else if (/^#[0-9a-fA-F]{8}$/.test(fullHex)) {
+        // 8-digit hex (#RRGGBBAA) — accept it; alpha channel ignored per WCAG spec
+        setHexInputError(false);
+        onChange?.(fullHex);
       } else if (val.length >= 7) {
         setHexInputError(true);
       } else {
@@ -88,9 +92,10 @@ function ColorPreview({
       const cleaned = val.startsWith("#") ? val : `#${val}`;
       const isValidFull = /^#[0-9a-fA-F]{6}$/.test(cleaned);
       const isValidShort = /^#[0-9a-fA-F]{3}$/.test(cleaned);
-      setHexInputError(!isValidFull && !isValidShort);
-      if (!isValidFull && !isValidShort) {
-        setHexInputMessage("Expected format: #RRGGBB (e.g. #ff0000) or shorthand #RGB");
+      const isValid8digit = /^#[0-9a-fA-F]{8}$/.test(cleaned);
+      setHexInputError(!isValidFull && !isValidShort && !isValid8digit);
+      if (!isValidFull && !isValidShort && !isValid8digit) {
+        setHexInputMessage("Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA");
       } else {
         setHexInputMessage(null);
       }
@@ -175,7 +180,7 @@ function ColorPreview({
             }}
             aria-label={`Hex value for ${label || "color"}`}
             aria-invalid={hexInputError}
-            title="Type a hex color value (e.g. #ff0000 or #f00)"
+            title="Type a hex color value (e.g. #ff0000, #f00, or #ff000080)"
           />
           {hexInputMessage && (
             <span
@@ -211,8 +216,8 @@ function ColorPreview({
 
 /** Minimum contrast ratio needed per WCAG level (normal text). */
 const WCAG_MIN_RATIO: Record<"AA" | "AAA", number> = {
-  AA: 4.5,
-  AAA: 7,
+  AA: getRequiredRatio("AA", "normal"),
+  AAA: getRequiredRatio("AAA", "normal"),
 };
 
 function ContrastBadge({
@@ -522,14 +527,14 @@ export function ToolCanvas({
         <h3 className="contrast-section-title">Preview</h3>
         <div className="contrast-row">
           <label
-            htmlFor="contrast-label"
+            htmlFor="contrast-label-input"
             className="contrast-row-label"
             style={{ fontWeight: 600 }}
           >
             Text Preview
           </label>
           <input
-            id="contrast-label"
+            id="contrast-label-input"
             type="text"
             value={localLabel}
             onChange={handleLabelChange}
