@@ -68,6 +68,7 @@ function ColorPreview({
       const fullHex = val.startsWith("#") ? val : `#${val}`;
       if (/^#[0-9a-fA-F]{6}$/.test(fullHex)) {
         setHexInputError(false);
+        setHexInputMessage(null);
         onChange?.(fullHex);
       } else if (/^#[0-9a-fA-F]{3}$/.test(fullHex)) {
         // Convert shorthand 3-char hex to 6-char
@@ -77,10 +78,12 @@ function ColorPreview({
           fullHex[2] + fullHex[2] +
           fullHex[3] + fullHex[3];
         setHexInputError(false);
+        setHexInputMessage(null);
         onChange?.(expanded);
       } else if (/^#[0-9a-fA-F]{8}$/.test(fullHex)) {
         // 8-digit hex (#RRGGBBAA) — accept it; alpha channel ignored per WCAG spec
         setHexInputError(false);
+        setHexInputMessage(null);
         onChange?.(fullHex);
       } else if (val.length >= 7) {
         setHexInputError(true);
@@ -108,6 +111,19 @@ function ColorPreview({
         setHexInputMessage("Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA");
       } else {
         setHexInputMessage(null);
+      }
+    },
+    [],
+  );
+
+  /**
+   * Handle Enter key in the hex input to trigger blur validation.
+   * Improves UX by allowing users to press Enter to confirm a hex value.
+   */
+  const handleHexInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        (e.target as HTMLInputElement).blur();
       }
     },
     [],
@@ -175,6 +191,7 @@ function ColorPreview({
             value={color}
             onChange={handleHexInputChange}
             onBlur={handleHexInputBlur}
+            onKeyDown={handleHexInputKeyDown}
             style={{
               width: "100%",
               padding: "0.375rem 0.5rem",
@@ -190,10 +207,12 @@ function ColorPreview({
             }}
             aria-label={`Hex value for ${label || "color"}`}
             aria-invalid={hexInputError}
-            title="Type a hex color value (e.g. #ff0000, #f00, or #ff000080)"
+            aria-describedby={hexInputError ? `${hexInputId}-error` : undefined}
+            title="Type a hex color value (e.g. #ff0000, #f00, or #ff000080). Press Enter to confirm."
           />
           {hexInputMessage && (
             <span
+              id={`${hexInputId}-error`}
               style={{
                 fontSize: "0.625rem",
                 color: "var(--error)",
