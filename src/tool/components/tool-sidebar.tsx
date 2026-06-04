@@ -235,6 +235,86 @@ function ColorReferenceSwatch({ color, label }: { color: string; label: string }
 }
 
 /**
+ * Suggested foreground color row with click-to-apply behavior.
+ * Shared between light and dark suggestion display.
+ */
+function SuggestionRow({
+  suggestion,
+  onApply,
+}: {
+  suggestion: { color: string; ratio: number; passAAA: boolean };
+  onApply?: (color: string) => void;
+}) {
+  const handleClick = useCallback(() => {
+    onApply?.(suggestion.color);
+  }, [onApply, suggestion.color]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onApply?.(suggestion.color);
+      }
+    },
+    [onApply, suggestion.color],
+  );
+
+  const label = suggestion.passAAA ? "AAA✓" : "AA✓";
+  const brightnessLabel = getContrastRatio(suggestion.color, "#ffffff") > 4.5 ? "Light" : "Dark";
+
+  return (
+    <div
+      className="sidebar-suggestion-row"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "0.5rem",
+        padding: "0.375rem 0.5rem",
+        borderRadius: "var(--radius)",
+        cursor: "pointer",
+        marginBottom: "0.25rem",
+        transition: "background-color 0.15s",
+      }}
+      role="button"
+      tabIndex={0}
+      title={`Apply ${suggestion.color}`}
+      aria-label={`Apply ${brightnessLabel.toLocaleLowerCase()} foreground ${suggestion.color} with ratio ${formatRatio(suggestion.ratio)}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
+      <div
+        style={{
+          width: "28px",
+          height: "28px",
+          background: suggestion.color,
+          border: "1px solid var(--border)",
+          borderRadius: "4px",
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <span
+          style={{
+            fontSize: "0.75rem",
+            fontFamily: "monospace",
+            fontWeight: 500,
+          }}
+        >
+          {suggestion.color}
+        </span>
+        <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
+          {brightnessLabel} · {formatRatio(suggestion.ratio)}
+          {suggestion.passAAA ? " · AAA✓" : " · AA✓"}
+        </span>
+      </div>
+      <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
+        Click to apply
+      </span>
+    </div>
+  );
+}
+
+/**
  * Displays the hex, RGB, and HSL values for a given color in a compact layout.
  */
 function ColorReferenceDetails({ color, name }: { color: string; name: string }) {
@@ -464,115 +544,17 @@ export function ToolSidebar({
         </p>
 
         {accessibleSuggestions.light && (
-          <div
-            className="sidebar-suggestion-row"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.375rem 0.5rem",
-              borderRadius: "var(--radius)",
-              cursor: "pointer",
-              marginBottom: "0.25rem",
-              transition: "background-color 0.15s",
-            }}
-            role="button"
-            tabIndex={0}
-            title={`Apply ${accessibleSuggestions.light.color}`}
-            aria-label={`Apply light foreground ${accessibleSuggestions.light.color} with ratio ${formatRatio(accessibleSuggestions.light.ratio)}`}
-            onClick={() => onFgChange?.(accessibleSuggestions.light!.color)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onFgChange?.(accessibleSuggestions.light!.color);
-              }
-            }}
-          >
-            <div
-              style={{
-                width: "28px",
-                height: "28px",
-                background: accessibleSuggestions.light.color,
-                border: "1px solid var(--border)",
-                borderRadius: "4px",
-                flexShrink: 0,
-              }}
-            />
-            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  fontFamily: "monospace",
-                  fontWeight: 500,
-                }}
-              >
-                {accessibleSuggestions.light.color}
-              </span>
-              <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
-                Light · {formatRatio(accessibleSuggestions.light.ratio)}
-                {accessibleSuggestions.light.passAAA ? " · AAA✓" : " · AA✓"}
-              </span>
-            </div>
-            <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
-              Click to apply
-            </span>
-          </div>
+          <SuggestionRow
+            suggestion={accessibleSuggestions.light}
+            onApply={onFgChange}
+          />
         )}
 
         {accessibleSuggestions.dark && (
-          <div
-            className="sidebar-suggestion-row"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.375rem 0.5rem",
-              borderRadius: "var(--radius)",
-              cursor: "pointer",
-              marginBottom: "0.25rem",
-              transition: "background-color 0.15s",
-            }}
-            role="button"
-            tabIndex={0}
-            title={`Apply ${accessibleSuggestions.dark.color}`}
-            aria-label={`Apply dark foreground ${accessibleSuggestions.dark.color} with ratio ${formatRatio(accessibleSuggestions.dark.ratio)}`}
-            onClick={() => onFgChange?.(accessibleSuggestions.dark!.color)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onFgChange?.(accessibleSuggestions.dark!.color);
-              }
-            }}
-          >
-            <div
-              style={{
-                width: "28px",
-                height: "28px",
-                background: accessibleSuggestions.dark.color,
-                border: "1px solid var(--border)",
-                borderRadius: "4px",
-                flexShrink: 0,
-              }}
-            />
-            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  fontFamily: "monospace",
-                  fontWeight: 500,
-                }}
-              >
-                {accessibleSuggestions.dark.color}
-              </span>
-              <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
-                Dark · {formatRatio(accessibleSuggestions.dark.ratio)}
-                {accessibleSuggestions.dark.passAAA ? " · AAA✓" : " · AA✓"}
-              </span>
-            </div>
-            <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
-              Click to apply
-            </span>
-          </div>
+          <SuggestionRow
+            suggestion={accessibleSuggestions.dark}
+            onApply={onFgChange}
+          />
         )}
 
         {!accessibleSuggestions.light && !accessibleSuggestions.dark && (

@@ -46,8 +46,8 @@ function _normalizeHex(hex: string): { r: number; g: number; b: number; cleaned:
     throw new Error("Invalid hex color: must be a non-empty string");
   }
 
-  // Remove '#' if present
-  const cleaned = hex.replace(/^#/, "");
+  // Remove '#' if present and lowercase for consistent output
+  const cleaned = hex.replace(/^#/, "").toLowerCase();
 
   let r: number, g: number, b: number;
   if (cleaned.length === 6) {

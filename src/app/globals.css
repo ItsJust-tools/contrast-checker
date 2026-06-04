@@ -328,6 +328,35 @@ body {
   outline-offset: 2px;
 }
 
+/* ── High Contrast Mode (prefers-contrast: more) ── */
+@media (prefers-contrast: more) {
+  :root {
+    --border: #000000;
+  }
+
+  .dark {
+    --border: #ffffff;
+  }
+
+  * {
+    border-color: var(--border) !important;
+  }
+
+  .contrast-badge.pass {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .contrast-badge.fail {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .color-swatch {
+    outline: 2px solid var(--border);
+  }
+}
+
 /* ── Responsive / Mobile Styles ── */
 @media (max-width: 1024px) {
   .contrast-main-content {
