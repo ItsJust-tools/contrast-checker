@@ -5,6 +5,8 @@ import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
 import { useToolState, useExport, useShare } from "@itsjust/core";
 import type { ExportFormat } from "@itsjust/core";
 
+import type { ExportFormat as ToolbarExportFormat } from "@/tool/components/tool-toolbar";
+
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -29,8 +31,9 @@ export default function ToolClient() {
   const { downloadShareFile, shareViaWeb } = useShare();
 
   const handleExport = useCallback(
-    async (format: ExportFormat) => {
-      await exportTo(format);
+    async (format: ToolbarExportFormat) => {
+      // Map toolbar format to core ExportFormat (core uses "png" | "webp" | "pdf" | "json")
+      await exportTo(format as ExportFormat);
     },
     [exportTo],
   );
@@ -70,7 +73,7 @@ export default function ToolClient() {
 
   return (
     <div className="contrast-tool-layout">
-      <ToolToolbar onExport={() => handleExport("json")} />
+      <ToolToolbar onExport={handleExport} disabled={isExporting} />
       <main className="contrast-main-content">
         <ToolCanvas
           fgColor={state.data.fgColor}
