@@ -130,8 +130,16 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
       expect(getBrightnessCategory("#000000")).toBe("dark");
     });
 
-    it("should classify gray as medium", () => {
+    it("should classify gray (#808080) as light (luminance > 0.18)", () => {
       expect(getBrightnessCategory("#808080")).toBe("light");
+    });
+
+    it("should classify #595959 (luminance ~0.1) as medium", () => {
+      expect(getBrightnessCategory("#595959")).toBe("medium");
+    });
+
+    it("should classify #404040 (luminance ~0.05) as dark", () => {
+      expect(getBrightnessCategory("#404040")).toBe("dark");
     });
   });
 

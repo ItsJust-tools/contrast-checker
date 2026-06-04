@@ -82,13 +82,13 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 
 ## Keyboard Navigation
 
-| Key                  | Action                       |
-| -------------------- | ---------------------------- |
-| `Tab` / `Shift+Tab`  | Navigate between controls    |
-| `Enter` / `Space`    | Activate clickable elements  |
-| `Esc`                | Close color picker           |
-| `Ctrl+Shift+E`       | Export as JSON               |
-| `Ctrl+Shift+P`       | Export as PNG                |
+| Key                 | Action                      |
+| ------------------- | --------------------------- |
+| `Tab` / `Shift+Tab` | Navigate between controls   |
+| `Enter` / `Space`   | Activate clickable elements |
+| `Esc`               | Close color picker          |
+| `Ctrl+Shift+E`      | Export as JSON              |
+| `Ctrl+Shift+P`      | Export as PNG               |
 
 ## Accessibility
 
@@ -102,16 +102,16 @@ This tool is fully accessible:
 
 ## Scripts
 
-| Command                | Description                      |
-| ---------------------- | -------------------------------- |
-| `npm run dev`          | Start development server         |
-| `npm run build`        | Build for production             |
-| `npm test`             | Run unit tests (Vitest)          |
-| `npm run test:e2e`     | Run E2E tests (Playwright)       |
-| `npm run coverage`     | Run tests with coverage report   |
-| `npm run lint`         | Run ESLint                       |
-| `npm run format`       | Format code with Prettier        |
-| `npm run deps:check`   | Check for unused dependencies    |
+| Command              | Description                    |
+| -------------------- | ------------------------------ |
+| `npm run dev`        | Start development server       |
+| `npm run build`      | Build for production           |
+| `npm test`           | Run unit tests (Vitest)        |
+| `npm run test:e2e`   | Run E2E tests (Playwright)     |
+| `npm run coverage`   | Run tests with coverage report |
+| `npm run lint`       | Run ESLint                     |
+| `npm run format`     | Format code with Prettier      |
+| `npm run deps:check` | Check for unused dependencies  |
 
 ## Project Structure
 

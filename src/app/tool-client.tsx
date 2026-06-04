@@ -58,12 +58,15 @@ export default function ToolClient() {
     }));
   }, [state]);
 
-  const handleRemoveCombination = useCallback((index: number) => {
-    state.setData((prev) => ({
-      ...prev,
-      combinations: prev.combinations.filter((_, i) => i !== index),
-    }));
-  }, [state]);
+  const handleRemoveCombination = useCallback(
+    (index: number) => {
+      state.setData((prev) => ({
+        ...prev,
+        combinations: prev.combinations.filter((_, i) => i !== index),
+      }));
+    },
+    [state],
+  );
 
   return (
     <div className="contrast-tool-layout">

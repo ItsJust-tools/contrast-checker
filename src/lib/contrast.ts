@@ -41,7 +41,12 @@ function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
  * @returns Object with cleaned hex string and parsed r/g/b components
  * @throws {Error} If the input is not a valid hex color
  */
-function _normalizeHex(hex: string): { r: number; g: number; b: number; cleaned: string } {
+function _normalizeHex(hex: string): {
+  r: number;
+  g: number;
+  b: number;
+  cleaned: string;
+} {
   if (!hex || typeof hex !== "string") {
     throw new Error("Invalid hex color: must be a non-empty string");
   }
@@ -300,13 +305,15 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
   }
 
   // Pick best (highest ratio) passing candidate in each direction
-  const bestLight = lightSuggestions
-    .filter((s) => s.passAA)
-    .sort((a, b) => b.ratio - a.ratio)[0] ?? null;
+  const bestLight =
+    lightSuggestions
+      .filter((s) => s.passAA)
+      .sort((a, b) => b.ratio - a.ratio)[0] ?? null;
 
-  const bestDark = darkSuggestions
-    .filter((s) => s.passAA)
-    .sort((a, b) => b.ratio - a.ratio)[0] ?? null;
+  const bestDark =
+    darkSuggestions
+      .filter((s) => s.passAA)
+      .sort((a, b) => b.ratio - a.ratio)[0] ?? null;
 
   const all = [...lightSuggestions, ...darkSuggestions].filter((s) => s.passAA);
   const best = all.sort((a, b) => b.ratio - a.ratio)[0] ?? null;

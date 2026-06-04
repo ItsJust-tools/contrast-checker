@@ -74,9 +74,12 @@ function ColorPreview({
         // Convert shorthand 3-char hex to 6-char
         const expanded =
           "#" +
-          fullHex[1] + fullHex[1] +
-          fullHex[2] + fullHex[2] +
-          fullHex[3] + fullHex[3];
+          fullHex[1] +
+          fullHex[1] +
+          fullHex[2] +
+          fullHex[2] +
+          fullHex[3] +
+          fullHex[3];
         setHexInputError(false);
         setHexInputMessage(null);
         onChange?.(expanded);
@@ -108,7 +111,9 @@ function ColorPreview({
       const isValid8digit = /^#[0-9a-fA-F]{8}$/.test(cleaned);
       setHexInputError(!isValidFull && !isValidShort && !isValid8digit);
       if (!isValidFull && !isValidShort && !isValid8digit) {
-        setHexInputMessage("Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA");
+        setHexInputMessage(
+          "Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+        );
       } else {
         setHexInputMessage(null);
       }
@@ -252,8 +257,6 @@ function ColorPreview({
   );
 }
 
-
-
 /** Minimum contrast ratio needed per WCAG level (normal text). */
 const WCAG_MIN_RATIO: Record<"AA" | "AAA", number> = {
   AA: getRequiredRatio("AA", "normal"),
@@ -274,16 +277,14 @@ function ContrastBadge({
   standard: "AA" | "AAA";
 }) {
   return (
-    <div
-      className={`contrast-badge ${pass ? "pass" : "fail"}`}
-    >
+    <div className={`contrast-badge ${pass ? "pass" : "fail"}`}>
       {pass ? <CheckIcon /> : <XIcon />}
       <div className="contrast-badge-text">
-        <span className="contrast-badge-label">
-          {standard}
-        </span>
+        <span className="contrast-badge-label">{standard}</span>
         <span className="contrast-badge-status">
-          {pass ? "Pass" : `Fail (needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1)`}
+          {pass
+            ? "Pass"
+            : `Fail (needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1)`}
         </span>
       </div>
     </div>
@@ -350,10 +351,22 @@ export function ToolCanvas({
     }
   }, [localBg]);
 
-  const passAA = useMemo(() => ratio >= getRequiredRatio("AA", "normal"), [ratio]);
-  const passAAA = useMemo(() => ratio >= getRequiredRatio("AAA", "normal"), [ratio]);
-  const passLargeAA = useMemo(() => ratio >= getRequiredRatio("AA", "large"), [ratio]);
-  const passUIAA = useMemo(() => ratio >= getRequiredRatio("AA", "ui"), [ratio]);
+  const passAA = useMemo(
+    () => ratio >= getRequiredRatio("AA", "normal"),
+    [ratio],
+  );
+  const passAAA = useMemo(
+    () => ratio >= getRequiredRatio("AAA", "normal"),
+    [ratio],
+  );
+  const passLargeAA = useMemo(
+    () => ratio >= getRequiredRatio("AA", "large"),
+    [ratio],
+  );
+  const passUIAA = useMemo(
+    () => ratio >= getRequiredRatio("AA", "ui"),
+    [ratio],
+  );
 
   const handleFgChange = useCallback(
     (color: string) => {
@@ -396,7 +409,8 @@ export function ToolCanvas({
           <div className="contrast-row-label">
             <span>Foreground</span>
             <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-              {" "}({(fgBrightness * 100).toFixed(0)}% luminance)
+              {" "}
+              ({(fgBrightness * 100).toFixed(0)}% luminance)
             </span>
           </div>
           <ColorPreview
@@ -412,7 +426,8 @@ export function ToolCanvas({
           <div className="contrast-row-label">
             <span>Background</span>
             <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-              {" "}({(bgBrightness * 100).toFixed(0)}% luminance)
+              {" "}
+              ({(bgBrightness * 100).toFixed(0)}% luminance)
             </span>
           </div>
           <ColorPreview
@@ -463,10 +478,9 @@ export function ToolCanvas({
                 fontSize: "0.875rem",
                 fontWeight: 500,
                 color: localFg,
-                textShadow:
-                  passAA
-                    ? `0 0 2px ${localBg}, 0 0 1px ${localBg}`
-                    : `0 0 3px ${localBg}, 0 0 1px ${localBg}`,
+                textShadow: passAA
+                  ? `0 0 2px ${localBg}, 0 0 1px ${localBg}`
+                  : `0 0 3px ${localBg}, 0 0 1px ${localBg}`,
               }}
             >
               <span
@@ -510,9 +524,9 @@ export function ToolCanvas({
               border: 0,
             }}
           >
-            Contrast ratio {formatRatio(ratio)}.
-            WCAG AA {passAA ? "pass" : "fail"} for normal text.
-            WCAG AAA {passAAA ? "pass" : "fail"} for normal text.
+            Contrast ratio {formatRatio(ratio)}. WCAG AA{" "}
+            {passAA ? "pass" : "fail"} for normal text. WCAG AAA{" "}
+            {passAAA ? "pass" : "fail"} for normal text.
           </div>
 
           {/* Compliance Badges */}
@@ -538,8 +552,7 @@ export function ToolCanvas({
             }}
           >
             <div>
-              Normal text (18pt or less):{" "}
-              <strong>{passAA ? "✓" : "✗"}</strong>{" "}
+              Normal text (18pt or less): <strong>{passAA ? "✓" : "✗"}</strong>{" "}
               {getRequiredRatio("AA", "normal").toFixed(1)}:1 minimum
             </div>
             <div>

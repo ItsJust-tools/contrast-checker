@@ -14,7 +14,7 @@ import { CheckIcon, XIcon, TrashIcon } from "./icons";
  * Convert a hex color string to an RGB tuple.
  * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
  */
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
+export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const cleaned = hex.replace(/^#/, "");
   if (cleaned.length === 3) {
     const r = parseInt(cleaned[0] + cleaned[0], 16);
@@ -35,7 +35,11 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * Convert an RGB tuple to an HSL tuple.
  * Returns values as integer degrees (H), percentage (S), percentage (L).
  */
-function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+export function rgbToHsl(
+  r: number,
+  g: number,
+  b: number,
+): { h: number; s: number; l: number } {
   const rNorm = r / 255;
   const gNorm = g / 255;
   const bNorm = b / 255;
@@ -67,14 +71,14 @@ function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: n
 /**
  * Format an RGB value as a CSS rgb() string.
  */
-function formatRgb(r: number, g: number, b: number): string {
+export function formatRgb(r: number, g: number, b: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
 /**
  * Format an HSL value as a CSS hsl() string.
  */
-function formatHsl(h: number, s: number, l: number): string {
+export function formatHsl(h: number, s: number, l: number): string {
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
@@ -177,8 +181,6 @@ function ColorSwatch({
   );
 }
 
-
-
 /**
  * Displays a WCAG compliance badge with pass/fail visual indicator.
  * Shows the pass rate percentage for the given standard across all saved combinations.
@@ -193,7 +195,9 @@ function ComplianceBadge({
   rate: number;
 }) {
   return (
-    <div className={`contrast-badge sidebar-compliance ${pass ? "pass" : "fail"}`}>
+    <div
+      className={`contrast-badge sidebar-compliance ${pass ? "pass" : "fail"}`}
+    >
       {pass ? <CheckIcon /> : <XIcon />}
       <div className="contrast-badge-text">
         <span className="contrast-badge-label">{label}</span>
@@ -207,8 +211,19 @@ function ComplianceBadge({
  * Small color swatch displaying the abbreviation label with contrasting text.
  * Reads the hex color and shows the abbreviation in an optimally readable color.
  */
-function ColorReferenceSwatch({ color, label }: { color: string; label: string }) {
-  const textColor = getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000";
+/**
+ * Small color swatch displaying the abbreviation label with contrasting text.
+ * Reads the hex color and shows the abbreviation in an optimally readable color.
+ */
+function ColorReferenceSwatch({
+  color,
+  label,
+}: {
+  color: string;
+  label: string;
+}) {
+  const textColor =
+    getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000";
   return (
     <div
       style={{
@@ -259,8 +274,8 @@ function SuggestionRow({
     [onApply, suggestion.color],
   );
 
-  const label = suggestion.passAAA ? "AAA✓" : "AA✓";
-  const brightnessLabel = getContrastRatio(suggestion.color, "#ffffff") > 4.5 ? "Light" : "Dark";
+  const brightnessLabel =
+    getContrastRatio(suggestion.color, "#ffffff") > 4.5 ? "Light" : "Dark";
 
   return (
     <div
@@ -317,15 +332,32 @@ function SuggestionRow({
 /**
  * Displays the hex, RGB, and HSL values for a given color in a compact layout.
  */
-function ColorReferenceDetails({ color, name }: { color: string; name: string }) {
+function ColorReferenceDetails({
+  color,
+  name,
+}: {
+  color: string;
+  name: string;
+}) {
   const rgb = useMemo(() => hexToRgb(color), [color]);
   const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
   return (
     <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
-      <div style={{ fontWeight: 600, marginBottom: "0.125rem", color: "var(--foreground)" }}>
+      <div
+        style={{
+          fontWeight: 600,
+          marginBottom: "0.125rem",
+          color: "var(--foreground)",
+        }}
+      >
         {name}
       </div>
-      <div style={{ color: "var(--muted-foreground)", fontFamily: "ui-monospace, Menlo, Monaco, monospace" }}>
+      <div
+        style={{
+          color: "var(--muted-foreground)",
+          fontFamily: "ui-monospace, Menlo, Monaco, monospace",
+        }}
+      >
         <div>{color.toLowerCase()}</div>
         <div>{formatRgb(rgb.r, rgb.g, rgb.b)}</div>
         <div>{formatHsl(hsl.h, hsl.s, hsl.l)}</div>
@@ -391,13 +423,20 @@ export function ToolSidebar({
   /** Announceable summary of current stats, used by the screen-reader live region. */
   const liveSummary = useMemo(() => {
     if (combinations.length === 0) return "No combinations saved yet.";
-    return `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
+    return (
+      `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
       `Average contrast ratio ${averageContrast.toFixed(2)}:1. ` +
       `AA pass rate ${passRateAA.toFixed(0)}%. ` +
-      `AAA pass rate ${passRateAAA.toFixed(0)}%.`;
+      `AAA pass rate ${passRateAAA.toFixed(0)}%.`
+    );
   }, [combinations, averageContrast, passRateAA, passRateAAA]);
 
-  const levelIndicator = averageContrast >= 7 ? "aaa" as const : averageContrast >= 4.5 ? "aa" as const : "fail" as const;
+  const levelIndicator =
+    averageContrast >= 7
+      ? ("aaa" as const)
+      : averageContrast >= 4.5
+        ? ("aa" as const)
+        : ("fail" as const);
 
   const accessibleSuggestions = useMemo<SuggestionResult>(() => {
     try {
@@ -410,11 +449,7 @@ export function ToolSidebar({
   return (
     <div className="contrast-sidebar">
       {/* Screen-reader live region for stats changes */}
-      <div
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
         {liveSummary}
       </div>
 
@@ -479,8 +514,16 @@ export function ToolSidebar({
             flexWrap: "wrap",
           }}
         >
-          <ComplianceBadge pass={combinations.length > 0 && passRateAA >= 50} label="AA" rate={passRateAA} />
-          <ComplianceBadge pass={combinations.length > 0 && passRateAAA >= 50} label="AAA" rate={passRateAAA} />
+          <ComplianceBadge
+            pass={combinations.length > 0 && passRateAA >= 50}
+            label="AA"
+            rate={passRateAA}
+          />
+          <ComplianceBadge
+            pass={combinations.length > 0 && passRateAAA >= 50}
+            label="AAA"
+            rate={passRateAAA}
+          />
         </div>
       </div>
 
@@ -635,7 +678,9 @@ export function ToolSidebar({
                     border: `1px solid ${c.bg}`,
                   }}
                 />
-                <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", flex: 1 }}
+                >
                   <span
                     style={{ fontSize: "0.75rem", fontFamily: "monospace" }}
                   >
