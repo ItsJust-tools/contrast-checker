@@ -117,6 +117,16 @@ function ColorPreview({
   );
 
   /**
+   * Auto-select the hex input content on focus for easy overwriting.
+   */
+  const handleHexInputFocus = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      e.target.select();
+    },
+    [],
+  );
+
+  /**
    * Handle Enter key in the hex input to trigger blur validation.
    * Improves UX by allowing users to press Enter to confirm a hex value.
    */
@@ -191,6 +201,7 @@ function ColorPreview({
             value={color}
             onChange={handleHexInputChange}
             onBlur={handleHexInputBlur}
+            onFocus={handleHexInputFocus}
             onKeyDown={handleHexInputKeyDown}
             style={{
               width: "100%",
@@ -210,19 +221,6 @@ function ColorPreview({
             aria-describedby={hexInputError ? `${hexInputId}-error` : undefined}
             title="Type a hex color value (e.g. #ff0000, #f00, or #ff000080). Press Enter to confirm."
           />
-          {hexInputMessage && (
-            <span
-              id={`${hexInputId}-error`}
-              style={{
-                fontSize: "0.625rem",
-                color: "var(--error)",
-                whiteSpace: "nowrap",
-              }}
-              role="alert"
-            >
-              {hexInputMessage}
-            </span>
-          )}
           <span
             style={{
               display: "inline-block",
@@ -236,6 +234,19 @@ function ColorPreview({
             aria-hidden="true"
           />
         </div>
+        {hexInputMessage && (
+          <span
+            id={`${hexInputId}-error`}
+            style={{
+              fontSize: "0.625rem",
+              color: "var(--error)",
+              marginTop: "0.125rem",
+            }}
+            role="alert"
+          >
+            {hexInputMessage}
+          </span>
+        )}
       </div>
     </div>
   );

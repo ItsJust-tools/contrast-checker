@@ -10,6 +10,74 @@ import {
 import type { SuggestionResult } from "@/lib/contrast";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
 
+/**
+ * Convert a hex color string to an RGB tuple.
+ * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
+ */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const cleaned = hex.replace(/^#/, "");
+  if (cleaned.length === 3) {
+    const r = parseInt(cleaned[0] + cleaned[0], 16);
+    const g = parseInt(cleaned[1] + cleaned[1], 16);
+    const b = parseInt(cleaned[2] + cleaned[2], 16);
+    return { r, g, b };
+  }
+  if (cleaned.length >= 6) {
+    const r = parseInt(cleaned.slice(0, 2), 16);
+    const g = parseInt(cleaned.slice(2, 4), 16);
+    const b = parseInt(cleaned.slice(4, 6), 16);
+    return { r, g, b };
+  }
+  return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * Convert an RGB tuple to an HSL tuple.
+ * Returns values as integer degrees (H), percentage (S), percentage (L).
+ */
+function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  const delta = max - min;
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (delta !== 0) {
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    if (max === rNorm) {
+      h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) * 60;
+    } else if (max === gNorm) {
+      h = ((bNorm - rNorm) / delta + 2) * 60;
+    } else {
+      h = ((rNorm - gNorm) / delta + 4) * 60;
+    }
+  }
+
+  return {
+    h: Math.round(h),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100),
+  };
+}
+
+/**
+ * Format an RGB value as a CSS rgb() string.
+ */
+function formatRgb(r: number, g: number, b: number): string {
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
+ * Format an HSL value as a CSS hsl() string.
+ */
+function formatHsl(h: number, s: number, l: number): string {
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
 interface ToolSidebarProps {
   fgColor: string;
   bgColor: string;
@@ -130,6 +198,57 @@ function ComplianceBadge({
       <div className="contrast-badge-text">
         <span className="contrast-badge-label">{label}</span>
         <span className="contrast-badge-status">{rate.toFixed(0)}% Pass</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Small color swatch displaying the abbreviation label with contrasting text.
+ * Reads the hex color and shows the abbreviation in an optimally readable color.
+ */
+function ColorReferenceSwatch({ color, label }: { color: string; label: string }) {
+  const textColor = getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000";
+  return (
+    <div
+      style={{
+        width: "44px",
+        height: "44px",
+        background: color,
+        border: "2px solid var(--foreground)",
+        borderRadius: "var(--radius)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "0.625rem",
+        fontWeight: 700,
+        letterSpacing: "0.05em",
+        color: textColor,
+        textShadow: `0 0 3px ${color === "#000000" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}`,
+        flexShrink: 0,
+      }}
+      aria-hidden="true"
+    >
+      {label}
+    </div>
+  );
+}
+
+/**
+ * Displays the hex, RGB, and HSL values for a given color in a compact layout.
+ */
+function ColorReferenceDetails({ color, name }: { color: string; name: string }) {
+  const rgb = useMemo(() => hexToRgb(color), [color]);
+  const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
+  return (
+    <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
+      <div style={{ fontWeight: 600, marginBottom: "0.125rem", color: "var(--foreground)" }}>
+        {name}
+      </div>
+      <div style={{ color: "var(--muted-foreground)", fontFamily: "ui-monospace, Menlo, Monaco, monospace" }}>
+        <div>{color.toLowerCase()}</div>
+        <div>{formatRgb(rgb.r, rgb.g, rgb.b)}</div>
+        <div>{formatHsl(hsl.h, hsl.s, hsl.l)}</div>
       </div>
     </div>
   );
@@ -313,42 +432,20 @@ export function ToolSidebar({
         </div>
       </div>
 
-      {/* Color Reference */}
+      {/* Color Reference with RGB/HSL Format Display */}
       <div className="sidebar-section">
         <h3>Color Reference</h3>
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              background: fgColor,
-              border: "2px solid var(--foreground)",
-              borderRadius: "var(--radius)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.6875rem",
-            }}
-            aria-label={`Foreground color: ${fgColor}`}
-          >
-            FG {fgColor.slice(-6)}
-          </div>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              background: bgColor,
-              border: "2px solid var(--foreground)",
-              borderRadius: "var(--radius)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.6875rem",
-            }}
-            aria-label={`Background color: ${bgColor}`}
-          >
-            BG {bgColor.slice(-6)}
-          </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "auto 1fr",
+            gap: "0.5rem",
+          }}
+        >
+          <ColorReferenceSwatch color={fgColor} label="FG" />
+          <ColorReferenceDetails color={fgColor} name="Foreground" />
+          <ColorReferenceSwatch color={bgColor} label="BG" />
+          <ColorReferenceDetails color={bgColor} name="Background" />
         </div>
       </div>
 
