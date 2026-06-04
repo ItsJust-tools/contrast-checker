@@ -26,6 +26,11 @@ interface ToolSidebarProps {
   onRemoveCombination?: (index: number) => void;
 }
 
+/**
+ * Clickable color swatch that opens a native color picker on click.
+ * Displays a two-letter abbreviation (first two chars of label) centered
+ * on the swatch, rendered in an accessible contrasting color.
+ */
 function ColorSwatch({
   color,
   label,
@@ -106,6 +111,10 @@ function ColorSwatch({
 
 
 
+/**
+ * Displays a WCAG compliance badge with pass/fail visual indicator.
+ * Shows the pass rate percentage for the given standard across all saved combinations.
+ */
 function ComplianceBadge({
   pass,
   label,
@@ -126,6 +135,17 @@ function ComplianceBadge({
   );
 }
 
+/**
+ * Sidebar panel for the Contrast Checker tool.
+ *
+ * Displays:
+ * - Aggregate accessibility stats (average contrast ratio, pass rates for AA/AAA)
+ * - Quick color picker swatches for foreground and background
+ * - Color reference swatches showing current colors
+ * - Accessible color suggestions for the current background
+ * - Saved combinations list with individual deletion
+ * - WCAG guidelines reference
+ */
 export function ToolSidebar({
   fgColor,
   bgColor,
@@ -169,6 +189,15 @@ export function ToolSidebar({
     return (passed / combinations.length) * 100;
   }, [combinations]);
 
+  /** Announceable summary of current stats, used by the screen-reader live region. */
+  const liveSummary = useMemo(() => {
+    if (combinations.length === 0) return "No combinations saved yet.";
+    return `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
+      `Average contrast ratio ${averageContrast.toFixed(2)}:1. ` +
+      `AA pass rate ${passRateAA.toFixed(0)}%. ` +
+      `AAA pass rate ${passRateAAA.toFixed(0)}%.`;
+  }, [combinations, averageContrast, passRateAA, passRateAAA]);
+
   const levelIndicator = averageContrast >= 7 ? "aaa" as const : averageContrast >= 4.5 ? "aa" as const : "fail" as const;
 
   const accessibleSuggestions = useMemo<SuggestionResult>(() => {
@@ -181,6 +210,15 @@ export function ToolSidebar({
 
   return (
     <div className="contrast-sidebar">
+      {/* Screen-reader live region for stats changes */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {liveSummary}
+      </div>
+
       {/* Stats */}
       <div className="sidebar-section">
         <h3>Accessibility Stats</h3>

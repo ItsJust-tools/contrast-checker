@@ -8,6 +8,12 @@ interface ToolToolbarProps {
   children?: ReactNode;
 }
 
+/**
+ * Toolbar component for the Contrast Checker.
+ *
+ * Displays an Export button (or custom child elements if provided)
+ * that triggers the export flow for contrast combinations.
+ */
 export function ToolToolbar({ onExport, children }: ToolToolbarProps) {
   return (
     <div

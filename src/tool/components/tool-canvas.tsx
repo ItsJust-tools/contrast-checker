@@ -33,6 +33,15 @@ interface ColorPreviewProps {
   instanceId?: string;
 }
 
+/**
+ * Interactive color preview with native color picker and hex text input.
+ *
+ * Supports clicking the swatch to open the system color picker,
+ * typing hex values manually (#RRGGBB, #RGB, #RRGGBBAA),
+ * and auto-expands shorthand 3-char hex to 6-char.
+ *
+ * Displays inline validation error messages for invalid hex values.
+ */
 function ColorPreview({
   color,
   label,
@@ -40,6 +49,7 @@ function ColorPreview({
   instanceId = "default",
 }: ColorPreviewProps) {
   const colorInputId = `color-picker-${instanceId}`;
+  const hexInputId = `hex-input-${instanceId}`;
 
   const [hexInputError, setHexInputError] = useState(false);
   const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
@@ -152,7 +162,7 @@ function ColorPreview({
       />
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <label
-          htmlFor={colorInputId}
+          htmlFor={hexInputId}
           className="color-label"
           style={{ fontSize: "0.8125rem", fontWeight: 600 }}
         >
@@ -160,7 +170,7 @@ function ColorPreview({
         </label>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <input
-            id={`hex-${colorInputId}`}
+            id={hexInputId}
             type="text"
             value={color}
             onChange={handleHexInputChange}
@@ -220,11 +230,17 @@ const WCAG_MIN_RATIO: Record<"AA" | "AAA", number> = {
   AAA: getRequiredRatio("AAA", "normal"),
 };
 
+/**
+ * Badge component showing WCAG compliance status (pass/fail) for a given standard level.
+ * Renders a check icon on green background for pass, X icon on red background for fail.
+ */
 function ContrastBadge({
   pass,
   standard,
 }: {
+  /** Whether the contrast ratio passes this WCAG standard. */
   pass: boolean;
+  /** WCAG conformance level to display. */
   standard: "AA" | "AAA";
 }) {
   return (
@@ -244,6 +260,15 @@ function ContrastBadge({
   );
 }
 
+/**
+ * Main canvas component for the Contrast Checker tool.
+ *
+ * Provides color selection (foreground/background), real-time contrast ratio
+ * preview, WCAG compliance badges (AA/AAA), text preview with a sample label,
+ * and the ability to save combinations for comparison in the sidebar.
+ *
+ * All contrast calculations are client-side and update instantaneously.
+ */
 export function ToolCanvas({
   fgColor,
   bgColor,

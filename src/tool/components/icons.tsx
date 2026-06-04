@@ -1,6 +1,6 @@
 /** Shared SVG icon components used across the tool UI. */
 
-/** Check icon SVG */
+/** Check icon SVG — green checkmark for passing WCAG compliance. */
 export function CheckIcon() {
   return (
     <svg
@@ -19,7 +19,7 @@ export function CheckIcon() {
   );
 }
 
-/** X icon SVG */
+/** X icon SVG — red X for failing WCAG compliance. */
 export function XIcon() {
   return (
     <svg
@@ -38,7 +38,7 @@ export function XIcon() {
   );
 }
 
-/** Plus icon SVG */
+/** Plus icon SVG — add/save current combination. */
 export function PlusIcon() {
   return (
     <svg
@@ -57,7 +57,7 @@ export function PlusIcon() {
   );
 }
 
-/** Download/Export icon SVG */
+/** Download/Export icon SVG — export combinations. */
 export function DownloadIcon() {
   return (
     <svg
@@ -76,7 +76,7 @@ export function DownloadIcon() {
   );
 }
 
-/** Trash/Delete icon SVG */
+/** Trash/Delete icon SVG — clear or remove saved combinations. */
 export function TrashIcon() {
   return (
     <svg
