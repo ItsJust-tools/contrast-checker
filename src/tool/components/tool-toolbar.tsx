@@ -26,10 +26,17 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  *
  * Displays an Export button with a dropdown to select the desired format
  * (JSON, PNG, WebP, PDF). Falls back to `children` when provided.
+ *
+ * Keyboard navigation within the dropdown supports arrow keys (Up/Down),
+ * Home/End to jump to first/last item, and Enter/Space to select.
+ * Escape closes the dropdown and returns focus to the trigger button.
  */
 export function ToolToolbar({ onExport, disabled = false, children }: ToolToolbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   /** Close dropdown on outside click. */
   useEffect(() => {
@@ -43,14 +50,20 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [dropdownOpen]);
 
-  /** Close dropdown on Escape key. */
+  /** Focus the active item when dropdown opens or focusedIndex changes. */
   useEffect(() => {
     if (!dropdownOpen) return;
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDropdownOpen(false);
-    };
-    document.addEventListener("keydown", handleEsc);
-    return () => document.removeEventListener("keydown", handleEsc);
+    const target = itemRefs.current[focusedIndex];
+    if (target) {
+      target.focus();
+    }
+  }, [dropdownOpen, focusedIndex]);
+
+  /** Reset focus index when dropdown opens. */
+  useEffect(() => {
+    if (dropdownOpen) {
+      setFocusedIndex(0);
+    }
   }, [dropdownOpen]);
 
   const toggleDropdown = useCallback(() => {
@@ -60,19 +73,61 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
   const handleFormatSelect = useCallback(
     (format: ExportFormat) => {
       setDropdownOpen(false);
+      triggerRef.current?.focus();
       onExport?.(format);
     },
     [onExport],
   );
 
-  const handleDropdownKeyDown = useCallback(
+  const handleTriggerKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         toggleDropdown();
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!dropdownOpen) {
+          toggleDropdown();
+        }
       }
     },
-    [toggleDropdown],
+    [toggleDropdown, dropdownOpen],
+  );
+
+  const handleMenuKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const lastIndex = EXPORT_FORMATS.length - 1;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev < lastIndex ? prev + 1 : 0));
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev > 0 ? prev - 1 : lastIndex));
+          break;
+        case "Home":
+          e.preventDefault();
+          setFocusedIndex(0);
+          break;
+        case "End":
+          e.preventDefault();
+          setFocusedIndex(lastIndex);
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          handleFormatSelect(EXPORT_FORMATS[focusedIndex].format);
+          break;
+        case "Escape":
+          e.preventDefault();
+          setDropdownOpen(false);
+          triggerRef.current?.focus();
+          break;
+      }
+    },
+    [focusedIndex, handleFormatSelect],
   );
 
   if (children) {
@@ -87,12 +142,14 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
     <div className="contrast-toolbar" ref={dropdownRef}>
       <div className="export-dropdown" style={{ position: "relative" }}>
         <button
+          ref={triggerRef}
           type="button"
           onClick={toggleDropdown}
-          onKeyDown={handleDropdownKeyDown}
+          onKeyDown={handleTriggerKeyDown}
           disabled={disabled}
           aria-expanded={dropdownOpen}
           aria-haspopup="true"
+          aria-controls={dropdownOpen ? "export-dropdown-menu" : undefined}
           aria-label="Export contrast combinations. Select format."
           className="export-dropdown-trigger"
         >
@@ -103,15 +160,21 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
 
         {dropdownOpen && (
           <div
+            id="export-dropdown-menu"
             className="export-dropdown-menu"
             role="menu"
             aria-label="Export format"
+            onKeyDown={handleMenuKeyDown}
           >
-            {EXPORT_FORMATS.map(({ format, label, shortcut }) => (
+            {EXPORT_FORMATS.map(({ format, label, shortcut }, index) => (
               <button
                 key={format}
+                ref={(el) => {
+                  itemRefs.current[index] = el;
+                }}
                 type="button"
                 role="menuitem"
+                tabIndex={index === focusedIndex ? 0 : -1}
                 onClick={() => handleFormatSelect(format)}
                 className="export-dropdown-item"
               >

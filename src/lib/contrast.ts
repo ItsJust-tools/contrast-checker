@@ -333,3 +333,197 @@ export {
 };
 
 export type { ColorSuggestion, SuggestionResult };
+
+// ── Color format conversion utilities ──
+
+/**
+ * Convert a hex color string to an RGB tuple.
+ * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
+ */
+export function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const cleaned = hex.replace(/^#/, "");
+  if (cleaned.length === 3) {
+    const r = parseInt(cleaned[0] + cleaned[0], 16);
+    const g = parseInt(cleaned[1] + cleaned[1], 16);
+    const b = parseInt(cleaned[2] + cleaned[2], 16);
+    return { r, g, b };
+  }
+  if (cleaned.length >= 6) {
+    const r = parseInt(cleaned.slice(0, 2), 16);
+    const g = parseInt(cleaned.slice(2, 4), 16);
+    const b = parseInt(cleaned.slice(4, 6), 16);
+    return { r, g, b };
+  }
+  return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * Convert an RGB tuple to an HSL tuple.
+ * Returns values as integer degrees (H), percentage (S), percentage (L).
+ */
+export function rgbToHsl(
+  r: number,
+  g: number,
+  b: number,
+): { h: number; s: number; l: number } {
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  const delta = max - min;
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (delta !== 0) {
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    if (max === rNorm) {
+      h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) * 60;
+    } else if (max === gNorm) {
+      h = ((bNorm - rNorm) / delta + 2) * 60;
+    } else {
+      h = ((rNorm - gNorm) / delta + 4) * 60;
+    }
+  }
+
+  return {
+    h: Math.round(h),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100),
+  };
+}
+
+/**
+ * Format an RGB value as a CSS rgb() string.
+ */
+export function formatRgb(r: number, g: number, b: number): string {
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
+ * Format an HSL value as a CSS hsl() string.
+ */
+export function formatHsl(h: number, s: number, l: number): string {
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
+// ── Color-blindness simulation ──
+
+/**
+ * Types of color vision deficiency (CVD) supported for simulation.
+ */
+export type CvdType = "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
+
+/**
+ * CVD simulation label for display.
+ */
+export const CVD_LABELS: Record<CvdType, string> = {
+  none: "Normal Vision",
+  protanopia: "Protanopia (Red-blind)",
+  deuteranopia: "Deuteranopia (Green-blind)",
+  tritanopia: "Tritanopia (Blue-blind)",
+  achromatopsia: "Achromatopsia (Monochrome)",
+};
+
+/**
+ * Brettel 1997 color-blindness simulation matrices (linear RGB space).
+ *
+ * These transform a color from LMS (long/medium/short cone response) space
+ * to simulate what a person with a given CVD type would perceive.
+ *
+ * References:
+ * - Brettel, Viénot, & Mollon (1997). "Computerized simulation of color appearance
+ *   for dichromats." JOSA A, 14(10), 2647-2655.
+ * - https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html
+ */
+const CVD_MATRICES: Record<Exclude<CvdType, "none">, number[]> = {
+  protanopia: [
+    0.112, 0.885, 0.003,
+    0.112, 0.885, 0.003,
+    0.000, 0.000, 1.000,
+  ],
+  deuteranopia: [
+    0.292, 0.705, 0.003,
+    0.292, 0.705, 0.003,
+    0.000, 0.000, 1.000,
+  ],
+  tritanopia: [
+    1.000, 0.000, 0.000,
+    0.000, 1.000, 0.000,
+    -0.142, 0.142, 0.000,
+  ],
+  achromatopsia: [
+    0.299, 0.587, 0.114,
+    0.299, 0.587, 0.114,
+    0.299, 0.587, 0.114,
+  ],
+};
+
+/**
+ * Convert an sRGB hex color to a linear RGB array [r, g, b] (0-1 range).
+ */
+function srgbToLinear(hex: string): [number, number, number] {
+  const { r, g, b } = hexToRgb(hex);
+  const toLinear = (c: number): number => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return [toLinear(r), toLinear(g), toLinear(b)];
+}
+
+/**
+ * Convert linear RGB values [0-1] back to a hex color string.
+ */
+function linearToSrgb(r: number, g: number, b: number): string {
+  const toSrgb = (c: number): number => {
+    const clamped = Math.max(0, Math.min(1, c));
+    const s = clamped <= 0.0031308 ? 12.92 * clamped : 1.055 * Math.pow(clamped, 1 / 2.4) - 0.055;
+    return Math.round(s * 255);
+  };
+  const rr = toSrgb(r);
+  const gg = toSrgb(g);
+  const bb = toSrgb(b);
+  return `#${rr.toString(16).padStart(2, "0")}${gg.toString(16).padStart(2, "0")}${bb.toString(16).padStart(2, "0")}`;
+}
+
+/**
+ * Simulate how a hex color appears under a given type of color vision deficiency.
+ *
+ * Uses the Brettel 1997 method: converts sRGB → linear RGB → LMS →
+ * dichromatic LMS → linear RGB → sRGB.
+ *
+ * @param hex - Original hex color
+ * @param cvdType - Type of color vision deficiency to simulate
+ * @returns Simulated hex color as seen by someone with the given CVD
+ */
+export function simulateCvd(hex: string, cvdType: CvdType): string {
+  if (cvdType === "none") return hex;
+
+  const matrix = CVD_MATRICES[cvdType];
+  const [r, g, b] = srgbToLinear(hex);
+
+  // Apply the 3x3 simulation matrix
+  const sr = matrix[0] * r + matrix[1] * g + matrix[2] * b;
+  const sg = matrix[3] * r + matrix[4] * g + matrix[5] * b;
+  const sb = matrix[6] * r + matrix[7] * g + matrix[8] * b;
+
+  return linearToSrgb(sr, sg, sb);
+}
+
+/**
+ * Get the contrast ratio as it would appear under a given CVD type.
+ * Useful for checking whether a color combination remains accessible
+ * for users with color vision deficiencies.
+ *
+ * @param fg - Foreground hex color
+ * @param bg - Background hex color
+ * @param cvdType - CVD type to simulate
+ * @returns Simulated contrast ratio
+ */
+export function getCvdContrastRatio(fg: string, bg: string, cvdType: CvdType): number {
+  if (cvdType === "none") return getContrastRatio(fg, bg);
+  const simFg = simulateCvd(fg, cvdType);
+  const simBg = simulateCvd(bg, cvdType);
+  return getContrastRatio(simFg, simBg);
+}

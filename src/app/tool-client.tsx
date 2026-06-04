@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
 import { useToolState, useExport, useShare } from "@itsjust/core";
 import type { ExportFormat } from "@itsjust/core";
+import type { CvdType } from "@/lib/contrast";
 
 import type { ExportFormat as ToolbarExportFormat } from "@/tool/components/tool-toolbar";
 
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [cvdType, setCvdType] = useState<CvdType>("none");
 
   const toolConfig = contrastTool.config;
 
@@ -103,6 +105,8 @@ export default function ToolClient() {
           }
           onClearCombinations={handleClearCombinations}
           onRemoveCombination={handleRemoveCombination}
+          cvdType={cvdType}
+          onCvdTypeChange={setCvdType}
         />
       </main>
       {/* Share Actions - visible only when data is ready */}

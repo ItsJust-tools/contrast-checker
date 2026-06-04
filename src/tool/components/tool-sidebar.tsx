@@ -6,81 +6,16 @@ import {
   getContrastRatio,
   formatRatio,
   suggestAccessibleColor,
+  hexToRgb,
+  rgbToHsl,
+  formatRgb,
+  formatHsl,
+  simulateCvd,
+  getCvdContrastRatio,
+  CVD_LABELS,
 } from "@/lib/contrast";
-import type { SuggestionResult } from "@/lib/contrast";
+import type { SuggestionResult, CvdType } from "@/lib/contrast";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
-
-/**
- * Convert a hex color string to an RGB tuple.
- * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
- */
-export function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const cleaned = hex.replace(/^#/, "");
-  if (cleaned.length === 3) {
-    const r = parseInt(cleaned[0] + cleaned[0], 16);
-    const g = parseInt(cleaned[1] + cleaned[1], 16);
-    const b = parseInt(cleaned[2] + cleaned[2], 16);
-    return { r, g, b };
-  }
-  if (cleaned.length >= 6) {
-    const r = parseInt(cleaned.slice(0, 2), 16);
-    const g = parseInt(cleaned.slice(2, 4), 16);
-    const b = parseInt(cleaned.slice(4, 6), 16);
-    return { r, g, b };
-  }
-  return { r: 0, g: 0, b: 0 };
-}
-
-/**
- * Convert an RGB tuple to an HSL tuple.
- * Returns values as integer degrees (H), percentage (S), percentage (L).
- */
-export function rgbToHsl(
-  r: number,
-  g: number,
-  b: number,
-): { h: number; s: number; l: number } {
-  const rNorm = r / 255;
-  const gNorm = g / 255;
-  const bNorm = b / 255;
-  const max = Math.max(rNorm, gNorm, bNorm);
-  const min = Math.min(rNorm, gNorm, bNorm);
-  const delta = max - min;
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
-
-  if (delta !== 0) {
-    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-    if (max === rNorm) {
-      h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) * 60;
-    } else if (max === gNorm) {
-      h = ((bNorm - rNorm) / delta + 2) * 60;
-    } else {
-      h = ((rNorm - gNorm) / delta + 4) * 60;
-    }
-  }
-
-  return {
-    h: Math.round(h),
-    s: Math.round(s * 100),
-    l: Math.round(l * 100),
-  };
-}
-
-/**
- * Format an RGB value as a CSS rgb() string.
- */
-export function formatRgb(r: number, g: number, b: number): string {
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-/**
- * Format an HSL value as a CSS hsl() string.
- */
-export function formatHsl(h: number, s: number, l: number): string {
-  return `hsl(${h}, ${s}%, ${l}%)`;
-}
 
 interface ToolSidebarProps {
   fgColor: string;
@@ -96,6 +31,8 @@ interface ToolSidebarProps {
   onBgChange?: (color: string) => void;
   onClearCombinations?: () => void;
   onRemoveCombination?: (index: number) => void;
+  cvdType?: CvdType;
+  onCvdTypeChange?: (cvdType: CvdType) => void;
 }
 
 /**
@@ -385,6 +322,8 @@ export function ToolSidebar({
   onBgChange,
   onClearCombinations,
   onRemoveCombination,
+  cvdType = "none",
+  onCvdTypeChange,
 }: ToolSidebarProps) {
   const fgPreview = useMemo(() => {
     try {
@@ -757,6 +696,79 @@ export function ToolSidebar({
           </div>
         </div>
       )}
+
+      {/* Color-Blindness Simulation */}
+      <div className="sidebar-section">
+        <h3>Color-Vision Simulation</h3>
+        <p
+          style={{
+            fontSize: "0.6875rem",
+            color: "var(--muted)",
+            marginBottom: "0.5rem",
+          }}
+        >
+          Preview how your colors appear under different types of color vision
+          deficiency.
+        </p>
+        <div
+          style={{
+            display: "flex",
+            gap: "0.375rem",
+            flexWrap: "wrap",
+          }}
+        >
+          {(Object.entries(CVD_LABELS) as [CvdType, string][]).map(
+            ([type, label]) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => onCvdTypeChange?.(type)}
+                style={{
+                  fontSize: "0.6875rem",
+                  padding: "0.25rem 0.5rem",
+                  border: `1px solid ${cvdType === type ? "var(--ring)" : "var(--border)"}`,
+                  borderRadius: "var(--radius)",
+                  background:
+                    cvdType === type ? "var(--accent-subtle)" : "transparent",
+                  color: "var(--foreground)",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "all 0.1s",
+                }}
+                aria-pressed={cvdType === type}
+                aria-label={`${label}${cvdType === type ? " (active)" : ""}`}
+              >
+                {type === "none" ? label : label.split(" (")[0]}
+              </button>
+            ),
+          )}
+        </div>
+
+        {cvdType !== "none" && (
+          <div
+            style={{
+              marginTop: "0.5rem",
+              padding: "0.5rem",
+              background: "var(--accent-subtle)",
+              borderRadius: "var(--radius)",
+              fontSize: "0.6875rem",
+              lineHeight: "1.5",
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
+              Simulated Contrast
+            </div>
+            <div>
+              Ratio:{" "}
+              {formatRatio(getCvdContrastRatio(fgColor, bgColor, cvdType))}
+            </div>
+            <div>
+              Sim fg: {simulateCvd(fgColor, cvdType)} ·
+              Sim bg: {simulateCvd(bgColor, cvdType)}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* WCAG Guidelines */}
       <div className="sidebar-section">

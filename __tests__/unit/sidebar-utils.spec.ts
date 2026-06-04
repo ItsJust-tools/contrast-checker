@@ -4,7 +4,7 @@ import {
   rgbToHsl,
   formatRgb,
   formatHsl,
-} from "@/tool/components/tool-sidebar";
+} from "@/lib/contrast";
 
 describe("sidebar utilities - hexToRgb", () => {
   it("should convert 6-digit hex to RGB", () => {
