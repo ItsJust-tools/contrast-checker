@@ -224,6 +224,7 @@ interface ColorSuggestion {
 /**
  * The set of candidate colors tried when suggesting an accessible counterpart.
  * Ordered by likelihood of providing sufficient contrast.
+ * Includes neutral, semantic, and brand-friendly tones for diverse design needs.
  */
 const SUGGESTION_PALETTE_LIGHT: string[] = [
   "#ffffff",
@@ -236,6 +237,11 @@ const SUGGESTION_PALETTE_LIGHT: string[] = [
   "#fcefb2",
   "#fff3cd",
   "#f8d7da",
+  "#e8d5f5",
+  "#d6eaf8",
+  "#f5eef8",
+  "#eaf2f8",
+  "#fef9e7",
 ];
 
 const SUGGESTION_PALETTE_DARK: string[] = [
@@ -249,6 +255,11 @@ const SUGGESTION_PALETTE_DARK: string[] = [
   "#856404",
   "#155724",
   "#1a1a2e",
+  "#2d1b69",
+  "#1b2838",
+  "#3c1053",
+  "#1e3a5f",
+  "#4a235a",
 ];
 
 interface SuggestionResult {

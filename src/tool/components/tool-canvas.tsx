@@ -277,14 +277,18 @@ function ContrastBadge({
   standard: "AA" | "AAA";
 }) {
   return (
-    <div className={`contrast-badge ${pass ? "pass" : "fail"}`}>
+    <div
+      className={`contrast-badge ${pass ? "pass" : "fail"}`}
+      role="status"
+      aria-label={`WCAG ${standard}: ${pass ? "Pass" : "Fail"}`}
+    >
       {pass ? <CheckIcon /> : <XIcon />}
       <div className="contrast-badge-text">
         <span className="contrast-badge-label">{standard}</span>
         <span className="contrast-badge-status">
           {pass
             ? "Pass"
-            : `Fail (needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1)`}
+            : `Needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1`}
         </span>
       </div>
     </div>
@@ -509,6 +513,7 @@ export function ToolCanvas({
 
           {/* Live Announcement for Screen Readers */}
           <div
+            role="status"
             aria-live="polite"
             aria-atomic="true"
             className="sr-only"

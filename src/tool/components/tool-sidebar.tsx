@@ -148,10 +148,6 @@ function ComplianceBadge({
  * Small color swatch displaying the abbreviation label with contrasting text.
  * Reads the hex color and shows the abbreviation in an optimally readable color.
  */
-/**
- * Small color swatch displaying the abbreviation label with contrasting text.
- * Reads the hex color and shows the abbreviation in an optimally readable color.
- */
 function ColorReferenceSwatch({
   color,
   label,
