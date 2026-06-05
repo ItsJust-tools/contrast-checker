@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   getRelativeLuminance,
   getContrastRatio,
@@ -183,6 +183,52 @@ function ColorReferenceSwatch({
 }
 
 /**
+ * Copy text to clipboard and show brief visual feedback.
+ * Falls back gracefully when navigator.clipboard is unavailable.
+ */
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      // clipboard API may not be available; silently ignore
+    }
+  }, [text]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(id);
+  }, [copied]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={`Copy ${label}: ${text}`}
+      title={`Copy ${label}`}
+      style={{
+        fontSize: "0.625rem",
+        padding: "0.125rem 0.375rem",
+        border: `1px solid var(--border)`,
+        borderRadius: "3px",
+        background: copied ? "var(--accent-subtle)" : "transparent",
+        color: copied ? "var(--success)" : "var(--muted-foreground)",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        transition: "background 0.15s, color 0.15s",
+        marginTop: "0.125rem",
+      }}
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+/**
  * Suggested foreground color row with click-to-apply behavior.
  * Shared between light and dark suggestion display.
  */
@@ -207,6 +253,14 @@ function SuggestionRow({
       }
     },
     [onApply, suggestion.color],
+  );
+
+  const handleCopy = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      navigator.clipboard.writeText(suggestion.color).catch(() => {});
+    },
+    [suggestion.color],
   );
 
   const brightnessLabel =
@@ -261,7 +315,7 @@ function SuggestionRow({
           {suggestion.passAAA ? " · AAA✓" : " · AA✓"}
         </span>
       </div>
-      <span style={{ fontSize: highlighted ? "0.6875rem" : "0.65rem", color: "var(--success)" }}>
+      <span style={{ fontSize: highlighted ? "0.6875rem" : "0.65rem", color: "var(--success)", whiteSpace: "nowrap" }}>
         {highlighted ? "★ Best match" : "Apply"}
       </span>
     </div>
@@ -502,14 +556,22 @@ export function ToolSidebar({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "auto 1fr",
+            gridTemplateColumns: "auto 1fr auto",
             gap: "0.5rem",
           }}
         >
           <ColorReferenceSwatch color={fgColor} label="FG" />
           <ColorReferenceDetails color={fgColor} name="Foreground" />
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
+            <CopyButton text={fgColor.toLowerCase()} label="foreground hex" />
+            <CopyButton text={formatRgb(hexToRgb(fgColor).r, hexToRgb(fgColor).g, hexToRgb(fgColor).b)} label="foreground RGB" />
+          </div>
           <ColorReferenceSwatch color={bgColor} label="BG" />
           <ColorReferenceDetails color={bgColor} name="Background" />
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
+            <CopyButton text={bgColor.toLowerCase()} label="background hex" />
+            <CopyButton text={formatRgb(hexToRgb(bgColor).r, hexToRgb(bgColor).g, hexToRgb(bgColor).b)} label="background RGB" />
+          </div>
         </div>
       </div>
 
@@ -767,15 +829,49 @@ export function ToolSidebar({
               fontSize: "0.6875rem",
               lineHeight: "1.5",
             }}
+            role="region"
+            aria-label={`Color-Vision Simulation: ${CVD_LABELS[cvdType]}`}
           >
             <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
               Simulated Contrast
             </div>
-            <div>
-              Ratio:{" "}
-              {formatRatio(getCvdContrastRatio(fgColor, bgColor, cvdType))}
+            <div
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                marginBottom: "0.375rem",
+              }}
+            >
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "4px",
+                  background: simulateCvd(fgColor, cvdType),
+                  border: "1px solid var(--border)",
+                  flexShrink: 0,
+                }}
+                aria-label={`Simulated foreground: ${simulateCvd(fgColor, cvdType)}`}
+              />
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "4px",
+                  background: simulateCvd(bgColor, cvdType),
+                  border: "1px solid var(--border)",
+                  flexShrink: 0,
+                }}
+                aria-label={`Simulated background: ${simulateCvd(bgColor, cvdType)}`}
+              />
+              <div style={{ flex: 1 }}>
+                <div>
+                  Ratio:{" "}
+                  <strong>{formatRatio(getCvdContrastRatio(fgColor, bgColor, cvdType))}</strong>
+                </div>
+              </div>
             </div>
-            <div>
+            <div style={{ fontSize: "0.625rem", color: "var(--muted-foreground)", fontFamily: "ui-monospace, Menlo, Monaco, monospace" }}>
               Sim fg: {simulateCvd(fgColor, cvdType)} ·
               Sim bg: {simulateCvd(bgColor, cvdType)}
             </div>

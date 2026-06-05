@@ -87,7 +87,7 @@ function ColorPreview({
         // 8-digit hex (#RRGGBBAA) — accept it; alpha channel ignored per WCAG spec
         setHexInputError(false);
         setHexInputMessage(null);
-        onChange?.(fullHex);
+        onChange?.(fullHex.slice(0, 7));
       } else if (val.length >= 7) {
         setHexInputError(true);
       } else {
@@ -129,6 +129,31 @@ function ColorPreview({
       e.target.select();
     },
     [],
+  );
+
+  /**
+   * Handle paste events on the hex input to scrub whitespace and
+   * accept the color immediately without extra focus juggling.
+   */
+  const handleHexInputPaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      const pasted = e.clipboardData.getData("text").trim();
+      if (!pasted) return;
+      const cleaned = pasted.startsWith("#") ? pasted : `#${pasted}`;
+      if (
+        /^#[0-9a-fA-F]{6}$/.test(cleaned) ||
+        /^#[0-9a-fA-F]{3}$/.test(cleaned) ||
+        /^#[0-9a-fA-F]{8}$/.test(cleaned)
+      ) {
+        e.preventDefault();
+        onChange?.(cleaned.length === 4
+          ? "#" + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2] + cleaned[3] + cleaned[3]
+          : /^#[0-9a-fA-F]{8}$/.test(cleaned)
+            ? cleaned.slice(0, 7)
+            : cleaned);
+      }
+    },
+    [onChange],
   );
 
   /**
@@ -208,6 +233,7 @@ function ColorPreview({
             onBlur={handleHexInputBlur}
             onFocus={handleHexInputFocus}
             onKeyDown={handleHexInputKeyDown}
+            onPaste={handleHexInputPaste}
             style={{
               width: "100%",
               padding: "0.375rem 0.5rem",

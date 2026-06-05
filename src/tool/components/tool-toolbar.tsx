@@ -89,6 +89,9 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
         if (!dropdownOpen) {
           toggleDropdown();
         }
+      } else if (e.key === "Escape" && dropdownOpen) {
+        e.preventDefault();
+        setDropdownOpen(false);
       }
     },
     [toggleDropdown, dropdownOpen],
