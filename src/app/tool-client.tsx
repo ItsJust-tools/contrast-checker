@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState } from "react";
 import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
 import { useToolState, useExport, useShare } from "@itsjust/core";
-import type { ExportFormat } from "@itsjust/core";
 import type { CvdType } from "@/lib/contrast";
 
 import type { ExportFormat as ToolbarExportFormat } from "@/tool/components/tool-toolbar";
@@ -34,8 +33,8 @@ export default function ToolClient() {
 
   const handleExport = useCallback(
     async (format: ToolbarExportFormat) => {
-      // Map toolbar format to core ExportFormat (core uses "png" | "webp" | "pdf" | "json")
-      await exportTo(format as ExportFormat);
+      // Toolbar and core export formats are identical unions of "png" | "webp" | "pdf" | "json"
+      await exportTo(format);
     },
     [exportTo],
   );
