@@ -32,6 +32,7 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  * Escape closes the dropdown and returns focus to the trigger button.
  */
 export function ToolToolbar({ onExport, disabled = false, children }: ToolToolbarProps) {
+ToolToolbar.displayName = "ToolToolbar";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
