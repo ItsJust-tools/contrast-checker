@@ -189,9 +189,11 @@ function ColorReferenceSwatch({
 function SuggestionRow({
   suggestion,
   onApply,
+  highlighted = false,
 }: {
   suggestion: { color: string; ratio: number; passAAA: boolean };
   onApply?: (color: string) => void;
+  highlighted?: boolean;
 }) {
   const handleClick = useCallback(() => {
     onApply?.(suggestion.color);
@@ -217,23 +219,27 @@ function SuggestionRow({
         display: "flex",
         alignItems: "center",
         gap: "0.5rem",
-        padding: "0.375rem 0.5rem",
+        padding: highlighted ? "0.5rem" : "0.375rem 0.5rem",
         borderRadius: "var(--radius)",
         cursor: "pointer",
-        marginBottom: "0.25rem",
+        marginBottom: "0.375rem",
         transition: "background-color 0.15s",
+        border: highlighted ? "2px solid var(--success)" : "none",
+        background: highlighted
+          ? "color-mix(in srgb, var(--success) 8%, transparent)"
+          : "transparent",
       }}
       role="button"
       tabIndex={0}
-      title={`Apply ${suggestion.color}`}
-      aria-label={`Apply ${brightnessLabel.toLocaleLowerCase()} foreground ${suggestion.color} with ratio ${formatRatio(suggestion.ratio)}`}
+      title={`Apply ${suggestion.color} (best match)`}
+      aria-label={`Best match: apply ${brightnessLabel.toLocaleLowerCase()} foreground ${suggestion.color} with ratio ${formatRatio(suggestion.ratio)}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
       <div
         style={{
-          width: "28px",
-          height: "28px",
+          width: highlighted ? "32px" : "28px",
+          height: highlighted ? "32px" : "28px",
           background: suggestion.color,
           border: "1px solid var(--border)",
           borderRadius: "4px",
@@ -243,9 +249,9 @@ function SuggestionRow({
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <span
           style={{
-            fontSize: "0.75rem",
+            fontSize: highlighted ? "0.8125rem" : "0.75rem",
             fontFamily: "monospace",
-            fontWeight: 500,
+            fontWeight: highlighted ? 600 : 500,
           }}
         >
           {suggestion.color}
@@ -255,8 +261,8 @@ function SuggestionRow({
           {suggestion.passAAA ? " · AAA✓" : " · AA✓"}
         </span>
       </div>
-      <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
-        Click to apply
+      <span style={{ fontSize: highlighted ? "0.6875rem" : "0.65rem", color: "var(--success)" }}>
+        {highlighted ? "★ Best match" : "Apply"}
       </span>
     </div>
   );
@@ -521,21 +527,32 @@ export function ToolSidebar({
           Click a suggestion to apply it.
         </p>
 
-        {accessibleSuggestions.light && (
-          <SuggestionRow
-            suggestion={accessibleSuggestions.light}
-            onApply={onFgChange}
-          />
+        {accessibleSuggestions.best && (
+          <>
+            <SuggestionRow
+              suggestion={accessibleSuggestions.best}
+              onApply={onFgChange}
+              highlighted={true}
+            />
+            {/* Show secondary options only if they differ from best */}
+            {accessibleSuggestions.light &&
+              accessibleSuggestions.light.color !== accessibleSuggestions.best.color && (
+                <SuggestionRow
+                  suggestion={accessibleSuggestions.light}
+                  onApply={onFgChange}
+                />
+              )}
+            {accessibleSuggestions.dark &&
+              accessibleSuggestions.dark.color !== accessibleSuggestions.best.color && (
+                <SuggestionRow
+                  suggestion={accessibleSuggestions.dark}
+                  onApply={onFgChange}
+                />
+              )}
+          </>
         )}
 
-        {accessibleSuggestions.dark && (
-          <SuggestionRow
-            suggestion={accessibleSuggestions.dark}
-            onApply={onFgChange}
-          />
-        )}
-
-        {!accessibleSuggestions.light && !accessibleSuggestions.dark && (
+        {!accessibleSuggestions.best && (
           <div
             style={{
               fontSize: "0.75rem",
