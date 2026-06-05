@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
+import { SwapIcon } from "@/tool/components/icons";
 import { useToolState, useExport, useShare } from "@itsjust/core";
 import type { ExportFormat } from "@itsjust/core";
 import type { CvdType } from "@/lib/contrast";
@@ -73,9 +74,34 @@ export default function ToolClient() {
     [state],
   );
 
+  const handleSwapColors = useCallback(() => {
+    state.setData((prev) => ({
+      ...prev,
+      fgColor: prev.bgColor,
+      bgColor: prev.fgColor,
+    }));
+  }, [state]);
+
   return (
     <div className="contrast-tool-layout">
-      <ToolToolbar onExport={handleExport} disabled={isExporting} />
+      <ToolToolbar onExport={handleExport} disabled={isExporting}>
+        <button
+          type="button"
+          onClick={handleSwapColors}
+          className="btn-secondary"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.375rem",
+            fontSize: "0.75rem",
+          }}
+          aria-label="Swap foreground and background colors"
+          title="Swap foreground and background colors"
+        >
+          <SwapIcon />
+          <span className="action-label">Swap</span>
+        </button>
+      </ToolToolbar>
       <main className="contrast-main-content">
         <ToolCanvas
           fgColor={state.data.fgColor}

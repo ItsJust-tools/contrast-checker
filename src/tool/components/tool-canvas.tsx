@@ -547,6 +547,28 @@ export function ToolCanvas({
             <ContrastBadge pass={passAA} standard="AA" />
           </div>
 
+          {/* Copy Ratio Button */}
+          <button
+            type="button"
+            onClick={() => {
+              const text = `${formatRatio(ratio)} (${localFg} on ${localBg})`;
+              navigator.clipboard.writeText(text).catch(() => {});
+            }}
+            className="btn-secondary"
+            style={{
+              fontSize: "0.6875rem",
+              padding: "0.25rem 0.5rem",
+              marginTop: "0.375rem",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+            }}
+            aria-label={`Copy contrast ratio ${formatRatio(ratio)} to clipboard`}
+            title="Copy contrast ratio to clipboard"
+          >
+            Copy Ratio
+          </button>
+
           {/* WCAG Guidelines Info */}
           <div
             className="wcag-guidelines"

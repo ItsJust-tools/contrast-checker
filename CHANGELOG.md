@@ -2,6 +2,21 @@
 
 All notable changes to the Contrast Checker will be documented in this file.
 
+## [1.6.0] - 2026-06-05
+
+### Added
+
+- Color swap button in toolbar — swap foreground and background colors with one click
+- Copy-to-clipboard buttons for hex, RGB, and HSL color values in the sidebar color reference section
+- `SwapIcon` SVG component for the new swap action
+- Copy Ratio button in the contrast preview section for quick ratio sharing
+- Neutral "No data" state for sidebar compliance badges when no combinations exist
+
+### Changed
+
+- Updated version to 1.6.0
+- `ComplianceBadge` now accepts a `count` prop and shows a dash/"No data" when no combinations are saved, instead of misleading "0% Pass"
+
 ## [Unreleased]
 
 ### Added

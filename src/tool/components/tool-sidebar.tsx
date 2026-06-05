@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   getRelativeLuminance,
   getContrastRatio,
@@ -121,24 +121,37 @@ function ColorSwatch({
 /**
  * Displays a WCAG compliance badge with pass/fail visual indicator.
  * Shows the pass rate percentage for the given standard across all saved combinations.
+ * When no combinations exist (`count === 0`), renders a neutral badge with N/A.
  */
 function ComplianceBadge({
   pass,
   label,
   rate,
+  count = 0,
 }: {
   pass: boolean;
   label: string;
   rate: number;
+  count?: number;
 }) {
   return (
     <div
-      className={`contrast-badge sidebar-compliance ${pass ? "pass" : "fail"}`}
+      className={`contrast-badge sidebar-compliance ${count === 0 ? "neutral" : pass ? "pass" : "fail"}`}
+      role="status"
+      aria-label={`WCAG ${label}: ${count === 0 ? "No combinations saved yet" : pass ? "Passing" : "Failing"}`}
     >
-      {pass ? <CheckIcon /> : <XIcon />}
+      {count === 0 ? (
+        <span style={{ fontSize: "0.75rem", opacity: 0.5 }}>&ndash;</span>
+      ) : pass ? (
+        <CheckIcon />
+      ) : (
+        <XIcon />
+      )}
       <div className="contrast-badge-text">
         <span className="contrast-badge-label">{label}</span>
-        <span className="contrast-badge-status">{rate.toFixed(0)}% Pass</span>
+        <span className="contrast-badge-status">
+          {count === 0 ? "No data" : `${rate.toFixed(0)}% Pass`}
+        </span>
       </div>
     </div>
   );
@@ -263,7 +276,62 @@ function SuggestionRow({
 }
 
 /**
+ * Small copy-to-clipboard button for a text value.
+ * Shows a brief "Copied!" feedback on click, then reverts.
+ */
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      // Clipboard API not available
+    }
+  }, [text]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleCopy();
+      }
+    },
+    [handleCopy],
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      onKeyDown={handleKeyDown}
+      title={`Copy ${text} to clipboard`}
+      aria-label={`Copy ${text} to clipboard`}
+      style={{
+        padding: "0.125rem 0.375rem",
+        fontSize: "0.625rem",
+        fontFamily: "monospace",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        background: copied ? "var(--accent-subtle)" : "transparent",
+        color: copied ? "var(--accent)" : "var(--muted-foreground)",
+        cursor: "pointer",
+        transition: "all 0.12s",
+        lineHeight: "1.4",
+        outline: "none",
+      }}
+    >
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  );
+}
+CopyButton.displayName = "CopyButton";
+
+/**
  * Displays the hex, RGB, and HSL values for a given color in a compact layout.
+ * Each value row includes a copy button for quick clipboard access.
  */
 function ColorReferenceDetails({
   color,
@@ -274,12 +342,16 @@ function ColorReferenceDetails({
 }) {
   const rgb = useMemo(() => hexToRgb(color), [color]);
   const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
+  const rgbStr = useMemo(() => formatRgb(rgb.r, rgb.g, rgb.b), [rgb]);
+  const hslStr = useMemo(() => formatHsl(hsl.h, hsl.s, hsl.l), [hsl]);
+  const hexLower = useMemo(() => color.toLowerCase(), [color]);
+
   return (
     <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
       <div
         style={{
           fontWeight: 600,
-          marginBottom: "0.125rem",
+          marginBottom: "0.25rem",
           color: "var(--foreground)",
         }}
       >
@@ -291,9 +363,18 @@ function ColorReferenceDetails({
           fontFamily: "ui-monospace, Menlo, Monaco, monospace",
         }}
       >
-        <div>{color.toLowerCase()}</div>
-        <div>{formatRgb(rgb.r, rgb.g, rgb.b)}</div>
-        <div>{formatHsl(hsl.h, hsl.s, hsl.l)}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.125rem" }}>
+          <span style={{ flex: 1 }}>{hexLower}</span>
+          <CopyButton text={hexLower} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.125rem" }}>
+          <span style={{ flex: 1 }}>{rgbStr}</span>
+          <CopyButton text={rgbStr} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+          <span style={{ flex: 1 }}>{hslStr}</span>
+          <CopyButton text={hslStr} />
+        </div>
       </div>
     </div>
   );
@@ -453,11 +534,13 @@ export function ToolSidebar({
             pass={combinations.length > 0 && passRateAA >= 50}
             label="AA"
             rate={passRateAA}
+            count={combinations.length}
           />
           <ComplianceBadge
             pass={combinations.length > 0 && passRateAAA >= 50}
             label="AAA"
             rate={passRateAAA}
+            count={combinations.length}
           />
         </div>
       </div>
