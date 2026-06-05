@@ -321,7 +321,6 @@ export function ToolSidebar({
   cvdType = "none",
   onCvdTypeChange,
 }: ToolSidebarProps) {
-ToolSidebar.displayName = "ToolSidebar";
   const fgPreview = useMemo(() => {
     try {
       return getRelativeLuminance(fgColor);
@@ -791,3 +790,5 @@ ToolSidebar.displayName = "ToolSidebar";
     </div>
   );
 }
+
+ToolSidebar.displayName = "ToolSidebar";

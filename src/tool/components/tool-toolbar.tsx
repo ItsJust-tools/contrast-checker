@@ -32,7 +32,6 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  * Escape closes the dropdown and returns focus to the trigger button.
  */
 export function ToolToolbar({ onExport, disabled = false, children }: ToolToolbarProps) {
-ToolToolbar.displayName = "ToolToolbar";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -61,14 +60,14 @@ ToolToolbar.displayName = "ToolToolbar";
   }, [dropdownOpen, focusedIndex]);
 
   /** Reset focus index when dropdown opens. */
-  useEffect(() => {
-    if (dropdownOpen) {
-      setFocusedIndex(0);
-    }
-  }, [dropdownOpen]);
-
   const toggleDropdown = useCallback(() => {
-    setDropdownOpen((prev) => !prev);
+    setDropdownOpen((prev) => {
+      if (!prev) {
+        // Resetting in the updater is safe and avoids cascading renders
+        setFocusedIndex(0);
+      }
+      return !prev;
+    });
   }, []);
 
   const handleFormatSelect = useCallback(
@@ -191,3 +190,5 @@ ToolToolbar.displayName = "ToolToolbar";
     </div>
   );
 }
+
+ToolToolbar.displayName = "ToolToolbar";

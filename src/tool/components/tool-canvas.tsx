@@ -314,7 +314,6 @@ export function ToolCanvas({
   onLabelChange,
   onAddCombination,
 }: ToolCanvasProps) {
-ToolCanvas.displayName = "ToolCanvas";
   const [localFg, setLocalFg] = useState(fgColor);
   const [localBg, setLocalBg] = useState(bgColor);
   const [localLabel, setLocalLabel] = useState(label);
@@ -647,3 +646,5 @@ ToolCanvas.displayName = "ToolCanvas";
     </div>
   );
 }
+
+ToolCanvas.displayName = "ToolCanvas";

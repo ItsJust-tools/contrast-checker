@@ -2,7 +2,6 @@
 
 /** Eye dropper icon — pick a color from the screen via the EyeDropper API. */
 export function EyeDropperIcon() {
-EyeDropperIcon.displayName = "EyeDropperIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -26,10 +25,10 @@ EyeDropperIcon.displayName = "EyeDropperIcon";
     </svg>
   );
 }
+EyeDropperIcon.displayName = "EyeDropperIcon";
 
 /** Check icon SVG — green checkmark for passing WCAG compliance. */
 export function CheckIcon() {
-CheckIcon.displayName = "CheckIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -46,10 +45,10 @@ CheckIcon.displayName = "CheckIcon";
     </svg>
   );
 }
+CheckIcon.displayName = "CheckIcon";
 
 /** X icon SVG — red X for failing WCAG compliance. */
 export function XIcon() {
-XIcon.displayName = "XIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -66,10 +65,10 @@ XIcon.displayName = "XIcon";
     </svg>
   );
 }
+XIcon.displayName = "XIcon";
 
 /** Plus icon SVG — add/save current combination. */
 export function PlusIcon() {
-PlusIcon.displayName = "PlusIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -86,10 +85,10 @@ PlusIcon.displayName = "PlusIcon";
     </svg>
   );
 }
+PlusIcon.displayName = "PlusIcon";
 
 /** Chevron down icon SVG — used in export dropdown toggle. */
 export function ChevronDownIcon({ open }: { open?: boolean }) {
-ChevronDownIcon.displayName = "ChevronDownIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -111,10 +110,10 @@ ChevronDownIcon.displayName = "ChevronDownIcon";
     </svg>
   );
 }
+ChevronDownIcon.displayName = "ChevronDownIcon";
 
 /** Download/Export icon SVG — export combinations. */
 export function DownloadIcon() {
-DownloadIcon.displayName = "DownloadIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -131,10 +130,10 @@ DownloadIcon.displayName = "DownloadIcon";
     </svg>
   );
 }
+DownloadIcon.displayName = "DownloadIcon";
 
 /** Trash/Delete icon SVG — clear or remove saved combinations. */
 export function TrashIcon() {
-TrashIcon.displayName = "TrashIcon";
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -151,3 +150,4 @@ TrashIcon.displayName = "TrashIcon";
     </svg>
   );
 }
+TrashIcon.displayName = "TrashIcon";
