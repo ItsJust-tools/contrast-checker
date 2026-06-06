@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useRef, useEffect, type ReactNode } from "react";
+import { useCallback, useState, useRef, useEffect, useMemo, type ReactNode } from "react";
 import { DownloadIcon, ChevronDownIcon } from "./icons";
 
 export type ExportFormat = "json" | "png" | "webp" | "pdf";
@@ -37,6 +37,38 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  /**
+   * Map keyboard shortcuts to their export format.
+   */
+  const shortcutMap: Record<string, ExportFormat> = useMemo(() => ({
+    "ctrl+shift+e": "json",
+    "meta+shift+e": "json",
+    "ctrl+shift+p": "png",
+    "meta+shift+p": "png",
+  }), []);
+
+  /** Global keyboard shortcut handler. */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (disabled) return;
+      const key = [
+        e.ctrlKey || e.metaKey ? "ctrl" : "",
+        e.shiftKey ? "shift" : "",
+        e.key.toLowerCase(),
+      ]
+        .filter(Boolean)
+        .join("+");
+      const format = shortcutMap[key];
+      if (format) {
+        e.preventDefault();
+        setDropdownOpen(false);
+        onExport?.(format);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [disabled, onExport, shortcutMap]);
 
   /** Close dropdown on outside click. */
   useEffect(() => {
@@ -154,6 +186,8 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
           aria-haspopup="true"
           aria-controls={dropdownOpen ? "export-dropdown-menu" : undefined}
           aria-label="Export contrast combinations. Select format."
+          aria-keyshortcuts="Ctrl+Shift+E Ctrl+Shift+P"
+          title="Export (Ctrl+Shift+E: JSON, Ctrl+Shift+P: PNG)"
           className="export-dropdown-trigger"
         >
           <DownloadIcon />

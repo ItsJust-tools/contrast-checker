@@ -334,6 +334,7 @@ function ColorReferenceDetails({
 }) {
   const rgb = useMemo(() => hexToRgb(color), [color]);
   const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
+  const rgbStr = useMemo(() => formatRgb(rgb.r, rgb.g, rgb.b), [rgb]);
   return (
     <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
       <div
@@ -352,7 +353,7 @@ function ColorReferenceDetails({
         }}
       >
         <div>{color.toLowerCase()}</div>
-        <div>{formatRgb(rgb.r, rgb.g, rgb.b)}</div>
+        <div>{rgbStr}</div>
         <div>{formatHsl(hsl.h, hsl.s, hsl.l)}</div>
       </div>
     </div>
@@ -396,6 +397,11 @@ export function ToolSidebar({
       return 0;
     }
   }, [bgColor]);
+
+  const fgRgb = useMemo(() => hexToRgb(fgColor), [fgColor]);
+  const bgRgb = useMemo(() => hexToRgb(bgColor), [bgColor]);
+  const fgRgbStr = useMemo(() => formatRgb(fgRgb.r, fgRgb.g, fgRgb.b), [fgRgb]);
+  const bgRgbStr = useMemo(() => formatRgb(bgRgb.r, bgRgb.g, bgRgb.b), [bgRgb]);
 
   const averageContrast = useMemo(() => {
     if (combinations.length === 0) return 0;
@@ -564,13 +570,13 @@ export function ToolSidebar({
           <ColorReferenceDetails color={fgColor} name="Foreground" />
           <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
             <CopyButton text={fgColor.toLowerCase()} label="foreground hex" />
-            <CopyButton text={formatRgb(hexToRgb(fgColor).r, hexToRgb(fgColor).g, hexToRgb(fgColor).b)} label="foreground RGB" />
+            <CopyButton text={fgRgbStr} label="foreground RGB" />
           </div>
           <ColorReferenceSwatch color={bgColor} label="BG" />
           <ColorReferenceDetails color={bgColor} name="Background" />
           <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
             <CopyButton text={bgColor.toLowerCase()} label="background hex" />
-            <CopyButton text={formatRgb(hexToRgb(bgColor).r, hexToRgb(bgColor).g, hexToRgb(bgColor).b)} label="background RGB" />
+            <CopyButton text={bgRgbStr} label="background RGB" />
           </div>
         </div>
       </div>
