@@ -41,7 +41,7 @@ function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
  * @returns Object with cleaned hex string and parsed r/g/b components
  * @throws {Error} If the input is not a valid hex color
  */
-function _normalizeHex(hex: string): {
+function normalizeHex(hex: string): {
   r: number;
   g: number;
   b: number;
@@ -92,7 +92,7 @@ function _normalizeHex(hex: string): {
  * @throws {Error} If hex color format is invalid
  */
 function getRelativeLuminance(hex: string): number {
-  const { r, g, b } = _normalizeHex(hex);
+  const { r, g, b } = normalizeHex(hex);
 
   // Apply gamma correction using the sRGB transfer function
   const adjust = (c: number): number => {
@@ -353,7 +353,7 @@ export type { ColorSuggestion, SuggestionResult };
  */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   try {
-    const { r, g, b } = _normalizeHex(hex);
+    const { r, g, b } = normalizeHex(hex);
     return {
       r: Math.round(r * 255),
       g: Math.round(g * 255),

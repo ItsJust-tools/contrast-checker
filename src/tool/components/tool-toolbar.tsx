@@ -214,6 +214,7 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
                 tabIndex={index === focusedIndex ? 0 : -1}
                 onClick={() => handleFormatSelect(format)}
                 className="export-dropdown-item"
+                aria-label={`Export as ${label}`}
               >
                 <span>{label}</span>
                 {shortcut && (

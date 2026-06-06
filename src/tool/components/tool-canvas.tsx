@@ -89,10 +89,17 @@ function ColorPreview({
         setHexInputError(false);
         setHexInputMessage(null);
         onChange?.(fullHex.slice(0, 7));
+      } else if (val.length >= 4 && !/^#?[0-9a-fA-F]+$/.test(val)) {
+        // Show error when input has non-hex characters and is long enough to be suspicious
+        setHexInputError(true);
+        setHexInputMessage(
+          "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+        );
       } else if (val.length >= 7) {
         setHexInputError(true);
       } else {
         setHexInputError(false);
+        setHexInputMessage(null);
       }
     },
     [onChange],
@@ -147,11 +154,15 @@ function ColorPreview({
         /^#[0-9a-fA-F]{8}$/.test(cleaned)
       ) {
         e.preventDefault();
-        onChange?.(cleaned.length === 4
-          ? "#" + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2] + cleaned[3] + cleaned[3]
-          : /^#[0-9a-fA-F]{8}$/.test(cleaned)
-            ? cleaned.slice(0, 7)
-            : cleaned);
+        let result = cleaned;
+        if (cleaned.length === 4) {
+          // Expand 3-char shorthand to 6-char
+          result = "#" + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2] + cleaned[3] + cleaned[3];
+        } else if (cleaned.length === 9) {
+          // Strip alpha from 8-char
+          result = cleaned.slice(0, 7);
+        }
+        onChange?.(result);
       }
     },
     [onChange],
