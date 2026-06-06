@@ -231,13 +231,16 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 /**
  * Suggested foreground color row with click-to-apply behavior.
  * Shared between light and dark suggestion display.
+ *
+ * Uses the pre-calculated `brightness` label from {@link ColorSuggestion}
+ * instead of recalculating contrast against white on every render.
  */
 function SuggestionRow({
   suggestion,
   onApply,
   highlighted = false,
 }: {
-  suggestion: { color: string; ratio: number; passAAA: boolean };
+  suggestion: { color: string; ratio: number; passAAA: boolean; brightness: string };
   onApply?: (color: string) => void;
   highlighted?: boolean;
 }) {
@@ -263,8 +266,8 @@ function SuggestionRow({
     [suggestion.color],
   );
 
-  const brightnessLabel =
-    getContrastRatio(suggestion.color, "#ffffff") > 4.5 ? "Light" : "Dark";
+  // Use the pre-calculated brightness label instead of recalculating
+  const brightnessLabel = suggestion.brightness === "dark" ? "Dark" : "Light";
 
   return (
     <div

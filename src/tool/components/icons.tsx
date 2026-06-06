@@ -1,32 +1,5 @@
 /** Shared SVG icon components used across the tool UI. */
 
-/** Eye dropper icon — pick a color from the screen via the EyeDropper API. */
-export function EyeDropperIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ width: "16px", height: "16px" }}
-      aria-hidden="true"
-    >
-      <path d="M2 22l1-1h3l9-9" />
-      <path d="M3 21l9-9" />
-      <path d="M7.5 6.5l-2 2a1 1 0 000 1.414l8.586 8.586a1 1 0 001.414 0l2-2" />
-      <path d="M17.5 10.5l2-2a1 1 0 000-1.414l-2.586-2.586a1 1 0 00-1.414 0l-2 2" />
-      <path d="M19 7l3-3-1-1-3 3" />
-      <path d="M2 22l2-8" />
-      <path d="M9 3l-2 2" />
-      <path d="M20 12l-2 2" />
-    </svg>
-  );
-}
-EyeDropperIcon.displayName = "EyeDropperIcon";
-
 /** Check icon SVG — green checkmark for passing WCAG compliance. */
 export function CheckIcon() {
   return (
