@@ -73,6 +73,14 @@ export default function ToolClient() {
     [state],
   );
 
+  const handleSwapColors = useCallback(() => {
+    state.setData((prev) => ({
+      ...prev,
+      fgColor: prev.bgColor,
+      bgColor: prev.fgColor,
+    }));
+  }, [state]);
+
   return (
     <div className="contrast-tool-layout">
       <ToolToolbar onExport={handleExport} disabled={isExporting} />
@@ -92,6 +100,7 @@ export default function ToolClient() {
             state.setData((prev) => ({ ...prev, label: label }))
           }
           onAddCombination={handleAddCombination}
+          onSwapColors={handleSwapColors}
         />
         <ToolSidebar
           fgColor={state.data.fgColor}

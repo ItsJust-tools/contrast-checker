@@ -124,3 +124,23 @@ export function TrashIcon() {
   );
 }
 TrashIcon.displayName = "TrashIcon";
+
+/** Swap/Exchange icon SVG — swap foreground and background colors. */
+export function SwapIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "16px", height: "16px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M5 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L6 6.414V15a1 1 0 11-2 0V6.414L2.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 015 3zm10 2a1 1 0 011 1v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414L14 13.586V6a1 1 0 011-1z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+SwapIcon.displayName = "SwapIcon";

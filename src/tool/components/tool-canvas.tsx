@@ -7,7 +7,7 @@ import {
   getRequiredRatio,
   formatRatio,
 } from "@/lib/contrast";
-import { CheckIcon, XIcon, PlusIcon } from "./icons";
+import { CheckIcon, XIcon, PlusIcon, SwapIcon } from "./icons";
 
 interface ToolCanvasProps {
   fgColor: string;
@@ -15,6 +15,7 @@ interface ToolCanvasProps {
   canvasRef?: React.RefObject<HTMLDivElement | null>;
   onFgChange?: (color: string) => void;
   onBgChange?: (color: string) => void;
+  onSwapColors?: () => void;
   label?: string;
   onLabelChange?: (label: string) => void;
   onAddCombination?: (combination: {
@@ -336,6 +337,7 @@ export function ToolCanvas({
   canvasRef,
   onFgChange,
   onBgChange,
+  onSwapColors,
   label = "",
   onLabelChange,
   onAddCombination,
@@ -597,6 +599,26 @@ export function ToolCanvas({
             </div>
           </div>
         </div>
+
+        {/* Swap Colors Button */}
+        {onSwapColors && (
+          <button
+            type="button"
+            onClick={onSwapColors}
+            className="btn-secondary"
+            style={{
+              alignSelf: "flex-start",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.375rem",
+            }}
+            aria-label="Swap foreground and background colors"
+            title="Swap foreground and background colors"
+          >
+            <SwapIcon />
+            Swap Colors
+          </button>
+        )}
 
         {/* Save Combination Button */}
         {onAddCombination && (
