@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   getRelativeLuminance,
   getContrastRatio,
@@ -97,6 +97,9 @@ function ColorPreview({
         );
       } else if (val.length >= 7) {
         setHexInputError(true);
+        setHexInputMessage(
+          "Invalid hex color. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+        );
       } else {
         setHexInputError(false);
         setHexInputMessage(null);
@@ -353,46 +356,33 @@ export function ToolCanvas({
   onLabelChange,
   onAddCombination,
 }: ToolCanvasProps) {
-  const [localFg, setLocalFg] = useState(fgColor);
-  const [localBg, setLocalBg] = useState(bgColor);
-  const [localLabel, setLocalLabel] = useState(label);
-
-  // Sync props to local state (intentional controlled-component pattern)
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    setLocalFg(fgColor);
-  }, [fgColor]);
-  useEffect(() => {
-    setLocalBg(bgColor);
-  }, [bgColor]);
-  useEffect(() => {
-    setLocalLabel(label);
-  }, [label]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  // Use props directly as the single source of truth.
+  // The parent (ToolClient) owns the state; we just read and forward changes.
+  // This avoids the useEffect-sync anti-pattern that caused unnecessary re-renders.
 
   const ratio = useMemo(() => {
     try {
-      return getContrastRatio(localFg, localBg);
+      return getContrastRatio(fgColor, bgColor);
     } catch {
       return 0;
     }
-  }, [localFg, localBg]);
+  }, [fgColor, bgColor]);
 
   const fgBrightness = useMemo(() => {
     try {
-      return getRelativeLuminance(localFg);
+      return getRelativeLuminance(fgColor);
     } catch {
       return 0;
     }
-  }, [localFg]);
+  }, [fgColor]);
 
   const bgBrightness = useMemo(() => {
     try {
-      return getRelativeLuminance(localBg);
+      return getRelativeLuminance(bgColor);
     } catch {
       return 0;
     }
-  }, [localBg]);
+  }, [bgColor]);
 
   const passAA = useMemo(
     () => ratio >= getRequiredRatio("AA", "normal"),
@@ -413,7 +403,6 @@ export function ToolCanvas({
 
   const handleFgChange = useCallback(
     (color: string) => {
-      setLocalFg(color);
       onFgChange?.(color);
     },
     [onFgChange],
@@ -421,7 +410,6 @@ export function ToolCanvas({
 
   const handleBgChange = useCallback(
     (color: string) => {
-      setLocalBg(color);
       onBgChange?.(color);
     },
     [onBgChange],
@@ -429,9 +417,7 @@ export function ToolCanvas({
 
   const handleLabelChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newLabel = e.target.value;
-      setLocalLabel(newLabel);
-      onLabelChange?.(newLabel);
+      onLabelChange?.(e.target.value);
     },
     [onLabelChange],
   );
@@ -457,7 +443,7 @@ export function ToolCanvas({
             </span>
           </div>
           <ColorPreview
-            color={localFg}
+            color={fgColor}
             label="Foreground"
             onChange={handleFgChange}
             instanceId="fg"
@@ -474,7 +460,7 @@ export function ToolCanvas({
             </span>
           </div>
           <ColorPreview
-            color={localBg}
+            color={bgColor}
             label="Background"
             onChange={handleBgChange}
             instanceId="bg"
@@ -500,14 +486,14 @@ export function ToolCanvas({
             style={{
               width: "100%",
               height: "48px",
-              background: localBg,
+              background: bgColor,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",
               marginTop: "0.5rem",
               position: "relative",
               overflow: "hidden",
             }}
-            aria-label={`Contrast preview bar showing ${localFg} on ${localBg}`}
+            aria-label={`Contrast preview bar showing ${fgColor} on ${bgColor}`}
           >
             <div
               className="contrast-preview-overlay"
@@ -520,10 +506,10 @@ export function ToolCanvas({
                 gap: "1rem",
                 fontSize: "0.875rem",
                 fontWeight: 500,
-                color: localFg,
+                color: fgColor,
                 textShadow: passAA
-                  ? `0 0 2px ${localBg}, 0 0 1px ${localBg}`
-                  : `0 0 3px ${localBg}, 0 0 1px ${localBg}`,
+                  ? `0 0 2px ${bgColor}, 0 0 1px ${bgColor}`
+                  : `0 0 3px ${bgColor}, 0 0 1px ${bgColor}`,
               }}
             >
               <span
@@ -531,9 +517,9 @@ export function ToolCanvas({
                   display: "inline-block",
                   width: "24px",
                   height: "24px",
-                  background: localFg,
+                  background: fgColor,
                   borderRadius: "4px",
-                  border: `1px solid ${localBg}`,
+                  border: `1px solid ${bgColor}`,
                 }}
               />
               <span
@@ -637,8 +623,8 @@ export function ToolCanvas({
             type="button"
             onClick={() =>
               onAddCombination({
-                fg: localFg,
-                bg: localBg,
+                fg: fgColor,
+                bg: bgColor,
                 ratio: Math.round(ratio * 100) / 100,
                 passAA,
                 passAAA,
@@ -646,7 +632,7 @@ export function ToolCanvas({
             }
             className="btn-secondary"
             style={{ alignSelf: "flex-start", marginTop: "0.25rem" }}
-            aria-label={`Save current combination ${localFg} on ${localBg} (ratio ${formatRatio(ratio)})`}
+            aria-label={`Save current combination ${fgColor} on ${bgColor} (ratio ${formatRatio(ratio)})`}
           >
             <PlusIcon />
             Save Combination
@@ -668,7 +654,7 @@ export function ToolCanvas({
           <input
             id="contrast-label-input"
             type="text"
-            value={localLabel}
+            value={label}
             onChange={handleLabelChange}
             placeholder="Sample text preview"
             style={{
@@ -676,8 +662,8 @@ export function ToolCanvas({
               padding: "0.5rem 0.75rem",
               fontSize: "0.875rem",
               fontFamily: "inherit",
-              background: localBg,
-              color: localFg,
+              background: bgColor,
+              color: fgColor,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",
               outline: "none",
@@ -690,15 +676,15 @@ export function ToolCanvas({
           style={{
             marginTop: "0.5rem",
             padding: "0.75rem",
-            background: localBg,
-            color: localFg,
+            background: bgColor,
+            color: fgColor,
             border: "1px solid var(--border)",
             borderRadius: "var(--radius)",
             fontSize: "1rem",
             lineHeight: "1.5",
           }}
         >
-          {localLabel ||
+          {label ||
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
         </div>
       </div>
