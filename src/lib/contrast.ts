@@ -496,6 +496,19 @@ export const CVD_LABELS: Record<CvdType, string> = {
 };
 
 /**
+ * Short CVD simulation label for display in compact UI contexts.
+ * Used in buttons, badges, and other space-constrained elements
+ * where the full CVD_LABELS description would be too verbose.
+ */
+export const CVD_SHORT_LABELS: Record<CvdType, string> = {
+  none: "Normal",
+  protanopia: "Protanopia",
+  deuteranopia: "Deuteranopia",
+  tritanopia: "Tritanopia",
+  achromatopsia: "Monochrome",
+};
+
+/**
  * Brettel 1997 color-blindness simulation matrices (linear RGB space).
  *
  * These transform a color from LMS (long/medium/short cone response) space

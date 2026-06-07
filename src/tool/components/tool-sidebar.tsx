@@ -814,7 +814,7 @@ export function ToolSidebar({
                 aria-pressed={cvdType === type}
                 aria-label={`${label}${cvdType === type ? " (active)" : ""}`}
               >
-                {type === "none" ? label : label.split(" (")[0]}
+                {CVD_SHORT_LABELS[type]}
               </button>
             ),
           )}

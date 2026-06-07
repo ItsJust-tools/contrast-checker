@@ -39,16 +39,18 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
 
   /**
    * Map keyboard shortcuts to their export format.
+   * Stable reference via useRef to avoid re-creating the effect on every render.
    */
-  const shortcutMap: Record<string, ExportFormat> = {
+  const shortcutMapRef = useRef<Record<string, ExportFormat>>({
     "ctrl+shift+e": "json",
     "meta+shift+e": "json",
     "ctrl+shift+p": "png",
     "meta+shift+p": "png",
-  };
+  });
 
   /** Global keyboard shortcut handler. */
   useEffect(() => {
+    const shortcutMap = shortcutMapRef.current;
     const handler = (e: KeyboardEvent) => {
       if (disabled) return;
       const key = [
@@ -67,7 +69,7 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [disabled, onExport, shortcutMap]);
+  }, [disabled, onExport]);
 
   /** Close dropdown on outside click. */
   useEffect(() => {
