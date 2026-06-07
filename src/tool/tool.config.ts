@@ -1,7 +1,4 @@
 import type { ToolConfig } from "@itsjust/core";
-import packageJson from "../../package.json";
-
-export const templateBaseVersion = packageJson.version;
 
 const toolConfig = {
   id: "contrast-checker",

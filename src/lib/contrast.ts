@@ -342,7 +342,30 @@ export function normalizeHexColor(hex: string): string {
     );
   }
 
+  if (!/^[0-9a-f]{6}$/.test(result)) {
+    throw new Error(
+      `Invalid hex color: non-hex characters in "${hex}"`,
+    );
+  }
+
   return `#${result}`;
+}
+
+/**
+ * Safely attempt to normalize a hex color without throwing.
+ *
+ * Useful in UI code where you want to attempt normalization
+ * without wrapping every call in try/catch.
+ *
+ * @param hex - Raw hex color input (with or without '#' prefix)
+ * @returns Normalized 6-char hex string with '#' prefix, or `null` if invalid
+ */
+export function tryNormalizeHexColor(hex: string): string | null {
+  try {
+    return normalizeHexColor(hex);
+  } catch {
+    return null;
+  }
 }
 
 export {

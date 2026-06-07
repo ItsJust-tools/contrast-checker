@@ -7,6 +7,7 @@ import {
   getBrightnessCategory,
   suggestAccessibleColor,
   normalizeHexColor,
+  tryNormalizeHexColor,
   hexToRgb,
   rgbToHsl,
   formatRgb,
@@ -365,6 +366,46 @@ describe("normalizeHexColor", () => {
       expect(() => normalizeHexColor(null as unknown as string)).toThrow(
         "Invalid hex color: must be a non-empty string",
       );
+    });
+  });
+
+  describe("tryNormalizeHexColor", () => {
+    it("should return normalized color for valid 6-digit hex", () => {
+      expect(tryNormalizeHexColor("#ff0000")).toBe("#ff0000");
+      expect(tryNormalizeHexColor("#ffffff")).toBe("#ffffff");
+      expect(tryNormalizeHexColor("#000000")).toBe("#000000");
+    });
+
+    it("should return normalized color for 3-digit shorthand", () => {
+      expect(tryNormalizeHexColor("#fff")).toBe("#ffffff");
+      expect(tryNormalizeHexColor("#f00")).toBe("#ff0000");
+      expect(tryNormalizeHexColor("abc")).toBe("#aabbcc");
+    });
+
+    it("should strip alpha from 8-digit hex", () => {
+      expect(tryNormalizeHexColor("#ff000080")).toBe("#ff0000");
+    });
+
+    it("should lowercase uppercase hex", () => {
+      expect(tryNormalizeHexColor("#FF0000")).toBe("#ff0000");
+    });
+
+    it("should return null for empty string", () => {
+      expect(tryNormalizeHexColor("")).toBeNull();
+    });
+
+    it("should return null for invalid hex characters", () => {
+      expect(tryNormalizeHexColor("#ffgg00")).toBeNull();
+      expect(tryNormalizeHexColor("zzz")).toBeNull();
+    });
+
+    it("should return null for invalid length", () => {
+      expect(tryNormalizeHexColor("#f")).toBeNull();
+      expect(tryNormalizeHexColor("#12345")).toBeNull();
+    });
+
+    it("should return null for null input", () => {
+      expect(tryNormalizeHexColor(null as unknown as string)).toBeNull();
     });
   });
 
