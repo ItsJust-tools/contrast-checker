@@ -7,6 +7,10 @@ import {
   getBrightnessCategory,
   suggestAccessibleColor,
   normalizeHexColor,
+  hexToRgb,
+  rgbToHsl,
+  formatRgb,
+  formatHsl,
 } from "@/lib/contrast.js";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
@@ -425,6 +429,108 @@ describe("normalizeHexColor", () => {
       const result = suggestAccessibleColor("#f0f0f0");
       expect(result.dark).not.toBeNull();
       expect(result.dark!.passAA).toBe(true);
+    });
+  });
+
+  describe("hexToRgb", () => {
+    it("should convert #ff0000 to { r: 255, g: 0, b: 0 }", () => {
+      expect(hexToRgb("#ff0000")).toEqual({ r: 255, g: 0, b: 0 });
+    });
+
+    it("should convert #000000 to { r: 0, g: 0, b: 0 }", () => {
+      expect(hexToRgb("#000000")).toEqual({ r: 0, g: 0, b: 0 });
+    });
+
+    it("should convert #ffffff to { r: 255, g: 255, b: 255 }", () => {
+      expect(hexToRgb("#ffffff")).toEqual({ r: 255, g: 255, b: 255 });
+    });
+
+    it("should handle 3-digit shorthand (#f00 → #ff0000)", () => {
+      expect(hexToRgb("#f00")).toEqual({ r: 255, g: 0, b: 0 });
+    });
+
+    it("should handle 8-digit hex by discarding alpha", () => {
+      expect(hexToRgb("#ff000080")).toEqual({ r: 255, g: 0, b: 0 });
+    });
+
+    it("should handle hex without # prefix", () => {
+      expect(hexToRgb("00ff00")).toEqual({ r: 0, g: 255, b: 0 });
+    });
+
+    it("should return { r: 0, g: 0, b: 0 } for invalid hex", () => {
+      expect(hexToRgb("invalid")).toEqual({ r: 0, g: 0, b: 0 });
+    });
+
+    it("should return { r: 0, g: 0, b: 0 } for empty string", () => {
+      expect(hexToRgb("")).toEqual({ r: 0, g: 0, b: 0 });
+    });
+  });
+
+  describe("rgbToHsl", () => {
+    it("should convert black (0,0,0) to { h: 0, s: 0, l: 0 }", () => {
+      expect(rgbToHsl(0, 0, 0)).toEqual({ h: 0, s: 0, l: 0 });
+    });
+
+    it("should convert white (255,255,255) to { h: 0, s: 0, l: 100 }", () => {
+      expect(rgbToHsl(255, 255, 255)).toEqual({ h: 0, s: 0, l: 100 });
+    });
+
+    it("should convert red (255,0,0) to { h: 0, s: 100, l: 50 }", () => {
+      expect(rgbToHsl(255, 0, 0)).toEqual({ h: 0, s: 100, l: 50 });
+    });
+
+    it("should convert green (0,255,0) to { h: 120, s: 100, l: 50 }", () => {
+      expect(rgbToHsl(0, 255, 0)).toEqual({ h: 120, s: 100, l: 50 });
+    });
+
+    it("should convert blue (0,0,255) to { h: 240, s: 100, l: 50 }", () => {
+      expect(rgbToHsl(0, 0, 255)).toEqual({ h: 240, s: 100, l: 50 });
+    });
+
+    it("should convert gray (128,128,128) to { h: 0, s: 0, l: 50 }", () => {
+      expect(rgbToHsl(128, 128, 128)).toEqual({ h: 0, s: 0, l: 50 });
+    });
+
+    it("should handle mid-tone purple (128,0,128)", () => {
+      const result = rgbToHsl(128, 0, 128);
+      expect(result.h).toBe(300);
+      expect(result.s).toBe(100);
+      expect(result.l).toBe(25);
+    });
+
+    it("should handle orange (255,165,0)", () => {
+      const result = rgbToHsl(255, 165, 0);
+      expect(result.h).toBe(39);
+      expect(result.s).toBe(100);
+      expect(result.l).toBe(50);
+    });
+  });
+
+  describe("formatRgb", () => {
+    it("should format rgb(255, 0, 0) correctly", () => {
+      expect(formatRgb(255, 0, 0)).toBe("rgb(255, 0, 0)");
+    });
+
+    it("should format rgb(0, 0, 0) correctly", () => {
+      expect(formatRgb(0, 0, 0)).toBe("rgb(0, 0, 0)");
+    });
+
+    it("should format rgb(128, 128, 128) correctly", () => {
+      expect(formatRgb(128, 128, 128)).toBe("rgb(128, 128, 128)");
+    });
+  });
+
+  describe("formatHsl", () => {
+    it("should format hsl(0, 100%, 50%) correctly", () => {
+      expect(formatHsl(0, 100, 50)).toBe("hsl(0, 100%, 50%)");
+    });
+
+    it("should format hsl(120, 100%, 50%) correctly", () => {
+      expect(formatHsl(120, 100, 50)).toBe("hsl(120, 100%, 50%)");
+    });
+
+    it("should format hsl(0, 0%, 0%) correctly", () => {
+      expect(formatHsl(0, 0, 0)).toBe("hsl(0, 0%, 0%)");
     });
   });
 });

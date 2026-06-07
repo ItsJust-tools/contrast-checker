@@ -80,18 +80,22 @@ function ColorPreview({
         setHexInputMessage(null);
         onChange?.(normalized);
       } catch {
-        // If it's not fully valid yet, check for error patterns
-        if (val.length >= 4 && !/^#?[0-9a-fA-F]+$/.test(val)) {
+        // Show error only when the user has typed enough to reasonably expect
+        // a valid color. Partial entries (e.g. "#f", "#ff") are left without
+        // error so the user can keep typing.
+        const stripped = val.replace(/^#/, "");
+        if (stripped.length >= 4 && !/^[0-9a-fA-F]+$/.test(stripped)) {
           setHexInputError(true);
           setHexInputMessage(
             "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
           );
-        } else if (val.length >= 4 && /^#?[0-9a-fA-F]+$/.test(val)) {
+        } else if (stripped.length > 8) {
           setHexInputError(true);
           setHexInputMessage(
-            "Invalid hex color length. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+            "Hex color too long. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
           );
         } else {
+          // Still typing a valid hex — no error yet
           setHexInputError(false);
           setHexInputMessage(null);
         }
