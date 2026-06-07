@@ -258,18 +258,6 @@ function SuggestionRow({
     [onApply, suggestion.color],
   );
 
-  const handleCopy = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      try {
-        navigator.clipboard.writeText(suggestion.color);
-      } catch {
-        // clipboard API may not be available; silently ignore
-      }
-    },
-    [suggestion.color],
-  );
-
   // Use the pre-calculated brightness label instead of recalculating
   const brightnessLabel = suggestion.brightness === "dark" ? "Dark" : "Light";
 

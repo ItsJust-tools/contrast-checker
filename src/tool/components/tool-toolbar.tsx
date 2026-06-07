@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useRef, useEffect, useMemo } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 import { DownloadIcon, ChevronDownIcon } from "./icons";
 
 export type ExportFormat = "json" | "png" | "webp" | "pdf";
@@ -40,12 +40,12 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
   /**
    * Map keyboard shortcuts to their export format.
    */
-  const shortcutMap: Record<string, ExportFormat> = useMemo(() => ({
+  const shortcutMap: Record<string, ExportFormat> = {
     "ctrl+shift+e": "json",
     "meta+shift+e": "json",
     "ctrl+shift+p": "png",
     "meta+shift+p": "png",
-  }), []);
+  };
 
   /** Global keyboard shortcut handler. */
   useEffect(() => {

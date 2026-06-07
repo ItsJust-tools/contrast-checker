@@ -387,19 +387,8 @@ export function ToolCanvas({
     [ratio],
   );
 
-  const handleFgChange = useCallback(
-    (color: string) => {
-      onFgChange?.(color);
-    },
-    [onFgChange],
-  );
-
-  const handleBgChange = useCallback(
-    (color: string) => {
-      onBgChange?.(color);
-    },
-    [onBgChange],
-  );
+  const handleFgChange = onFgChange;
+  const handleBgChange = onBgChange;
 
   const handleLabelChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
