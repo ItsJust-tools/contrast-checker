@@ -8,7 +8,7 @@ const toolConfig = {
   name: "Contrast Checker",
   description:
     "Test color contrast ratios against WCAG guidelines. Check accessibility compliance for AA and AAA levels with normal and large text.",
-  version: "1.5.0",
+  version: "1.6.0",
   exportFormats: ["json", "png", "webp", "pdf"],
   features: {
     export: true,

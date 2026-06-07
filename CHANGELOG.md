@@ -6,11 +6,16 @@ All notable changes to the Contrast Checker will be documented in this file.
 
 ### Added
 
-- CVD simulation unit tests for `simulateCvd` and `getCvdContrastRatio` functions
-  covering all four CVD types (protanopia, deuteranopia, tritanopia, achromatopsia)
-- `displayName` to all exported React components (ToolCanvas, ToolSidebar,
-  ToolToolbar, EyeDropperIcon, CheckIcon, XIcon, PlusIcon, ChevronDownIcon,
-  DownloadIcon, TrashIcon) for better React DevTools debugging
+- `normalizeHexColor()` utility function in `src/lib/contrast.ts` — normalizes hex colors
+  to canonical 6-character form, expanding 3-char shorthand and stripping alpha from
+  8-char values. Replaces duplicated inline expansion logic in `tool-canvas.tsx`.
+
+### Changed
+
+- Updated version to 1.6.0
+- Refactored hex color input in `ColorPreview` component (`tool-canvas.tsx`) to use
+  the shared `normalizeHexColor` utility instead of duplicating expansion/validation
+  logic across `handleHexInputChange`, `handleHexInputPaste`, and `handleHexInputBlur`.
 
 ## [1.5.0] - 2026-06-03
 

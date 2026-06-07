@@ -6,6 +6,7 @@ import {
   checkCompliance,
   getBrightnessCategory,
   suggestAccessibleColor,
+  normalizeHexColor,
 } from "@/lib/contrast.js";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
@@ -310,6 +311,56 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
         expect(result.passAA).toBe(testCase.expectedAA);
         expect(result.passAAA).toBe(testCase.expectedAAA);
       });
+    });
+  });
+
+describe("normalizeHexColor", () => {
+    it("should preserve valid 6-char hex with #", () => {
+      expect(normalizeHexColor("#ff0000")).toBe("#ff0000");
+    });
+
+    it("should preserve valid 6-char hex without #", () => {
+      expect(normalizeHexColor("ff0000")).toBe("#ff0000");
+    });
+
+    it("should expand 3-char shorthand to 6-char", () => {
+      expect(normalizeHexColor("#fff")).toBe("#ffffff");
+      expect(normalizeHexColor("#f00")).toBe("#ff0000");
+      expect(normalizeHexColor("abc")).toBe("#aabbcc");
+    });
+
+    it("should strip alpha from 8-char hex", () => {
+      expect(normalizeHexColor("#ff000080")).toBe("#ff0000");
+      expect(normalizeHexColor("#aabbccdd")).toBe("#aabbcc");
+    });
+
+    it("should lowercase uppercase hex", () => {
+      expect(normalizeHexColor("#FF0000")).toBe("#ff0000");
+      expect(normalizeHexColor("#ABC")).toBe("#aabbcc");
+    });
+
+    it("should throw for empty string", () => {
+      expect(() => normalizeHexColor("")).toThrow(
+        "Invalid hex color: must be a non-empty string",
+      );
+    });
+
+    it("should throw for invalid length (1 digit)", () => {
+      expect(() => normalizeHexColor("#f")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for invalid length (5 digits)", () => {
+      expect(() => normalizeHexColor("#12345")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for null input", () => {
+      expect(() => normalizeHexColor(null as unknown as string)).toThrow(
+        "Invalid hex color: must be a non-empty string",
+      );
     });
   });
 

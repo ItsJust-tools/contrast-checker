@@ -332,6 +332,46 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
   return { light: bestLight, dark: bestDark, best };
 }
 
+/**
+ * Normalize a hex color value to a canonical 6-character hex string.
+ *
+ * - Strips the `#` prefix
+ * - Expands 3-char shorthand (`#abc` → `#aabbcc`)
+ * - Strips alpha from 8-char values (`#aabbccdd` → `#aabbcc`)
+ * - Lowercases the result
+ * - Returns with `#` prefix
+ *
+ * @param hex - Raw hex color input (with or without '#' prefix)
+ * @returns Normalized 6-char hex string with '#' prefix
+ * @throws {Error} If the input is not a valid hex color
+ */
+export function normalizeHexColor(hex: string): string {
+  if (!hex || typeof hex !== "string") {
+    throw new Error("Invalid hex color: must be a non-empty string");
+  }
+  const cleaned = hex.replace(/^#/, "").toLowerCase();
+
+  let result: string;
+  if (cleaned.length === 6) {
+    result = cleaned;
+  } else if (cleaned.length === 3) {
+    // Expand 3-char shorthand to 6-char
+    result =
+      cleaned[0] + cleaned[0] +
+      cleaned[1] + cleaned[1] +
+      cleaned[2] + cleaned[2];
+  } else if (cleaned.length === 8) {
+    // Strip alpha channel
+    result = cleaned.slice(0, 6);
+  } else {
+    throw new Error(
+      `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
+    );
+  }
+
+  return `#${result}`;
+}
+
 export {
   checkContrast,
   getContrastRatio,

@@ -6,6 +6,7 @@ import {
   getContrastRatio,
   getRequiredRatio,
   formatRatio,
+  normalizeHexColor,
 } from "@/lib/contrast";
 import { CheckIcon, XIcon, PlusIcon, SwapIcon } from "./icons";
 
@@ -65,44 +66,35 @@ function ColorPreview({
   const handleHexInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value.trim();
-      // Allow typing a hex value, auto-complete with # if missing
+      if (!val) {
+        setHexInputError(false);
+        setHexInputMessage(null);
+        return;
+      }
       const fullHex = val.startsWith("#") ? val : `#${val}`;
-      if (/^#[0-9a-fA-F]{6}$/.test(fullHex)) {
+
+      // Accept valid hex while typing — validate and normalize
+      try {
+        const normalized = normalizeHexColor(fullHex);
         setHexInputError(false);
         setHexInputMessage(null);
-        onChange?.(fullHex);
-      } else if (/^#[0-9a-fA-F]{3}$/.test(fullHex)) {
-        // Convert shorthand 3-char hex to 6-char
-        const expanded =
-          "#" +
-          fullHex[1] +
-          fullHex[1] +
-          fullHex[2] +
-          fullHex[2] +
-          fullHex[3] +
-          fullHex[3];
-        setHexInputError(false);
-        setHexInputMessage(null);
-        onChange?.(expanded);
-      } else if (/^#[0-9a-fA-F]{8}$/.test(fullHex)) {
-        // 8-digit hex (#RRGGBBAA) — accept it; alpha channel ignored per WCAG spec
-        setHexInputError(false);
-        setHexInputMessage(null);
-        onChange?.(fullHex.slice(0, 7));
-      } else if (val.length >= 4 && !/^#?[0-9a-fA-F]+$/.test(val)) {
-        // Show error when input has non-hex characters and is long enough to be suspicious
-        setHexInputError(true);
-        setHexInputMessage(
-          "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
-        );
-      } else if (val.length >= 7) {
-        setHexInputError(true);
-        setHexInputMessage(
-          "Invalid hex color. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
-        );
-      } else {
-        setHexInputError(false);
-        setHexInputMessage(null);
+        onChange?.(normalized);
+      } catch {
+        // If it's not fully valid yet, check for error patterns
+        if (val.length >= 4 && !/^#?[0-9a-fA-F]+$/.test(val)) {
+          setHexInputError(true);
+          setHexInputMessage(
+            "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+          );
+        } else if (val.length >= 4 && /^#?[0-9a-fA-F]+$/.test(val)) {
+          setHexInputError(true);
+          setHexInputMessage(
+            "Invalid hex color length. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+          );
+        } else {
+          setHexInputError(false);
+          setHexInputMessage(null);
+        }
       }
     },
     [onChange],
@@ -117,16 +109,15 @@ function ColorPreview({
         return;
       }
       const cleaned = val.startsWith("#") ? val : `#${val}`;
-      const isValidFull = /^#[0-9a-fA-F]{6}$/.test(cleaned);
-      const isValidShort = /^#[0-9a-fA-F]{3}$/.test(cleaned);
-      const isValid8digit = /^#[0-9a-fA-F]{8}$/.test(cleaned);
-      setHexInputError(!isValidFull && !isValidShort && !isValid8digit);
-      if (!isValidFull && !isValidShort && !isValid8digit) {
+      try {
+        normalizeHexColor(cleaned);
+        setHexInputError(false);
+        setHexInputMessage(null);
+      } catch {
+        setHexInputError(true);
         setHexInputMessage(
           "Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
         );
-      } else {
-        setHexInputMessage(null);
       }
     },
     [],
@@ -151,21 +142,12 @@ function ColorPreview({
       const pasted = e.clipboardData.getData("text").trim();
       if (!pasted) return;
       const cleaned = pasted.startsWith("#") ? pasted : `#${pasted}`;
-      if (
-        /^#[0-9a-fA-F]{6}$/.test(cleaned) ||
-        /^#[0-9a-fA-F]{3}$/.test(cleaned) ||
-        /^#[0-9a-fA-F]{8}$/.test(cleaned)
-      ) {
+      try {
+        const normalized = normalizeHexColor(cleaned);
         e.preventDefault();
-        let result = cleaned;
-        if (cleaned.length === 4) {
-          // Expand 3-char shorthand to 6-char
-          result = "#" + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2] + cleaned[3] + cleaned[3];
-        } else if (cleaned.length === 9) {
-          // Strip alpha from 8-char
-          result = cleaned.slice(0, 7);
-        }
-        onChange?.(result);
+        onChange?.(normalized);
+      } catch {
+        // Paste was not a valid hex color; let the input handle it naturally
       }
     },
     [onChange],

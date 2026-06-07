@@ -261,7 +261,11 @@ function SuggestionRow({
   const handleCopy = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      navigator.clipboard.writeText(suggestion.color).catch(() => {});
+      try {
+        navigator.clipboard.writeText(suggestion.color);
+      } catch {
+        // clipboard API may not be available; silently ignore
+      }
     },
     [suggestion.color],
   );
