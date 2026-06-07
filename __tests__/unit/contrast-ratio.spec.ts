@@ -12,6 +12,8 @@ import {
   rgbToHsl,
   formatRgb,
   formatHsl,
+  formatRatio,
+  getRatioSummary,
 } from "@/lib/contrast.js";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
@@ -572,6 +574,57 @@ describe("normalizeHexColor", () => {
 
     it("should format hsl(0, 0%, 0%) correctly", () => {
       expect(formatHsl(0, 0, 0)).toBe("hsl(0, 0%, 0%)");
+    });
+  });
+
+  describe("formatRatio", () => {
+    it("should format 21.0 as '21:1' (drops unnecessary trailing zeros)", () => {
+      expect(formatRatio(21)).toBe("21:1");
+    });
+
+    it("should format 4.5 as '4.5:1'", () => {
+      expect(formatRatio(4.5)).toBe("4.5:1");
+    });
+
+    it("should format 4.52 as '4.52:1'", () => {
+      expect(formatRatio(4.52)).toBe("4.52:1");
+    });
+
+    it("should format 1.0 as '1:1'", () => {
+      expect(formatRatio(1)).toBe("1:1");
+    });
+
+    it("should format 3.0 as '3:1'", () => {
+      expect(formatRatio(3)).toBe("3:1");
+    });
+
+    it("should format 7.0 as '7:1'", () => {
+      expect(formatRatio(7)).toBe("7:1");
+    });
+
+    it("should format with custom precision", () => {
+      expect(formatRatio(4.567, 3)).toBe("4.567:1");
+    });
+
+    it("should format 0 precision", () => {
+      expect(formatRatio(4.5, 0)).toBe("5:1");
+    });
+  });
+
+  describe("getRatioSummary", () => {
+    it("should return passing summary for black on white", () => {
+      const summary = getRatioSummary("#000000", "#ffffff");
+      expect(summary).toBe("21:1 (AA \u2713, AAA \u2713)");
+    });
+
+    it("should return failing AAA for red on white", () => {
+      const summary = getRatioSummary("#cc0000", "#ffffff");
+      expect(summary).toContain("AA \u2713");
+      expect(summary).toContain("AAA \u2717");
+    });
+
+    it("should return 'Invalid colors' for invalid input", () => {
+      expect(getRatioSummary("invalid", "#ffffff")).toBe("Invalid colors");
     });
   });
 });

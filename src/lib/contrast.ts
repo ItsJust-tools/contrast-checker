@@ -157,12 +157,37 @@ function checkContrast(
 }
 
 /**
- * Format contrast ratio for display.
+ * Format contrast ratio for display, dropping unnecessary trailing zeros
+ * (e.g. "4.5:1" instead of "4.50:1", but keeps "4.52:1").
  *
  * @param ratio - Contrast ratio
- * @returns Formatted ratio string (e.g., "4.50:1")
+ * @param precision - Number of decimal places to preserve (default 2)
+ * @returns Formatted ratio string (e.g., "4.5:1" or "4.52:1")
  */
-const formatRatio = (ratio: number): string => `${ratio.toFixed(2)}:1`;
+const formatRatio = (ratio: number, precision: number = 2): string => {
+  const rounded = ratio.toFixed(precision);
+  const trimmed = precision > 0 ? rounded.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "") : rounded;
+  return `${trimmed}:1`;
+};
+
+/**
+ * Format a contrast ratio as a bullet summary string including pass/fail
+ * for both AA and AAA normal text. Handy for quick reporting.
+ *
+ * @param fgColor - Foreground hex color
+ * @param bgColor - Background hex color
+ * @returns Short human-readable summary, e.g. "4.52:1 (AA ✓, AAA ✗)"
+ */
+function getRatioSummary(fgColor: string, bgColor: string): string {
+  try {
+    const ratio = getContrastRatio(fgColor, bgColor);
+    const aa = ratio >= WCAG_THRESHOLDS.AA.normal;
+    const aaa = ratio >= WCAG_THRESHOLDS.AAA.normal;
+    return `${formatRatio(ratio)} (AA ${aa ? "\u2713" : "\u2717"}, AAA ${aaa ? "\u2713" : "\u2717"})`;
+  } catch {
+    return "Invalid colors";
+  }
+}
 
 /**
  * Get color brightness category (light, medium, or dark).
@@ -374,6 +399,7 @@ export {
   getRelativeLuminance,
   checkCompliance,
   formatRatio,
+  getRatioSummary,
   getBrightnessCategory,
   getRequiredRatio,
   suggestAccessibleColor,
