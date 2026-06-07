@@ -412,6 +412,10 @@ export type { ColorSuggestion, SuggestionResult };
 /**
  * Convert a hex color string to an RGB tuple.
  * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
+ * Returns 0,0,0 as a safe fallback for invalid input.
+ *
+ * @param hex - Hex color string (e.g. "#ff0000", "#f00", or "ff000080")
+ * @returns Object with r, g, b values (0-255 range)
  */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   try {
@@ -429,6 +433,11 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
 /**
  * Convert an RGB tuple to an HSL tuple.
  * Returns values as integer degrees (H), percentage (S), percentage (L).
+ *
+ * @param r - Red component (0-255)
+ * @param g - Green component (0-255)
+ * @param b - Blue component (0-255)
+ * @returns Object with h (0-360), s (0-100), l (0-100)
  */
 export function rgbToHsl(
   r: number,
@@ -465,6 +474,11 @@ export function rgbToHsl(
 
 /**
  * Format an RGB value as a CSS rgb() string.
+ *
+ * @param r - Red component (0-255)
+ * @param g - Green component (0-255)
+ * @param b - Blue component (0-255)
+ * @returns CSS rgb() string, e.g. "rgb(255, 0, 0)"
  */
 export function formatRgb(r: number, g: number, b: number): string {
   return `rgb(${r}, ${g}, ${b})`;
@@ -472,6 +486,11 @@ export function formatRgb(r: number, g: number, b: number): string {
 
 /**
  * Format an HSL value as a CSS hsl() string.
+ *
+ * @param h - Hue (0-360)
+ * @param s - Saturation percentage (0-100)
+ * @param l - Lightness percentage (0-100)
+ * @returns CSS hsl() string, e.g. "hsl(0, 100%, 50%)"
  */
 export function formatHsl(h: number, s: number, l: number): string {
   return `hsl(${h}, ${s}%, ${l}%)`;
@@ -544,6 +563,10 @@ const CVD_MATRICES: Record<Exclude<CvdType, "none">, number[]> = {
 
 /**
  * Convert an sRGB hex color to a linear RGB array [r, g, b] (0-1 range).
+ * Applies the sRGB gamma expansion (inverse companding).
+ *
+ * @param hex - Hex color string (e.g. "#ff0000")
+ * @returns Tuple of linear RGB values in 0-1 range
  */
 function srgbToLinear(hex: string): [number, number, number] {
   const { r, g, b } = hexToRgb(hex);
@@ -555,7 +578,13 @@ function srgbToLinear(hex: string): [number, number, number] {
 }
 
 /**
- * Convert linear RGB values [0-1] back to a hex color string.
+ * Convert linear RGB values [0-1] back to an sRGB hex color string.
+ * Applies the sRGB gamma compression and clamps values to [0, 1].
+ *
+ * @param r - Linear red component (0-1)
+ * @param g - Linear green component (0-1)
+ * @param b - Linear blue component (0-1)
+ * @returns sRGB hex string, e.g. "#ff0000"
  */
 function linearToSrgb(r: number, g: number, b: number): string {
   const toSrgb = (c: number): number => {
@@ -601,7 +630,8 @@ export function simulateCvd(hex: string, cvdType: CvdType): string {
  * @param fg - Foreground hex color
  * @param bg - Background hex color
  * @param cvdType - CVD type to simulate
- * @returns Simulated contrast ratio
+ * @returns Simulated contrast ratio (1:1 to 21:1). Returns the normal
+ *          contrast ratio when cvdType is "none".
  */
 export function getCvdContrastRatio(fg: string, bg: string, cvdType: CvdType): number {
   if (cvdType === "none") return getContrastRatio(fg, bg);

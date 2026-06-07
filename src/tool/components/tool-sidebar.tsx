@@ -13,6 +13,7 @@ import {
   simulateCvd,
   getCvdContrastRatio,
   CVD_LABELS,
+  CVD_SHORT_LABELS,
 } from "@/lib/contrast";
 import type { SuggestionResult, CvdType } from "@/lib/contrast";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
