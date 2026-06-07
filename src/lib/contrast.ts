@@ -31,8 +31,7 @@ function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
 }
 
 /**
- * Normalize a hex color string: strips '#' prefix, validates length,
- * and returns the cleaned hex digits along with parsed R/G/B values (0-1 range).
+ * Parse a hex color string into R/G/B components (0-1 range).
  *
  * Supports 3-digit (#RGB), 6-digit (#RRGGBB), and 8-digit (#RRGGBBAA) formats.
  * Alpha channel from 8-digit values is intentionally discarded per WCAG spec.
@@ -41,46 +40,20 @@ function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
  * @returns Object with cleaned hex string and parsed r/g/b components
  * @throws {Error} If the input is not a valid hex color
  */
-function normalizeHex(hex: string): {
+function parseHex(hex: string): {
   r: number;
   g: number;
   b: number;
   cleaned: string;
 } {
-  if (!hex || typeof hex !== "string") {
-    throw new Error("Invalid hex color: must be a non-empty string");
-  }
-
-  // Remove '#' if present and lowercase for consistent output
-  const cleaned = hex.replace(/^#/, "").toLowerCase();
-
-  let r: number, g: number, b: number;
-  if (cleaned.length === 6) {
-    r = parseInt(cleaned.slice(0, 2), 16) / 255;
-    g = parseInt(cleaned.slice(2, 4), 16) / 255;
-    b = parseInt(cleaned.slice(4, 6), 16) / 255;
-  } else if (cleaned.length === 3) {
-    // Shorthand hex like #fff → #ffffff
-    r = parseInt(cleaned[0] + cleaned[0], 16) / 255;
-    g = parseInt(cleaned[1] + cleaned[1], 16) / 255;
-    b = parseInt(cleaned[2] + cleaned[2], 16) / 255;
-  } else if (cleaned.length === 8) {
-    r = parseInt(cleaned.slice(0, 2), 16) / 255;
-    g = parseInt(cleaned.slice(2, 4), 16) / 255;
-    b = parseInt(cleaned.slice(4, 6), 16) / 255;
-    // Alpha channel (cleaned.slice(6, 8)) is intentionally ignored
-    // per WCAG spec: contrast is calculated on opaque colors only
-  } else {
-    throw new Error(
-      `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
-    );
-  }
-
-  // Validate parsed values are actual numbers
+  const normalized = normalizeHexColor(hex);
+  const cleaned = normalized.replace(/^#/, "");
+  const r = parseInt(cleaned.slice(0, 2), 16) / 255;
+  const g = parseInt(cleaned.slice(2, 4), 16) / 255;
+  const b = parseInt(cleaned.slice(4, 6), 16) / 255;
   if (isNaN(r) || isNaN(g) || isNaN(b)) {
     throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
   }
-
   return { r, g, b, cleaned };
 }
 
@@ -92,7 +65,7 @@ function normalizeHex(hex: string): {
  * @throws {Error} If hex color format is invalid
  */
 function getRelativeLuminance(hex: string): number {
-  const { r, g, b } = normalizeHex(hex);
+  const { r, g, b } = parseHex(hex);
 
   // Apply gamma correction using the sRGB transfer function
   const adjust = (c: number): number => {
@@ -393,7 +366,7 @@ export type { ColorSuggestion, SuggestionResult };
  */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   try {
-    const { r, g, b } = normalizeHex(hex);
+    const { r, g, b } = parseHex(hex);
     return {
       r: Math.round(r * 255),
       g: Math.round(g * 255),

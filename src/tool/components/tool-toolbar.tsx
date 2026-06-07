@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useRef, useEffect, useMemo, type ReactNode } from "react";
+import { useCallback, useState, useRef, useEffect, useMemo } from "react";
 import { DownloadIcon, ChevronDownIcon } from "./icons";
 
 export type ExportFormat = "json" | "png" | "webp" | "pdf";
@@ -8,7 +8,6 @@ export type ExportFormat = "json" | "png" | "webp" | "pdf";
 interface ToolToolbarProps {
   onExport?: (format: ExportFormat) => void;
   disabled?: boolean;
-  children?: ReactNode;
 }
 
 /**
@@ -25,13 +24,13 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  * Toolbar component for the Contrast Checker.
  *
  * Displays an Export button with a dropdown to select the desired format
- * (JSON, PNG, WebP, PDF). Falls back to `children` when provided.
+ * (JSON, PNG, WebP, PDF).
  *
  * Keyboard navigation within the dropdown supports arrow keys (Up/Down),
  * Home/End to jump to first/last item, and Enter/Space to select.
  * Escape closes the dropdown and returns focus to the trigger button.
  */
-export function ToolToolbar({ onExport, disabled = false, children }: ToolToolbarProps) {
+export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -164,14 +163,6 @@ export function ToolToolbar({ onExport, disabled = false, children }: ToolToolba
     },
     [focusedIndex, handleFormatSelect],
   );
-
-  if (children) {
-    return (
-      <div className="contrast-toolbar">
-        {children}
-      </div>
-    );
-  }
 
   return (
     <div className="contrast-toolbar" ref={dropdownRef}>

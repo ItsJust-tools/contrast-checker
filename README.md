@@ -2,7 +2,7 @@
 
 A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines. Check any color combination against WCAG 2.1 AA and AAA standards.
 
-[![Version](https://img.shields.io/badge/Version-1.5.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
+[![Version](https://img.shields.io/badge/Version-1.6.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/LICENSE)
 [![CI](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md)
