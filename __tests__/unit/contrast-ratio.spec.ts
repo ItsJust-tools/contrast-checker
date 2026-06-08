@@ -14,6 +14,7 @@ import {
   formatHsl,
   formatRatio,
   getRatioSummary,
+  getWCAGLevel,
 } from "@/lib/contrast.js";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
@@ -625,6 +626,45 @@ describe("normalizeHexColor", () => {
 
     it("should return 'Invalid colors' for invalid input", () => {
       expect(getRatioSummary("invalid", "#ffffff")).toBe("Invalid colors");
+    });
+  });
+
+  describe("getWCAGLevel", () => {
+    it("should return 'aaa' for ratio >= 7", () => {
+      expect(getWCAGLevel(21)).toBe("aaa");
+      expect(getWCAGLevel(7)).toBe("aaa");
+      expect(getWCAGLevel(8)).toBe("aaa");
+    });
+
+    it("should return 'aa' for ratio >= 4.5 and < 7", () => {
+      expect(getWCAGLevel(4.5)).toBe("aa");
+      expect(getWCAGLevel(5)).toBe("aa");
+      expect(getWCAGLevel(6.9)).toBe("aa");
+    });
+
+    it("should return 'fail' for ratio < 4.5", () => {
+      expect(getWCAGLevel(3)).toBe("fail");
+      expect(getWCAGLevel(4.49)).toBe("fail");
+      expect(getWCAGLevel(1)).toBe("fail");
+    });
+
+    it("should use large text thresholds when level is 'large'", () => {
+      expect(getWCAGLevel(3, "large")).toBe("aa");
+      expect(getWCAGLevel(4.5, "large")).toBe("aaa");
+      expect(getWCAGLevel(2.9, "large")).toBe("fail");
+    });
+
+    it("should use UI thresholds when level is 'ui'", () => {
+      expect(getWCAGLevel(3, "ui")).toBe("aaa");
+      expect(getWCAGLevel(2.9, "ui")).toBe("fail");
+      // AAA for UI is same as AA (3:1), so 3:1 passes both → returns "aaa"
+      expect(getWCAGLevel(4.5, "ui")).toBe("aaa");
+    });
+
+    it("should default to normal text level", () => {
+      expect(getWCAGLevel(7)).toBe("aaa");
+      expect(getWCAGLevel(4.5)).toBe("aa");
+      expect(getWCAGLevel(3)).toBe("fail");
     });
   });
 });

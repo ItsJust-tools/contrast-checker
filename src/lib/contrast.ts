@@ -16,8 +16,13 @@ const WCAG_THRESHOLDS = {
   AAA: { normal: 7, large: 4.5, ui: 3 },
 } as const;
 
-type WcagStandard = "AA" | "AAA";
-type TextLevel = "normal" | "large" | "ui";
+export type WcagStandard = "AA" | "AAA";
+export type TextLevel = "normal" | "large" | "ui";
+
+/**
+ * WCAG conformance level a contrast ratio satisfies.
+ */
+export type WcagLevel = "aaa" | "aa" | "fail";
 
 /**
  * Get the minimum contrast ratio required for a given WCAG level and text size.
@@ -391,6 +396,23 @@ export function tryNormalizeHexColor(hex: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Classify a contrast ratio into a WCAG conformance level for a given text size.
+ *
+ * Returns "aaa" if the ratio meets AAA requirements,
+ * "aa" if it meets AA (but not AAA),
+ * and "fail" if it doesn't meet AA.
+ *
+ * @param ratio - Contrast ratio (1-21)
+ * @param level - Text / UI component size (defaults to 'normal')
+ * @returns The highest WCAG level the ratio satisfies
+ */
+export function getWCAGLevel(ratio: number, level: TextLevel = "normal"): WcagLevel {
+  if (ratio >= getRequiredRatio("AAA", level)) return "aaa";
+  if (ratio >= getRequiredRatio("AA", level)) return "aa";
+  return "fail";
 }
 
 export {

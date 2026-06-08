@@ -9,6 +9,10 @@ All notable changes to the Contrast Checker will be documented in this file.
 - `normalizeHexColor()` utility function in `src/lib/contrast.ts` — normalizes hex colors
   to canonical 6-character form, expanding 3-char shorthand and stripping alpha from
   8-char values. Replaces duplicated inline expansion logic in `tool-canvas.tsx`.
+- `getWCAGLevel()` utility function that classifies a contrast ratio into WCAG conformance
+  level (`"aaa"`, `"aa"`, `"fail"`) for a given text size. Replaces hardcoded threshold
+  comparisons in `tool-sidebar.tsx`.
+- `WcagLevel` export type (`"aaa" | "aa" | "fail"`).
 
 ### Changed
 
@@ -16,6 +20,10 @@ All notable changes to the Contrast Checker will be documented in this file.
 - Refactored hex color input in `ColorPreview` component (`tool-canvas.tsx`) to use
   the shared `normalizeHexColor` utility instead of duplicating expansion/validation
   logic across `handleHexInputChange`, `handleHexInputPaste`, and `handleHexInputBlur`.
+- Sidebar stats now use the shared `formatRatio()` utility instead of raw `toFixed()`
+  for ratio display (drops unnecessary trailing zeros).
+- Sidebar `levelIndicator` now uses the new `getWCAGLevel()` function instead of
+  manual threshold comparisons.
 
 ## [1.5.0] - 2026-06-03
 

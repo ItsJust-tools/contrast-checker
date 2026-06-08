@@ -12,6 +12,7 @@ import {
   formatHsl,
   simulateCvd,
   getCvdContrastRatio,
+  getWCAGLevel,
   CVD_LABELS,
   CVD_SHORT_LABELS,
 } from "@/lib/contrast";
@@ -422,18 +423,13 @@ export function ToolSidebar({
     if (combinations.length === 0) return "No combinations saved yet.";
     return (
       `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
-      `Average contrast ratio ${averageContrast.toFixed(2)}:1. ` +
+      `Average contrast ratio ${formatRatio(averageContrast)}. ` +
       `AA pass rate ${passRateAA.toFixed(0)}%. ` +
       `AAA pass rate ${passRateAAA.toFixed(0)}%.`
     );
   }, [combinations, averageContrast, passRateAA, passRateAAA]);
 
-  const levelIndicator =
-    averageContrast >= 7
-      ? ("aaa" as const)
-      : averageContrast >= 4.5
-        ? ("aa" as const)
-        : ("fail" as const);
+  const levelIndicator = useMemo(() => getWCAGLevel(averageContrast, "normal"), [averageContrast]);
 
   const accessibleSuggestions = useMemo<SuggestionResult>(() => {
     try {
@@ -489,7 +485,7 @@ export function ToolSidebar({
                 color: fgPreview > bgPreview ? fgColor : bgColor,
               }}
             >
-              {averageContrast.toFixed(2)}
+              {formatRatio(averageContrast).replace(/:1$/, "")}
             </span>
             <span style={{ fontSize: "0.6875rem" }}>:1</span>
           </div>
@@ -716,7 +712,7 @@ export function ToolSidebar({
                     color: c.passAA ? "var(--foreground)" : "var(--error)",
                   }}
                 >
-                  {c.ratio.toFixed(2)}:1
+                  {formatRatio(c.ratio)}
                 </span>
                 <div
                   style={{
