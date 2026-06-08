@@ -103,6 +103,10 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
     });
   }, []);
 
+  /**
+   * Handle selecting an export format from the dropdown menu.
+   * Closes the menu, returns focus to the trigger button, and calls onExport.
+   */
   const handleFormatSelect = useCallback(
     (format: ExportFormat) => {
       setDropdownOpen(false);

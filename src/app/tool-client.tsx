@@ -9,6 +9,13 @@ import type { CvdType } from "@/lib/contrast";
 
 import type { ExportFormat as ToolbarExportFormat } from "@/tool/components/tool-toolbar";
 
+/**
+ * Main client component for the Contrast Checker tool.
+ *
+ * Orchestrates the canvas, sidebar, toolbar, and share actions.
+ * Owns the tool state via useToolState and wires up export/share
+ * callbacks with individual loading and success-feedback state.
+ */
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [cvdType, setCvdType] = useState<CvdType>("none");
@@ -48,6 +55,10 @@ export default function ToolClient() {
 
   const { downloadShareFile, shareViaWeb } = useShare();
 
+  /**
+   * Export the canvas to the requested format (JSON, PNG, WebP, PDF).
+   * Delegates to the core @itsjust/core export system.
+   */
   const handleExport = useCallback(
     async (format: ToolbarExportFormat) => {
       await exportTo(format as ExportFormat);

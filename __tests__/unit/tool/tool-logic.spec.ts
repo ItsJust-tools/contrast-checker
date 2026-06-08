@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { contrastTool } from '@/tool/tool-definition';
-import type { ContrastState, ContrastCombination } from '@/tool/types';
+import type { ContrastState } from '@/tool/types';
 
 describe('Contrast tool definition', () => {
   it('initializes with default state', () => {
