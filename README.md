@@ -22,6 +22,7 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 - **Text Level Support** — Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
 - **Share & Export** — Export results as JSON, PNG, WebP, or PDF; share via `.itsjust.json` files
 - **Dark Mode** — Full dark mode support with system preference detection
+- **Smart Contrast Fix Suggestions** — When your color pair fails WCAG AA, the sidebar shows up to 3 accessible alternatives with one-click apply, including curated palette matches and lightness-adjusted variants
 - **Color-Vision Deficiency (CVD) Simulation** — Preview how colors appear under protanopia, deuteranopia, tritanopia, and achromatopsia
 - **Keyboard Accessible** — Full keyboard navigation with focus indicators
 - **Screen Reader Friendly** — ARIA labels and live regions announce contrast results

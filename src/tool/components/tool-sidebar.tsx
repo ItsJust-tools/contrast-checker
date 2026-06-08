@@ -6,6 +6,7 @@ import {
   getContrastRatio,
   formatRatio,
   suggestAccessibleColor,
+  suggestAccessiblePair,
   hexToRgb,
   rgbToHsl,
   formatRgb,
@@ -16,7 +17,7 @@ import {
   CVD_LABELS,
   CVD_SHORT_LABELS,
 } from "@/lib/contrast";
-import type { SuggestionResult, CvdType } from "@/lib/contrast";
+import type { AccessiblePair, SuggestionResult, CvdType } from "@/lib/contrast";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
 
 interface ToolSidebarProps {
@@ -439,6 +440,24 @@ export function ToolSidebar({
     }
   }, [bgColor]);
 
+  const currentContrastRatio = useMemo(() => {
+    try {
+      return getContrastRatio(fgColor, bgColor);
+    } catch {
+      return 0;
+    }
+  }, [fgColor, bgColor]);
+
+  const pairSuggestions = useMemo<AccessiblePair[]>(() => {
+    try {
+      return suggestAccessiblePair(fgColor, bgColor);
+    } catch {
+      return [];
+    }
+  }, [fgColor, bgColor]);
+
+  const showPairSuggestions = currentContrastRatio < 4.5 && pairSuggestions.length > 0;
+
   return (
     <div className="contrast-sidebar">
       {/* Screen-reader live region for stats changes */}
@@ -625,6 +644,87 @@ export function ToolSidebar({
           </div>
         )}
       </div>
+
+      {/* Fix Contrast - shown when current pair fails WCAG AA */}
+      {showPairSuggestions && (
+        <div className="sidebar-section">
+          <h3>Fix This Contrast</h3>
+          <p
+            style={{
+              fontSize: "0.6875rem",
+              color: "var(--muted)",
+              marginBottom: "0.5rem",
+            }}
+          >
+            Current ratio ({formatRatio(currentContrastRatio)}) does not pass WCAG AA.
+            Click a suggestion to apply it.
+          </p>
+          {pairSuggestions.slice(0, 3).map((pair, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.5rem",
+                borderRadius: "var(--radius)",
+                cursor: "pointer",
+                marginBottom: "0.375rem",
+                border: "2px solid var(--warning, #f59e0b)",
+                background: "color-mix(in srgb, var(--warning, #f59e0b) 8%, transparent)",
+                transition: "background-color 0.15s",
+              }}
+              role="button"
+              tabIndex={0}
+              title={pair.description}
+              aria-label={`${pair.description}: ratio ${formatRatio(pair.ratio)}`}
+              onClick={() => {
+                onFgChange?.(pair.fg);
+                onBgChange?.(pair.bg);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onFgChange?.(pair.fg);
+                  onBgChange?.(pair.bg);
+                }
+              }}
+            >
+              <div style={{ display: "flex", gap: "0.25rem", flexShrink: 0 }}>
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: pair.fg,
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                  }}
+                  aria-label={`Foreground: ${pair.fg}`}
+                />
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: pair.bg,
+                    border: "2px solid var(--foreground)",
+                    borderRadius: "4px",
+                  }}
+                  aria-label={`Background: ${pair.bg}`}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "0.75rem", fontFamily: "monospace", fontWeight: 600 }}>
+                  {pair.fg} / {pair.bg}
+                </div>
+                <div style={{ fontSize: "0.625rem", color: "var(--muted)" }}>
+                  {formatRatio(pair.ratio)}
+                  {pair.passAAA ? " · AAA✓" : " · AA✓"}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Combinations Export */}
       {combinations.length > 0 && (

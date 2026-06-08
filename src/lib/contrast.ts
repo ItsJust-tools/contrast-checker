@@ -336,6 +336,159 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
 }
 
 /**
+ * A suggested accessible color pair (foreground + background).
+ */
+export interface AccessiblePair {
+  /** Suggested foreground hex color */
+  fg: string;
+  /** Suggested background hex color */
+  bg: string;
+  /** Contrast ratio achieved by this pair */
+  ratio: number;
+  /** Whether the pair passes AA normal-text */
+  passAA: boolean;
+  /** Whether the pair passes AAA normal-text */
+  passAAA: boolean;
+  /** Description of what was adjusted */
+  description: string;
+}
+
+/**
+ * Suggest accessible color pairs when the current fg/bg combination
+ * does not meet WCAG AA requirements.
+ *
+ * Tries several strategies in order of preference:
+ * 1. Keep background, suggest a new foreground (from curated palette)
+ * 2. Keep foreground, suggest a new background (from curated palette)
+ * 3. Adjust foreground lightness toward higher contrast
+ *
+ * Returns up to 3 suggestions sorted by contrast ratio (highest first).
+ * If the current pair already passes AA, returns an empty array.
+ *
+ * @param fgColor - Current foreground hex color
+ * @param bgColor - Current background hex color
+ * @returns Array of accessible pair suggestions (empty if already compliant)
+ */
+export function suggestAccessiblePair(
+  fgColor: string,
+  bgColor: string,
+): AccessiblePair[] {
+  try {
+    const currentRatio = getContrastRatio(fgColor, bgColor);
+    if (currentRatio >= WCAG_THRESHOLDS.AA.normal) return [];
+  } catch {
+    return [];
+  }
+
+  const suggestions: AccessiblePair[] = [];
+  const seen = new Set<string>();
+
+  const addSuggestion = (fg: string, bg: string, description: string) => {
+    const key = `${fg}|${bg}`;
+    if (seen.has(key)) return;
+    try {
+      const ratio = getContrastRatio(fg, bg);
+      if (ratio < WCAG_THRESHOLDS.AA.normal) return;
+      seen.add(key);
+      suggestions.push({
+        fg,
+        bg,
+        ratio: Math.round(ratio * 100) / 100,
+        passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
+        passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
+        description,
+      });
+    } catch {
+      // skip invalid
+    }
+  };
+
+  // Strategy 1: Keep background, try curated foreground palette
+  const allFg = [...SUGGESTION_PALETTE_DARK, ...SUGGESTION_PALETTE_LIGHT];
+  for (const fg of allFg) {
+    addSuggestion(fg, bgColor, `Try ${fg} on current background`);
+  }
+
+  // Strategy 2: Keep foreground, try curated background palette
+  const allBg = [...SUGGESTION_PALETTE_LIGHT, ...SUGGESTION_PALETTE_DARK];
+  for (const bg of allBg) {
+    addSuggestion(fgColor, bg, `Try current foreground on ${bg}`);
+  }
+
+  // Strategy 3: Lighten/darken the foreground toward the extremes
+  try {
+    const bgLum = getRelativeLuminance(bgColor);
+    const fgRgb = hexToRgb(fgColor);
+
+    if (bgLum < 0.5) {
+      // Dark background: try lighter foregrounds
+      for (let l = 80; l <= 100; l += 5) {
+        const adjusted = adjustLightness(fgRgb.r, fgRgb.g, fgRgb.b, l);
+        addSuggestion(adjusted, bgColor, `Lighten foreground to ${l}%`);
+      }
+    } else {
+      // Light background: try darker foregrounds
+      for (let l = 0; l <= 20; l += 5) {
+        const adjusted = adjustLightness(fgRgb.r, fgRgb.g, fgRgb.b, l);
+        addSuggestion(adjusted, bgColor, `Darken foreground to ${l}%`);
+      }
+    }
+  } catch {
+    // skip adjustment strategy
+  }
+
+  // Sort by ratio descending, return top 3
+  return suggestions.sort((a, b) => b.ratio - a.ratio).slice(0, 3);
+}
+
+/**
+ * Adjust the lightness of an RGB color to a target percentage.
+ * Converts to HSL, sets the lightness, and converts back.
+ */
+function adjustLightness(
+  r: number,
+  g: number,
+  b: number,
+  targetLightness: number,
+): string {
+  const hsl = rgbToHsl(r, g, b);
+  const adjusted = hslToRgb(hsl.h, hsl.s, targetLightness);
+  const toHex = (v: number) =>
+    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+  return `#${toHex(adjusted.r)}${toHex(adjusted.g)}${toHex(adjusted.b)}`;
+}
+
+/**
+ * Convert HSL values to an RGB object.
+ * Returns r, g, b in 0-255 range.
+ */
+function hslToRgb(
+  h: number,
+  s: number,
+  l: number,
+): { r: number; g: number; b: number } {
+  const sNorm = Math.max(0, Math.min(100, s)) / 100;
+  const lNorm = Math.max(0, Math.min(100, l)) / 100;
+  const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = lNorm - c / 2;
+  let r1 = 0,
+    g1 = 0,
+    b1 = 0;
+  if (h < 60) { r1 = c; g1 = x; }
+  else if (h < 120) { r1 = x; g1 = c; }
+  else if (h < 180) { g1 = c; b1 = x; }
+  else if (h < 240) { g1 = x; b1 = c; }
+  else if (h < 300) { r1 = x; b1 = c; }
+  else { r1 = c; b1 = x; }
+  return {
+    r: (r1 + m) * 255,
+    g: (g1 + m) * 255,
+    b: (b1 + m) * 255,
+  };
+}
+
+/**
  * Normalize a hex color value to a canonical 6-character hex string.
  *
  * - Strips the `#` prefix
