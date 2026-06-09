@@ -563,8 +563,16 @@ export function tryNormalizeHexColor(hex: string): string | null {
  * @returns The highest WCAG level the ratio satisfies
  */
 export function getWCAGLevel(ratio: number, level: TextLevel = "normal"): WcagLevel {
-  if (ratio >= getRequiredRatio("AAA", level)) return "aaa";
-  if (ratio >= getRequiredRatio("AA", level)) return "aa";
+  const aaThreshold = getRequiredRatio("AA", level);
+  const aaaThreshold = getRequiredRatio("AAA", level);
+  // When AA and AAA thresholds are identical (e.g., UI level where both are 3:1),
+  // treat AAA as unreachable and return "aa" at most
+  if (aaThreshold === aaaThreshold) {
+    if (ratio >= aaThreshold) return "aa";
+    return "fail";
+  }
+  if (ratio >= aaaThreshold) return "aaa";
+  if (ratio >= aaThreshold) return "aa";
   return "fail";
 }
 

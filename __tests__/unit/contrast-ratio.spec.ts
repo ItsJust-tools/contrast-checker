@@ -6,6 +6,7 @@ import {
   checkCompliance,
   getBrightnessCategory,
   suggestAccessibleColor,
+  suggestAccessiblePair,
   normalizeHexColor,
   tryNormalizeHexColor,
   hexToRgb,
@@ -655,16 +656,109 @@ describe("normalizeHexColor", () => {
     });
 
     it("should use UI thresholds when level is 'ui'", () => {
-      expect(getWCAGLevel(3, "ui")).toBe("aaa");
+      expect(getWCAGLevel(3, "ui")).toBe("aa");
       expect(getWCAGLevel(2.9, "ui")).toBe("fail");
-      // AAA for UI is same as AA (3:1), so 3:1 passes both → returns "aaa"
-      expect(getWCAGLevel(4.5, "ui")).toBe("aaa");
+      // AA and AAA thresholds are identical for UI (3:1), so 3:1 returns "aa"
+      expect(getWCAGLevel(4.5, "ui")).toBe("aa");
+      expect(getWCAGLevel(21, "ui")).toBe("aa");
     });
 
     it("should default to normal text level", () => {
       expect(getWCAGLevel(7)).toBe("aaa");
       expect(getWCAGLevel(4.5)).toBe("aa");
       expect(getWCAGLevel(3)).toBe("fail");
+    });
+  });
+
+  describe("suggestAccessiblePair", () => {
+    it("should return empty array when pair already passes AA normal", () => {
+      const suggestions = suggestAccessiblePair("#000000", "#ffffff");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should return empty array when pair already passes AAA normal", () => {
+      const suggestions = suggestAccessiblePair("#000000", "#ffffff");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should suggest accessible alternatives when pair fails AA", () => {
+      // Gray on white: ~3.95:1 — fails AA normal
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      expect(suggestions.length).toBeLessThanOrEqual(3);
+      // All suggestions should pass AA normal
+      suggestions.forEach((s) => {
+        expect(s.passAA).toBe(true);
+        expect(s.ratio).toBeGreaterThanOrEqual(4.5);
+      });
+    });
+
+    it("should return at most 3 suggestions", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      expect(suggestions.length).toBeLessThanOrEqual(3);
+    });
+
+    it("should return suggestions sorted by ratio descending", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      for (let i = 1; i < suggestions.length; i++) {
+        expect(suggestions[i].ratio).toBeLessThanOrEqual(suggestions[i - 1].ratio);
+      }
+    });
+
+    it("should suggest dark foregrounds on light backgrounds", () => {
+      // Light gray on white: poor contrast
+      const suggestions = suggestAccessiblePair("#cccccc", "#ffffff");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      // The best suggestion should be a darker color
+      expect(suggestions[0].passAA).toBe(true);
+    });
+
+    it("should suggest light foregrounds on dark backgrounds", () => {
+      // Dark gray on black: poor contrast
+      const suggestions = suggestAccessiblePair("#333333", "#000000");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      expect(suggestions[0].passAA).toBe(true);
+    });
+
+    it("should not duplicate the same suggestion", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      const colorPairs = suggestions.map((s) => `${s.fg}|${s.bg}`);
+      const unique = new Set(colorPairs);
+      expect(unique.size).toBe(suggestions.length);
+    });
+
+    it("should return empty array for invalid foreground", () => {
+      const suggestions = suggestAccessiblePair("invalid", "#ffffff");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should return empty array for invalid background", () => {
+      const suggestions = suggestAccessiblePair("#000000", "invalid");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should give each suggestion a description", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      suggestions.forEach((s) => {
+        expect(s.description.length).toBeGreaterThan(0);
+      });
+    });
+
+    it("should produce passing suggestions for various failing pairs", () => {
+      const failingPairs: [string, string][] = [
+        ["#808080", "#ffffff"],   // gray on white
+        ["#cccccc", "#ffffff"],   // light gray on white
+        ["#999999", "#f0f0f0"],  // mid gray on light bg
+        ["#444444", "#555555"],  // similar dark tones
+        ["#a0a0a0", "#c0c0c0"], // similar mid tones
+      ];
+      for (const [fg, bg] of failingPairs) {
+        const suggestions = suggestAccessiblePair(fg, bg);
+        expect(suggestions.length).toBeGreaterThanOrEqual(1);
+        suggestions.forEach((s) => {
+          expect(s.passAA).toBe(true);
+        });
+      }
     });
   });
 });
