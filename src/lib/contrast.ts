@@ -201,10 +201,40 @@ function getRatioSummary(fgColor: string, bgColor: string): string {
  * @returns "light", "dark", or "medium" category
  */
 function getBrightnessCategory(hex: string): "light" | "dark" | "medium" {
-  const lum = getRelativeLuminance(hex);
-  if (lum > 0.18) return "light";
-  if (lum < 0.06) return "dark";
+  return getLuminanceCategory(getRelativeLuminance(hex));
+}
+
+/**
+ * Classify a luminance value into a brightness category.
+ *
+ * This is the luminance-based equivalent of {@link getBrightnessCategory}
+ * but accepts a pre-computed luminance value instead of a hex string,
+ * saving repeated calculations when the luminance is already available.
+ *
+ * @param luminance - Relative luminance value (0-1)
+ * @returns "light", "dark", or "medium" category
+ */
+function getLuminanceCategory(luminance: number): "light" | "dark" | "medium" {
+  if (luminance > 0.18) return "light";
+  if (luminance < 0.06) return "dark";
   return "medium";
+}
+
+/**
+ * Get a human-readable brightness label from a luminance value.
+ * Capitalized form suitable for UI display (e.g. "Light", "Dark", or "Medium").
+ *
+ * @param luminance - Relative luminance value (0-1)
+ * @returns "Light", "Dark", or "Medium"
+ * @example
+ * getLuminanceLabel(0.9)  // "Light"
+ * getLuminanceLabel(0.01) // "Dark"
+ * getLuminanceLabel(0.1)  // "Medium"
+ */
+function getLuminanceLabel(luminance: number): string {
+  if (luminance > 0.18) return "Light";
+  if (luminance < 0.06) return "Dark";
+  return "Medium";
 }
 
 /**
@@ -330,40 +360,35 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
   const lightSuggestions: ColorSuggestion[] = [];
   const darkSuggestions: ColorSuggestion[] = [];
 
-  for (const fg of SUGGESTION_PALETTE_LIGHT) {
+  const evaluateSuggestion = (
+    fg: string,
+    brightness: "light" | "dark",
+  ): ColorSuggestion | null => {
     try {
       const fgLum = getPaletteLuminance(fg);
       const lighterLum = Math.max(fgLum, bgLum);
       const darkerLum = Math.min(fgLum, bgLum);
       const ratio = (lighterLum + 0.05) / (darkerLum + 0.05);
-      lightSuggestions.push({
+      return {
         color: fg,
         ratio: Math.round(ratio * 100) / 100,
         passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
         passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
-        brightness: "light",
-      });
+        brightness,
+      };
     } catch {
-      // ignore invalid colors
+      return null;
     }
+  };
+
+  for (const fg of SUGGESTION_PALETTE_LIGHT) {
+    const s = evaluateSuggestion(fg, "light");
+    if (s) lightSuggestions.push(s);
   }
 
   for (const fg of SUGGESTION_PALETTE_DARK) {
-    try {
-      const fgLum = getPaletteLuminance(fg);
-      const lighterLum = Math.max(fgLum, bgLum);
-      const darkerLum = Math.min(fgLum, bgLum);
-      const ratio = (lighterLum + 0.05) / (darkerLum + 0.05);
-      darkSuggestions.push({
-        color: fg,
-        ratio: Math.round(ratio * 100) / 100,
-        passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
-        passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
-        brightness: "dark",
-      });
-    } catch {
-      // ignore invalid colors
-    }
+    const s = evaluateSuggestion(fg, "dark");
+    if (s) darkSuggestions.push(s);
   }
 
   // Pick best (highest ratio) passing candidate in each direction
@@ -644,6 +669,8 @@ export {
   formatRatio,
   getRatioSummary,
   getBrightnessCategory,
+  getLuminanceCategory,
+  getLuminanceLabel,
   getRequiredRatio,
   suggestAccessibleColor,
 };

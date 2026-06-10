@@ -14,6 +14,7 @@ import {
   simulateCvd,
   getCvdContrastRatio,
   getWCAGLevel,
+  getLuminanceLabel,
   CVD_LABELS,
   CVD_SHORT_LABELS,
 } from "@/lib/contrast";
@@ -340,7 +341,7 @@ function ColorReferenceDetails({
       return 0;
     }
   }, [color]);
-  const brightnessLabel = luminance > 0.18 ? "Light" : luminance < 0.06 ? "Dark" : "Medium";
+  const brightnessLabel = getLuminanceLabel(luminance);
   return (
     <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
       <div

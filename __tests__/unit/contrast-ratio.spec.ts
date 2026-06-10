@@ -5,6 +5,8 @@ import {
   getRelativeLuminance,
   checkCompliance,
   getBrightnessCategory,
+  getLuminanceCategory,
+  getLuminanceLabel,
   suggestAccessibleColor,
   suggestAccessiblePair,
   normalizeHexColor,
@@ -150,6 +152,56 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
 
     it("should classify #404040 (luminance ~0.05) as dark", () => {
       expect(getBrightnessCategory("#404040")).toBe("dark");
+    });
+  });
+
+  describe("getLuminanceCategory", () => {
+    it("should return 'light' for luminance > 0.18", () => {
+      expect(getLuminanceCategory(1)).toBe("light");
+      expect(getLuminanceCategory(0.19)).toBe("light");
+    });
+
+    it("should return 'dark' for luminance < 0.06", () => {
+      expect(getLuminanceCategory(0)).toBe("dark");
+      expect(getLuminanceCategory(0.05)).toBe("dark");
+    });
+
+    it("should return 'medium' for luminance between 0.06 and 0.18", () => {
+      expect(getLuminanceCategory(0.1)).toBe("medium");
+      expect(getLuminanceCategory(0.12)).toBe("medium");
+    });
+
+    it("should return 'medium' for luminance exactly 0.18", () => {
+      expect(getLuminanceCategory(0.18)).toBe("medium");
+    });
+
+    it("should return 'medium' for luminance exactly 0.06", () => {
+      expect(getLuminanceCategory(0.06)).toBe("medium");
+    });
+  });
+
+  describe("getLuminanceLabel", () => {
+    it("should return 'Light' for luminance > 0.18", () => {
+      expect(getLuminanceLabel(1)).toBe("Light");
+      expect(getLuminanceLabel(0.19)).toBe("Light");
+    });
+
+    it("should return 'Dark' for luminance < 0.06", () => {
+      expect(getLuminanceLabel(0)).toBe("Dark");
+      expect(getLuminanceLabel(0.05)).toBe("Dark");
+    });
+
+    it("should return 'Medium' for luminance between 0.06 and 0.18", () => {
+      expect(getLuminanceLabel(0.1)).toBe("Medium");
+      expect(getLuminanceLabel(0.12)).toBe("Medium");
+    });
+
+    it("should return 'Medium' for luminance exactly 0.18", () => {
+      expect(getLuminanceLabel(0.18)).toBe("Medium");
+    });
+
+    it("should return 'Medium' for luminance exactly 0.06", () => {
+      expect(getLuminanceLabel(0.06)).toBe("Medium");
     });
   });
 
