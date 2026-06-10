@@ -4,6 +4,17 @@ All notable changes to the Contrast Checker will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed 2 ESLint errors (`react/no-unescaped-entities`) in the sidebar — unescaped double
+  quotes around "Save Combination" now use curly quotes (`\u201c` / `\u201d`) to comply with
+  the JSX rule.
+
+### Changed
+
+- Improved `CONTRIBUTING.md` with expanded development setup, EditorConfig guidance,
+  and a "Before You Commit" section for running lint/tests locally.
+
 ### Added
 
 - `normalizeHexColor()` utility function in `src/lib/contrast.ts` — normalizes hex colors

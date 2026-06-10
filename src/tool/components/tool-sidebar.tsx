@@ -879,7 +879,7 @@ export function ToolSidebar({
               padding: "0.5rem 0",
             }}
           >
-            No saved combinations yet. Use the "Save Combination" button on the
+            No saved combinations yet. Use the “Save Combination” button on the
             canvas to add one.
           </p>
         </div>
