@@ -228,7 +228,7 @@ interface ColorSuggestion {
  * Ordered by likelihood of providing sufficient contrast.
  * Includes neutral, semantic, and brand-friendly tones for diverse design needs.
  */
-const SUGGESTION_PALETTE_LIGHT: string[] = [
+const SUGGESTION_PALETTE_LIGHT: readonly string[] = [
   "#ffffff",
   "#f8f9fa",
   "#e9ecef",
@@ -244,9 +244,9 @@ const SUGGESTION_PALETTE_LIGHT: string[] = [
   "#f5eef8",
   "#eaf2f8",
   "#fef9e7",
-];
+] as const;
 
-const SUGGESTION_PALETTE_DARK: string[] = [
+const SUGGESTION_PALETTE_DARK: readonly string[] = [
   "#000000",
   "#212529",
   "#343a40",
@@ -262,7 +262,42 @@ const SUGGESTION_PALETTE_DARK: string[] = [
   "#3c1053",
   "#1e3a5f",
   "#4a235a",
-];
+] as const;
+
+/**
+ * Pre-computed relative luminance values for palette colors.
+ * Computing these lazily on first access avoids repeated hex parsing
+ * and gamma-correction on every call to suggestAccessibleColor/Pair.
+ */
+let paletteLuminancesCache: Map<string, number> | null = null;
+
+function getPaletteLuminance(color: string): number {
+  if (!paletteLuminancesCache) {
+    paletteLuminancesCache = new Map();
+    for (const c of SUGGESTION_PALETTE_LIGHT) {
+      paletteLuminancesCache.set(c, getRelativeLuminance(c));
+    }
+    for (const c of SUGGESTION_PALETTE_DARK) {
+      paletteLuminancesCache.set(c, getRelativeLuminance(c));
+    }
+  }
+  const cached = paletteLuminancesCache.get(color);
+  if (cached !== undefined) return cached;
+  // Fall back for dynamically generated colors (e.g. adjustLightness results)
+  return getRelativeLuminance(color);
+}
+
+/**
+ * Fast contrast ratio using pre-cached palette luminance if available,
+ * otherwise falls through to the full getContrastRatio computation.
+ */
+function cachedContrastRatio(colorA: string, colorB: string): number {
+  const lumA = getPaletteLuminance(colorA);
+  const lumB = getPaletteLuminance(colorB);
+  const lighterLum = Math.max(lumA, lumB);
+  const darkerLum = Math.min(lumA, lumB);
+  return (lighterLum + 0.05) / (darkerLum + 0.05);
+}
 
 interface SuggestionResult {
   light: ColorSuggestion | null;
@@ -284,12 +319,23 @@ interface SuggestionResult {
  *          Each is null if no candidate in that direction meets AA normal-text.
  */
 function suggestAccessibleColor(bgColor: string): SuggestionResult {
+  // Pre-compute background luminance once for all palette comparisons
+  let bgLum: number;
+  try {
+    bgLum = getRelativeLuminance(bgColor);
+  } catch {
+    return { light: null, dark: null, best: null };
+  }
+
   const lightSuggestions: ColorSuggestion[] = [];
   const darkSuggestions: ColorSuggestion[] = [];
 
   for (const fg of SUGGESTION_PALETTE_LIGHT) {
     try {
-      const ratio = getContrastRatio(fg, bgColor);
+      const fgLum = getPaletteLuminance(fg);
+      const lighterLum = Math.max(fgLum, bgLum);
+      const darkerLum = Math.min(fgLum, bgLum);
+      const ratio = (lighterLum + 0.05) / (darkerLum + 0.05);
       lightSuggestions.push({
         color: fg,
         ratio: Math.round(ratio * 100) / 100,
@@ -304,7 +350,10 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
 
   for (const fg of SUGGESTION_PALETTE_DARK) {
     try {
-      const ratio = getContrastRatio(fg, bgColor);
+      const fgLum = getPaletteLuminance(fg);
+      const lighterLum = Math.max(fgLum, bgLum);
+      const darkerLum = Math.min(fgLum, bgLum);
+      const ratio = (lighterLum + 0.05) / (darkerLum + 0.05);
       darkSuggestions.push({
         color: fg,
         ratio: Math.round(ratio * 100) / 100,
@@ -372,13 +421,17 @@ export function suggestAccessiblePair(
   fgColor: string,
   bgColor: string,
 ): AccessiblePair[] {
+  // Pre-compute bg luminance once (used for both initial check and strategies)
+  let bgLum: number;
   try {
     const currentRatio = getContrastRatio(fgColor, bgColor);
     if (currentRatio >= WCAG_THRESHOLDS.AA.normal) return [];
+    bgLum = getRelativeLuminance(bgColor);
   } catch {
     return [];
   }
 
+  const fgRgb = hexToRgb(fgColor);
   const suggestions: AccessiblePair[] = [];
   const seen = new Set<string>();
 
@@ -386,7 +439,7 @@ export function suggestAccessiblePair(
     const key = `${fg}|${bg}`;
     if (seen.has(key)) return;
     try {
-      const ratio = getContrastRatio(fg, bg);
+      const ratio = cachedContrastRatio(fg, bg);
       if (ratio < WCAG_THRESHOLDS.AA.normal) return;
       seen.add(key);
       suggestions.push({
@@ -403,22 +456,23 @@ export function suggestAccessiblePair(
   };
 
   // Strategy 1: Keep background, try curated foreground palette
-  const allFg = [...SUGGESTION_PALETTE_DARK, ...SUGGESTION_PALETTE_LIGHT];
-  for (const fg of allFg) {
+  for (const fg of SUGGESTION_PALETTE_DARK) {
+    addSuggestion(fg, bgColor, `Try ${fg} on current background`);
+  }
+  for (const fg of SUGGESTION_PALETTE_LIGHT) {
     addSuggestion(fg, bgColor, `Try ${fg} on current background`);
   }
 
   // Strategy 2: Keep foreground, try curated background palette
-  const allBg = [...SUGGESTION_PALETTE_LIGHT, ...SUGGESTION_PALETTE_DARK];
-  for (const bg of allBg) {
+  for (const bg of SUGGESTION_PALETTE_LIGHT) {
+    addSuggestion(fgColor, bg, `Try current foreground on ${bg}`);
+  }
+  for (const bg of SUGGESTION_PALETTE_DARK) {
     addSuggestion(fgColor, bg, `Try current foreground on ${bg}`);
   }
 
   // Strategy 3: Lighten/darken the foreground toward the extremes
   try {
-    const bgLum = getRelativeLuminance(bgColor);
-    const fgRgb = hexToRgb(fgColor);
-
     if (bgLum < 0.5) {
       // Dark background: try lighter foregrounds
       for (let l = 80; l <= 100; l += 5) {
@@ -506,31 +560,38 @@ export function normalizeHexColor(hex: string): string {
   }
   const cleaned = hex.replace(/^#/, "").toLowerCase();
 
-  let result: string;
+  // Use early returns for each length case — avoids a mutable variable.
   if (cleaned.length === 6) {
-    result = cleaned;
-  } else if (cleaned.length === 3) {
+    if (!/^[0-9a-f]{6}$/.test(cleaned)) {
+      throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
+    }
+    return `#${cleaned}`;
+  }
+
+  if (cleaned.length === 3) {
     // Expand 3-char shorthand to 6-char
-    result =
+    const expanded =
       cleaned[0] + cleaned[0] +
       cleaned[1] + cleaned[1] +
       cleaned[2] + cleaned[2];
-  } else if (cleaned.length === 8) {
+    if (!/^[0-9a-f]{6}$/.test(expanded)) {
+      throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
+    }
+    return `#${expanded}`;
+  }
+
+  if (cleaned.length === 8) {
     // Strip alpha channel
-    result = cleaned.slice(0, 6);
-  } else {
-    throw new Error(
-      `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
-    );
+    const stripped = cleaned.slice(0, 6);
+    if (!/^[0-9a-f]{6}$/.test(stripped)) {
+      throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
+    }
+    return `#${stripped}`;
   }
 
-  if (!/^[0-9a-f]{6}$/.test(result)) {
-    throw new Error(
-      `Invalid hex color: non-hex characters in "${hex}"`,
-    );
-  }
-
-  return `#${result}`;
+  throw new Error(
+    `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
+  );
 }
 
 /**
