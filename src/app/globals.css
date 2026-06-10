@@ -497,8 +497,12 @@ body {
     --border: #ffffff;
   }
 
-  * {
-    border-color: var(--border) !important;
+  /* Strengthen borders without overriding every element's border-color */
+  .color-swatch,
+  .export-dropdown-trigger,
+  .export-dropdown-menu {
+    border-width: 2px;
+    border-color: var(--border);
   }
 
   .contrast-badge.pass {
@@ -513,6 +517,10 @@ body {
 
   .color-swatch {
     outline: 2px solid var(--border);
+  }
+
+  .sidebar-suggestion-row {
+    border-width: 2px;
   }
 }
 
