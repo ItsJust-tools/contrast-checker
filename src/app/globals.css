@@ -25,7 +25,8 @@
   --radius: 0.5rem;
 }
 
-.dark {
+/* Dark mode via data-theme attribute (set by ThemeProvider from @itsjust/core) */
+[data-theme="dark"] {
   --background: #0a0a0a;
   --foreground: #f9fafb;
   --card: #1a1a1a;
@@ -47,7 +48,33 @@
   --accent: #ef4444;
   --accent-foreground: #ffffff;
   --accent-subtle: rgba(239, 68, 68, 0.08);
-  --radius: 0.5rem;
+}
+
+/* Auto dark mode via OS preference (when no data-theme is set) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0a0a0a;
+    --foreground: #f9fafb;
+    --card: #1a1a1a;
+    --card-foreground: #f9fafb;
+    --popover: #1a1a1a;
+    --popover-foreground: #f9fafb;
+    --primary: #ef4444;
+    --primary-foreground: #ffffff;
+    --secondary: #2d2d2d;
+    --secondary-foreground: #f9fafb;
+    --muted: #2d2d2d;
+    --muted-foreground: #a3a3a3;
+    --border: #374151;
+    --input: #374151;
+    --ring: #ef4444;
+    --success: #22c55e;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --accent: #ef4444;
+    --accent-foreground: #ffffff;
+    --accent-subtle: rgba(239, 68, 68, 0.08);
+  }
 }
 
 * {
@@ -73,7 +100,7 @@ body {
     color 0.3s ease;
 }
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is([data-theme="dark"] *));
 
 @layer components {
   .color-preview-container {
@@ -265,6 +292,7 @@ body {
     font-size: 0.8125rem;
     font-weight: 500;
     font-family: inherit;
+    user-select: none;
     transition:
       background-color 0.15s,
       border-color 0.15s;
@@ -465,7 +493,7 @@ body {
     --border: #000000;
   }
 
-  .dark {
+  [data-theme="dark"] {
     --border: #ffffff;
   }
 

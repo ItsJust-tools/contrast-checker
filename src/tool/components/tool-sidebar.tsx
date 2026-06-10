@@ -727,7 +727,7 @@ export function ToolSidebar({
       )}
 
       {/* Combinations Export */}
-      {combinations.length > 0 && (
+      {combinations.length > 0 ? (
         <div className="sidebar-section">
           <div
             style={{
@@ -868,6 +868,21 @@ export function ToolSidebar({
             ))}
           </div>
         </div>
+      ) : (
+        <div className="sidebar-section" aria-live="polite">
+          <h3>Combinations</h3>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--muted)",
+              fontStyle: "italic",
+              padding: "0.5rem 0",
+            }}
+          >
+            No saved combinations yet. Use the "Save Combination" button on the
+            canvas to add one.
+          </p>
+        </div>
       )}
 
       {/* Color-Blindness Simulation */}
@@ -993,8 +1008,28 @@ export function ToolSidebar({
           <div style={{ marginBottom: "0.25rem" }}>
             <strong>Large text (18pt+ or 14pt bold):</strong> 3:1 minimum
           </div>
-          <div>
+          <div style={{ marginBottom: "0.25rem" }}>
             <strong>UI Components:</strong> 3:1 minimum
+          </div>
+          <div style={{ marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px solid var(--border)" }}>
+            Based on{" "}
+            <a
+              href="https://www.w3.org/TR/WCAG22/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--accent)", textDecoration: "underline" }}
+            >
+              WCAG 2.2
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://www.w3.org/TR/WCAG21/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--accent)", textDecoration: "underline" }}
+            >
+              WCAG 2.1
+            </a>
           </div>
         </div>
       </div>
