@@ -333,6 +333,14 @@ function ColorReferenceDetails({
   const rgb = useMemo(() => hexToRgb(color), [color]);
   const hsl = useMemo(() => rgbToHsl(rgb.r, rgb.g, rgb.b), [rgb]);
   const rgbStr = useMemo(() => formatRgb(rgb.r, rgb.g, rgb.b), [rgb]);
+  const luminance = useMemo(() => {
+    try {
+      return getRelativeLuminance(color);
+    } catch {
+      return 0;
+    }
+  }, [color]);
+  const brightnessLabel = luminance > 0.18 ? "Light" : luminance < 0.06 ? "Dark" : "Medium";
   return (
     <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
       <div
@@ -353,6 +361,9 @@ function ColorReferenceDetails({
         <div>{color.toLowerCase()}</div>
         <div>{rgbStr}</div>
         <div>{formatHsl(hsl.h, hsl.s, hsl.l)}</div>
+        <div style={{ marginTop: "0.25rem", fontSize: "0.6rem" }}>
+          Luminance: {(luminance * 100).toFixed(1)}% · {brightnessLabel}
+        </div>
       </div>
     </div>
   );

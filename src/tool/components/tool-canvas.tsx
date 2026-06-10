@@ -387,9 +387,6 @@ export function ToolCanvas({
     [ratio],
   );
 
-  const handleFgChange = onFgChange;
-  const handleBgChange = onBgChange;
-
   const handleLabelChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onLabelChange?.(e.target.value);
@@ -420,7 +417,7 @@ export function ToolCanvas({
           <ColorPreview
             color={fgColor}
             label="Foreground"
-            onChange={handleFgChange}
+            onChange={onFgChange}
             instanceId="fg"
           />
         </div>
@@ -437,7 +434,7 @@ export function ToolCanvas({
           <ColorPreview
             color={bgColor}
             label="Background"
-            onChange={handleBgChange}
+            onChange={onBgChange}
             instanceId="bg"
           />
         </div>

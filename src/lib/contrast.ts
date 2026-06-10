@@ -31,8 +31,7 @@ export type WcagLevel = "aaa" | "aa" | "fail";
  * @returns Minimum required contrast ratio
  */
 function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
-  const levels = WCAG_THRESHOLDS[standard] ?? WCAG_THRESHOLDS.AA;
-  return levels[level] ?? WCAG_THRESHOLDS.AA.normal;
+  return WCAG_THRESHOLDS[standard][level];
 }
 
 /**
