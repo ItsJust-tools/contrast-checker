@@ -426,7 +426,7 @@ export function ToolSidebar({
 
   /** Announceable summary of current stats, used by the screen-reader live region. */
   const liveSummary = useMemo(() => {
-    if (combinations.length === 0) return "No combinations saved yet.";
+    if (combinations.length === 0) return "No combinations saved yet. Use the Save Combination button on the canvas to add one.";
     return (
       `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
       `Average contrast ratio ${formatRatio(averageContrast)}. ` +

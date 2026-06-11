@@ -94,6 +94,12 @@ function ColorPreview({
           setHexInputMessage(
             "Hex color too long. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
           );
+        } else if (stripped.length === 4 || stripped.length === 5 || stripped.length === 7) {
+          // Valid hex characters but wrong length — 4, 5, or 7 chars won't parse
+          setHexInputError(true);
+          setHexInputMessage(
+            `Invalid hex length (${stripped.length} characters). Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA`,
+          );
         } else {
           // Still typing a valid hex — no error yet
           setHexInputError(false);
@@ -516,17 +522,6 @@ export function ToolCanvas({
             aria-live="polite"
             aria-atomic="true"
             className="sr-only"
-            style={{
-              position: "absolute",
-              width: "1px",
-              height: "1px",
-              padding: 0,
-              margin: "-1px",
-              overflow: "hidden",
-              clip: "rect(0, 0, 0, 0)",
-              whiteSpace: "nowrap",
-              border: 0,
-            }}
           >
             Contrast ratio {formatRatio(ratio)}. WCAG AA{" "}
             {passAA ? "pass" : "fail"} for normal text. WCAG AAA{" "}
