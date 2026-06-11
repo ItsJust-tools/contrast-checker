@@ -170,7 +170,7 @@ function checkContrast(
  */
 const formatRatio = (ratio: number, precision: number = 2): string => {
   const rounded = ratio.toFixed(precision);
-  const trimmed = precision > 0 ? rounded.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "") : rounded;
+  const trimmed = precision > 0 ? parseFloat(rounded).toString() : rounded;
   return `${trimmed}:1`;
 };
 

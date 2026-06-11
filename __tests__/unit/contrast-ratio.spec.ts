@@ -663,6 +663,14 @@ describe("normalizeHexColor", () => {
     it("should format 0 precision", () => {
       expect(formatRatio(4.5, 0)).toBe("5:1");
     });
+
+    it("should keep leading zero for sub-1 ratios", () => {
+      expect(formatRatio(0.5)).toBe("0.5:1");
+    });
+
+    it("should keep leading zero for precision-3 sub-1 ratios", () => {
+      expect(formatRatio(0.123, 3)).toBe("0.123:1");
+    });
   });
 
   describe("getRatioSummary", () => {
