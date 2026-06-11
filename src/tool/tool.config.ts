@@ -36,6 +36,11 @@ const toolConfig = {
           label: "Export PNG",
           description: "screenshot as PNG",
         },
+        {
+          keys: "Ctrl+Shift+X",
+          label: "Swap Colors",
+          description: "swap foreground and background colors",
+        },
       ],
     },
   ],

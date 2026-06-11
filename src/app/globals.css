@@ -129,6 +129,25 @@ body {
     outline-offset: 2px;
   }
 
+  .color-swatch-small {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--foreground);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    will-change: transform;
+  }
+
+  .color-swatch-small:hover {
+    transform: scale(1.05);
+  }
+
+  .color-swatch-small:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   .color-label {
     font-size: 0.8125rem;
     font-weight: 600;
@@ -174,6 +193,7 @@ body {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius);
+    transition: background-color 0.15s ease;
   }
 
   .contrast-preview-overlay {
@@ -182,6 +202,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.15s ease;
   }
 
   .contrast-badge {

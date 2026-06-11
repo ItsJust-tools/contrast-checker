@@ -252,6 +252,7 @@ function ColorPreview({
             aria-invalid={hexInputError}
             aria-describedby={hexInputError ? `${hexInputId}-error` : undefined}
             title="Type a hex color value (e.g. #ff0000, #f00, or #ff000080). Press Enter to confirm."
+            placeholder="#RRGGBB"
           />
           <span
             style={{
@@ -303,11 +304,12 @@ function ContrastBadge({
   /** WCAG conformance level to display. */
   standard: "AA" | "AAA";
 }) {
+  const minRatio = WCAG_MIN_RATIO[standard];
   return (
     <div
       className={`contrast-badge ${pass ? "pass" : "fail"}`}
       role="status"
-      aria-label={`WCAG ${standard}: ${pass ? "Pass" : "Fail"}`}
+      aria-label={`WCAG ${standard} normal text: ${pass ? "Pass" : "Fail — needs ${minRatio.toFixed(1)}:1 minimum"}`}
     >
       {pass ? <CheckIcon /> : <XIcon />}
       <div className="contrast-badge-text">
@@ -315,7 +317,7 @@ function ContrastBadge({
         <span className="contrast-badge-status">
           {pass
             ? "Pass"
-            : `Needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1`}
+            : `Needs ${minRatio.toFixed(1)}:1`}
         </span>
       </div>
     </div>
@@ -628,7 +630,7 @@ export function ToolCanvas({
             type="text"
             value={label}
             onChange={handleLabelChange}
-            placeholder="Sample text preview"
+            placeholder="Type sample text to preview..."
             style={{
               flex: 1,
               padding: "0.5rem 0.75rem",

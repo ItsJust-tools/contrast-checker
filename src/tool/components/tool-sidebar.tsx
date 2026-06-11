@@ -58,7 +58,6 @@ function ColorSwatch({
   const handleClick = useCallback(() => {
     const input = document.getElementById(inputId) as HTMLInputElement | null;
     if (input) {
-      input.focus();
       input.click();
     }
   }, [inputId]);
@@ -72,20 +71,14 @@ function ColorSwatch({
 
   return (
     <div
-      className="color-swatch"
+      className="color-swatch-small"
       style={{
-        width: "48px",
-        height: "48px",
         background: color,
-        border: "2px solid var(--foreground)",
-        borderRadius: "var(--radius)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontSize: "0.6875rem",
-        cursor: "pointer",
         position: "relative",
-        transition: "transform 0.1s, box-shadow 0.1s",
         outline: "none",
       }}
       role="button"
@@ -554,15 +547,6 @@ export function ToolSidebar({
       {/* Click-to-select Color Section */}
       <div className="sidebar-section">
         <h3>Click to Pick Colors</h3>
-        <p
-          style={{
-            fontSize: "0.6875rem",
-            color: "var(--muted)",
-            marginBottom: "0.75rem",
-          }}
-        >
-          Click any color swatch to open the color picker
-        </p>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
           <ColorSwatch
             color={fgColor}

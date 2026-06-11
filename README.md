@@ -91,6 +91,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 | `Esc`               | Close color picker          |
 | `Ctrl+Shift+E`      | Export as JSON              |
 | `Ctrl+Shift+P`      | Export as PNG               |
+| `Ctrl+Shift+X`      | Swap foreground/background   |
 
 ## Color-Vision Deficiency Simulation
 

@@ -7,6 +7,7 @@ export type ExportFormat = "json" | "png" | "webp" | "pdf";
 
 interface ToolToolbarProps {
   onExport?: (format: ExportFormat) => void;
+  onSwapColors?: () => void;
   disabled?: boolean;
 }
 
@@ -30,7 +31,7 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  * Home/End to jump to first/last item, and Enter/Space to select.
  * Escape closes the dropdown and returns focus to the trigger button.
  */
-export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
+export function ToolToolbar({ onExport, onSwapColors, disabled = false }: ToolToolbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -41,11 +42,13 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
    * Map keyboard shortcuts to their export format.
    * Stable reference via useRef to avoid re-creating the effect on every render.
    */
-  const shortcutMapRef = useRef<Record<string, ExportFormat>>({
+  const shortcutMapRef = useRef<Record<string, "json" | "png" | "swap">>({
     "ctrl+shift+e": "json",
     "meta+shift+e": "json",
     "ctrl+shift+p": "png",
     "meta+shift+p": "png",
+    "ctrl+shift+x": "swap",
+    "meta+shift+x": "swap",
   });
 
   /** Global keyboard shortcut handler. */
@@ -60,16 +63,19 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
       ]
         .filter(Boolean)
         .join("+");
-      const format = shortcutMap[key];
-      if (format) {
+      const action = shortcutMap[key];
+      if (action === "swap") {
+        e.preventDefault();
+        onSwapColors?.();
+      } else if (action) {
         e.preventDefault();
         setDropdownOpen(false);
-        onExport?.(format);
+        onExport?.(action);
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [disabled, onExport]);
+  }, [disabled, onExport, onSwapColors]);
 
   /** Close dropdown on outside click. */
   useEffect(() => {
@@ -183,8 +189,8 @@ export function ToolToolbar({ onExport, disabled = false }: ToolToolbarProps) {
           aria-haspopup="true"
           aria-controls={dropdownOpen ? "export-dropdown-menu" : undefined}
           aria-label="Export contrast combinations. Select format."
-          aria-keyshortcuts="Ctrl+Shift+E Ctrl+Shift+P"
-          title="Export (Ctrl+Shift+E: JSON, Ctrl+Shift+P: PNG)"
+          aria-keyshortcuts="Ctrl+Shift+E Ctrl+Shift+P Ctrl+Shift+X"
+          title="Export (Ctrl+Shift+E: JSON, Ctrl+Shift+P: PNG) | Swap Colors (Ctrl+Shift+X)"
           className="export-dropdown-trigger"
         >
           <DownloadIcon />
