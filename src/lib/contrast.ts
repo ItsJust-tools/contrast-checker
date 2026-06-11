@@ -299,19 +299,32 @@ const SUGGESTION_PALETTE_DARK: readonly string[] = [
  * Computing these lazily on first access avoids repeated hex parsing
  * and gamma-correction on every call to suggestAccessibleColor/Pair.
  */
+/**
+ * Pre-computed relative luminance values for palette colors.
+ * Computing these lazily on first access avoids repeated hex parsing
+ * and gamma-correction across repeated calls to suggestAccessibleColor/Pair.
+ *
+ * A module-level singleton (null → Map on first use) is safe here because
+ * palette arrays are `as const` and immutable at runtime.
+ */
 let paletteLuminancesCache: Map<string, number> | null = null;
 
-function getPaletteLuminance(color: string): number {
-  if (!paletteLuminancesCache) {
-    paletteLuminancesCache = new Map();
-    for (const c of SUGGESTION_PALETTE_LIGHT) {
-      paletteLuminancesCache.set(c, getRelativeLuminance(c));
-    }
-    for (const c of SUGGESTION_PALETTE_DARK) {
-      paletteLuminancesCache.set(c, getRelativeLuminance(c));
-    }
+function ensurePaletteCache(): Map<string, number> {
+  if (paletteLuminancesCache) return paletteLuminancesCache;
+  const cache = new Map<string, number>();
+  for (const c of SUGGESTION_PALETTE_LIGHT) {
+    cache.set(c, getRelativeLuminance(c));
   }
-  const cached = paletteLuminancesCache.get(color);
+  for (const c of SUGGESTION_PALETTE_DARK) {
+    cache.set(c, getRelativeLuminance(c));
+  }
+  paletteLuminancesCache = cache;
+  return cache;
+}
+
+function getPaletteLuminance(color: string): number {
+  const cache = ensurePaletteCache();
+  const cached = cache.get(color);
   if (cached !== undefined) return cached;
   // Fall back for dynamically generated colors (e.g. adjustLightness results)
   return getRelativeLuminance(color);
@@ -519,10 +532,6 @@ export function suggestAccessiblePair(
   return suggestions.sort((a, b) => b.ratio - a.ratio).slice(0, 3);
 }
 
-/**
- * Adjust the lightness of an RGB color to a target percentage.
- * Converts to HSL, sets the lightness, and converts back.
- */
 /**
  * Internal float-precision RGB-to-HSL conversion.
  *
@@ -756,32 +765,25 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * @param b - Blue component (0-255)
  * @returns Object with h (0-360), s (0-100), l (0-100)
  */
+/**
+ * Convert an RGB tuple to an HSL tuple.
+ * Returns values as integer degrees (H), percentage (S), percentage (L).
+ *
+ * Delegates to the float-precision {@link rgbToHslFloat} internally,
+ * then rounds the result for display-friendly integer output.
+ * This eliminates the previously duplicated HSL conversion logic.
+ *
+ * @param r - Red component (0-255)
+ * @param g - Green component (0-255)
+ * @param b - Blue component (0-255)
+ * @returns Object with h (0-360), s (0-100), l (0-100)
+ */
 export function rgbToHsl(
   r: number,
   g: number,
   b: number,
 ): { h: number; s: number; l: number } {
-  const rNorm = r / 255;
-  const gNorm = g / 255;
-  const bNorm = b / 255;
-  const max = Math.max(rNorm, gNorm, bNorm);
-  const min = Math.min(rNorm, gNorm, bNorm);
-  const delta = max - min;
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
-
-  if (delta !== 0) {
-    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
-    if (max === rNorm) {
-      h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) * 60;
-    } else if (max === gNorm) {
-      h = ((bNorm - rNorm) / delta + 2) * 60;
-    } else {
-      h = ((rNorm - gNorm) / delta + 4) * 60;
-    }
-  }
-
+  const { h, s, l } = rgbToHslFloat(r, g, b);
   return {
     h: Math.round(h),
     s: Math.round(s * 100),
