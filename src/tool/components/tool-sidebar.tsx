@@ -115,6 +115,8 @@ function ColorSwatch({
   );
 }
 
+ColorSwatch.displayName = "ColorSwatch";
+
 /**
  * Displays a WCAG compliance badge with pass/fail visual indicator.
  * Shows the pass rate percentage for the given standard across all saved combinations.
@@ -140,6 +142,8 @@ function ComplianceBadge({
     </div>
   );
 }
+
+ComplianceBadge.displayName = "ComplianceBadge";
 
 /**
  * Small color swatch displaying the abbreviation label with contrasting text.
@@ -178,6 +182,8 @@ function ColorReferenceSwatch({
     </div>
   );
 }
+
+ColorReferenceSwatch.displayName = "ColorReferenceSwatch";
 
 /**
  * Copy text to clipboard and show brief visual feedback.
@@ -224,6 +230,8 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     </button>
   );
 }
+
+CopyButton.displayName = "CopyButton";
 
 /**
  * Suggested foreground color row with click-to-apply behavior.
@@ -314,6 +322,8 @@ function SuggestionRow({
   );
 }
 
+SuggestionRow.displayName = "SuggestionRow";
+
 /**
  * Displays the hex, RGB, and HSL values for a given color in a compact layout.
  */
@@ -362,6 +372,8 @@ function ColorReferenceDetails({
     </div>
   );
 }
+
+ColorReferenceDetails.displayName = "ColorReferenceDetails";
 
 /**
  * Sidebar panel for the Contrast Checker tool.

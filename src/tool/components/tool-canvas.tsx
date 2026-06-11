@@ -291,6 +291,8 @@ function ColorPreview({
   );
 }
 
+ColorPreview.displayName = "ColorPreview";
+
 /** Minimum contrast ratio needed per WCAG level (normal text). */
 const WCAG_MIN_RATIO: Record<"AA" | "AAA", number> = {
   AA: getRequiredRatio("AA", "normal"),
@@ -329,6 +331,8 @@ function ContrastBadge({
     </div>
   );
 }
+
+ContrastBadge.displayName = "ContrastBadge";
 
 /**
  * Main canvas component for the Contrast Checker tool.

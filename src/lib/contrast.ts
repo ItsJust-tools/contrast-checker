@@ -699,6 +699,10 @@ export function tryNormalizeHexColor(hex: string): string | null {
  * "aa" if it meets AA (but not AAA),
  * and "fail" if it doesn't meet AA.
  *
+ * For the "ui" level, WCAG only defines a single 3:1 threshold (AA and AAA
+ * are identical), so the function returns "aa" at most — AAA is not a
+ * meaningful distinction for UI components.
+ *
  * @param ratio - Contrast ratio (1-21)
  * @param level - Text / UI component size (defaults to 'normal')
  * @returns The highest WCAG level the ratio satisfies
