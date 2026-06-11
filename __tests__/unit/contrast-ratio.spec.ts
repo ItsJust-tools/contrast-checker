@@ -812,5 +812,30 @@ describe("normalizeHexColor", () => {
         });
       }
     });
+
+    it("should preserve hue in lightness-adjusted suggestions", () => {
+      // Pure red on white fails AA (ratio ~3.99:1)
+      // The lightness-adjusted suggestion should keep the red hue
+      const suggestions = suggestAccessiblePair("#ff0000", "#ffffff");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      // At least one suggestion should have a red-ish hue (R >> G,B)
+      const redSuggestions = suggestions.filter((s) => {
+        const rgb = hexToRgb(s.fg);
+        return rgb.r > rgb.g * 2 && rgb.r > rgb.b * 2;
+      });
+      expect(redSuggestions.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("should preserve hue for blue foreground on dark background", () => {
+      // Dark blue on dark background fails AA
+      const suggestions = suggestAccessiblePair("#000033", "#111111");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      // At least one suggestion should have a blue-ish hue (B >> R,G)
+      const blueSuggestions = suggestions.filter((s) => {
+        const rgb = hexToRgb(s.fg);
+        return rgb.b > rgb.r * 2 && rgb.b > rgb.g * 2;
+      });
+      expect(blueSuggestions.length).toBeGreaterThanOrEqual(1);
+    });
   });
 });

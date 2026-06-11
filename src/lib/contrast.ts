@@ -523,14 +523,61 @@ export function suggestAccessiblePair(
  * Adjust the lightness of an RGB color to a target percentage.
  * Converts to HSL, sets the lightness, and converts back.
  */
+/**
+ * Internal float-precision RGB-to-HSL conversion.
+ *
+ * Unlike the exported {@link rgbToHsl} which rounds to integers for display,
+ * this version preserves full floating-point precision for use in color
+ * adjustment algorithms where rounding would cause hue/saturation drift.
+ *
+ * @returns Object with h (0-360), s (0-1), l (0-1) as floats
+ */
+function rgbToHslFloat(
+  r: number,
+  g: number,
+  b: number,
+): { h: number; s: number; l: number } {
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  const delta = max - min;
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (delta !== 0) {
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    if (max === rNorm) {
+      h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) * 60;
+    } else if (max === gNorm) {
+      h = ((bNorm - rNorm) / delta + 2) * 60;
+    } else {
+      h = ((rNorm - gNorm) / delta + 4) * 60;
+    }
+  }
+
+  return { h, s, l };
+}
+
+/**
+ * Adjust the lightness of an RGB color to a target percentage.
+ * Converts to HSL using float precision, sets the lightness, and converts back.
+ *
+ * Uses {@link rgbToHslFloat} internally to avoid the integer rounding in
+ * the display-oriented {@link rgbToHsl}, ensuring the adjusted color
+ * preserves the original hue and saturation as closely as possible.
+ */
 function adjustLightness(
   r: number,
   g: number,
   b: number,
   targetLightness: number,
 ): string {
-  const hsl = rgbToHsl(r, g, b);
-  const adjusted = hslToRgb(hsl.h, hsl.s, targetLightness);
+  const hsl = rgbToHslFloat(r, g, b);
+  // Convert targetLightness from percentage (0-100) to float (0-1)
+  const adjusted = hslToRgb(hsl.h, hsl.s * 100, targetLightness);
   const toHex = (v: number) =>
     Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
   return `#${toHex(adjusted.r)}${toHex(adjusted.g)}${toHex(adjusted.b)}`;
