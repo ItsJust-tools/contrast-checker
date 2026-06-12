@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  simulateCvd,
-  getCvdContrastRatio,
-} from "@/lib/contrast";
+import { simulateCvd, getCvdContrastRatio } from "@/lib/contrast";
 import type { CvdType } from "@/lib/contrast";
 
 describe("CVD Simulation - simulateCvd", () => {
@@ -45,7 +42,12 @@ describe("CVD Simulation - simulateCvd", () => {
   });
 
   it("should handle black (stays black under all CVD types)", () => {
-    for (const cvd of ["protanopia", "deuteranopia", "tritanopia", "achromatopsia"] as CvdType[]) {
+    for (const cvd of [
+      "protanopia",
+      "deuteranopia",
+      "tritanopia",
+      "achromatopsia",
+    ] as CvdType[]) {
       const simulated = simulateCvd("#000000", cvd);
       expect(simulated.toLowerCase()).toBe("#000000");
     }
@@ -53,7 +55,12 @@ describe("CVD Simulation - simulateCvd", () => {
 
   it("should return valid hex format for all CVD types", () => {
     const testColors = ["#ff0000", "#00ff00", "#0000ff", "#808080", "#ffa500"];
-    for (const cvd of ["protanopia", "deuteranopia", "tritanopia", "achromatopsia"] as CvdType[]) {
+    for (const cvd of [
+      "protanopia",
+      "deuteranopia",
+      "tritanopia",
+      "achromatopsia",
+    ] as CvdType[]) {
       for (const color of testColors) {
         const simulated = simulateCvd(color, cvd);
         expect(simulated).toMatch(/^#[0-9a-fA-F]{6}$/);
@@ -64,9 +71,14 @@ describe("CVD Simulation - simulateCvd", () => {
   it("should produce different results for different CVD types on the same color", () => {
     const color = "#ff8800";
     const results = new Set(
-      (["protanopia", "deuteranopia", "tritanopia", "achromatopsia"] as CvdType[]).map(
-        (cvd) => simulateCvd(color, cvd),
-      ),
+      (
+        [
+          "protanopia",
+          "deuteranopia",
+          "tritanopia",
+          "achromatopsia",
+        ] as CvdType[]
+      ).map((cvd) => simulateCvd(color, cvd)),
     );
     // At least 3 should be distinct (achromatopsia will be very different)
     expect(results.size).toBeGreaterThanOrEqual(3);
@@ -74,7 +86,12 @@ describe("CVD Simulation - simulateCvd", () => {
 
   it("should return a valid hex string with six hex digits", () => {
     const color = "#ff8000";
-    for (const cvd of ["protanopia", "deuteranopia", "tritanopia", "achromatopsia"] as CvdType[]) {
+    for (const cvd of [
+      "protanopia",
+      "deuteranopia",
+      "tritanopia",
+      "achromatopsia",
+    ] as CvdType[]) {
       const result = simulateCvd(color, cvd);
       expect(result).toMatch(/^#[0-9a-fA-F]{6}$/);
     }
@@ -107,7 +124,13 @@ describe("CVD Simulation - getCvdContrastRatio", () => {
   });
 
   it("should return valid ratio for black on white under all CVD types", () => {
-    for (const cvd of ["none", "protanopia", "deuteranopia", "tritanopia", "achromatopsia"] as CvdType[]) {
+    for (const cvd of [
+      "none",
+      "protanopia",
+      "deuteranopia",
+      "tritanopia",
+      "achromatopsia",
+    ] as CvdType[]) {
       const ratio = getCvdContrastRatio("#000000", "#ffffff", cvd);
       expect(ratio).toBeGreaterThanOrEqual(1);
       expect(ratio).toBeLessThanOrEqual(21);
@@ -115,7 +138,13 @@ describe("CVD Simulation - getCvdContrastRatio", () => {
   });
 
   it("should return 1:1 for identical colors under all CVD types", () => {
-    for (const cvd of ["none", "protanopia", "deuteranopia", "tritanopia", "achromatopsia"] as CvdType[]) {
+    for (const cvd of [
+      "none",
+      "protanopia",
+      "deuteranopia",
+      "tritanopia",
+      "achromatopsia",
+    ] as CvdType[]) {
       const ratio = getCvdContrastRatio("#ff0000", "#ff0000", cvd);
       expect(ratio).toBeCloseTo(1, 4);
     }
@@ -124,8 +153,16 @@ describe("CVD Simulation - getCvdContrastRatio", () => {
   it("achromatopsia should produce luminance-only ratios regardless of hue", () => {
     // Under monochrome, contrast depends only on luminance
     const ratioRed = getCvdContrastRatio("#ff0000", "#ffffff", "achromatopsia");
-    const ratioGreen = getCvdContrastRatio("#00ff00", "#ffffff", "achromatopsia");
-    const ratioBlue = getCvdContrastRatio("#0000ff", "#ffffff", "achromatopsia");
+    const ratioGreen = getCvdContrastRatio(
+      "#00ff00",
+      "#ffffff",
+      "achromatopsia",
+    );
+    const ratioBlue = getCvdContrastRatio(
+      "#0000ff",
+      "#ffffff",
+      "achromatopsia",
+    );
     // All should be valid ratios
     expect(ratioRed).toBeGreaterThanOrEqual(1);
     expect(ratioGreen).toBeGreaterThanOrEqual(1);
@@ -136,11 +173,29 @@ describe("CVD Simulation - getCvdContrastRatio", () => {
   });
 
   it("all CVD types return ratios within valid range for edge color pairs", () => {
-    const edgeFgColors = ["#000000", "#ffffff", "#808080", "#ff0000", "#00ff00", "#0000ff"];
-    const edgeBgColors = ["#000000", "#ffffff", "#808080", "#ff0000", "#00ff00", "#0000ff"];
+    const edgeFgColors = [
+      "#000000",
+      "#ffffff",
+      "#808080",
+      "#ff0000",
+      "#00ff00",
+      "#0000ff",
+    ];
+    const edgeBgColors = [
+      "#000000",
+      "#ffffff",
+      "#808080",
+      "#ff0000",
+      "#00ff00",
+      "#0000ff",
+    ];
     for (const fg of edgeFgColors) {
       for (const bg of edgeBgColors) {
-        for (const cvd of ["protanopia", "deuteranopia", "tritanopia"] as CvdType[]) {
+        for (const cvd of [
+          "protanopia",
+          "deuteranopia",
+          "tritanopia",
+        ] as CvdType[]) {
           const ratio = getCvdContrastRatio(fg, bg, cvd);
           expect(ratio).toBeGreaterThanOrEqual(1);
           expect(ratio).toBeLessThanOrEqual(21);

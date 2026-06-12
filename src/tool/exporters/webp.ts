@@ -13,9 +13,10 @@ export const exporter: Exporter = {
       // Use the element's actual computed background so dark-mode exports
       // preserve the correct background instead of always rendering white
       const computedBg = getComputedStyle(element).backgroundColor;
-      const backgroundColor = computedBg && computedBg !== "rgba(0, 0, 0, 0)"
-        ? computedBg
-        : "#ffffff";
+      const backgroundColor =
+        computedBg && computedBg !== "rgba(0, 0, 0, 0)"
+          ? computedBg
+          : "#ffffff";
       const blob = await toBlob(element, {
         width: element.offsetWidth,
         height: element.offsetHeight,

@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  hexToRgb,
-  rgbToHsl,
-  formatRgb,
-  formatHsl,
-} from "@/lib/contrast";
+import { hexToRgb, rgbToHsl, formatRgb, formatHsl } from "@/lib/contrast";
 
 describe("sidebar utilities - hexToRgb", () => {
   it("should convert 6-digit hex to RGB", () => {

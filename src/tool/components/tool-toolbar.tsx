@@ -18,7 +18,11 @@ interface ToolToolbarProps {
 /**
  * Available export formats with display labels and descriptions.
  */
-const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }[] = [
+const EXPORT_FORMATS: {
+  format: ExportFormat;
+  label: string;
+  shortcut?: string;
+}[] = [
   { format: "json", label: "Export JSON", shortcut: "Ctrl+Shift+E" },
   { format: "png", label: "Export PNG", shortcut: "Ctrl+Shift+P" },
   { format: "webp", label: "Export WebP" },
@@ -35,7 +39,15 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  * Home/End to jump to first/last item, and Enter/Space to select.
  * Escape closes the dropdown and returns focus to the trigger button.
  */
-export function ToolToolbar({ onExport, onSwapColors, onUndo, onRedo, canUndo = false, canRedo = false, disabled = false }: ToolToolbarProps) {
+export function ToolToolbar({
+  onExport,
+  onSwapColors,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
+  disabled = false,
+}: ToolToolbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,7 +58,9 @@ export function ToolToolbar({ onExport, onSwapColors, onUndo, onRedo, canUndo = 
    * Map keyboard shortcuts to their export format.
    * Stable reference via useRef to avoid re-creating the effect on every render.
    */
-  const shortcutMapRef = useRef<Record<string, "json" | "png" | "swap" | "undo" | "redo">>({
+  const shortcutMapRef = useRef<
+    Record<string, "json" | "png" | "swap" | "undo" | "redo">
+  >({
     "ctrl+shift+e": "json",
     "meta+shift+e": "json",
     "ctrl+shift+p": "png",
@@ -95,7 +109,10 @@ export function ToolToolbar({ onExport, onSwapColors, onUndo, onRedo, canUndo = 
   useEffect(() => {
     if (!dropdownOpen) return;
     const handleOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
