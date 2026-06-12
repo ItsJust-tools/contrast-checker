@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
 import { SpinnerIcon, CheckCircleIcon } from "@/tool/components/icons";
 import { useToolState, useExport, useShare } from "@itsjust/core";
-import type { ExportFormat } from "@itsjust/core";
 import type { CvdType } from "@/lib/contrast";
 
 import type { ExportFormat as ToolbarExportFormat } from "@/tool/components/tool-toolbar";
@@ -63,7 +62,7 @@ export default function ToolClient() {
    */
   const handleExport = useCallback(
     async (format: ToolbarExportFormat) => {
-      await exportTo(format as ExportFormat);
+      await exportTo(format);
     },
     [exportTo],
   );

@@ -612,8 +612,7 @@ export function ToolSidebar({
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
             <span style={{ fontWeight: 600 }}>Average Contrast Ratio</span>
             <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-              {(fgPreview * 100).toFixed(0)}% luminance on{" "}
-              {(bgPreview * 100).toFixed(0)}%
+              FG {(fgPreview * 100).toFixed(0)}% · BG {(bgPreview * 100).toFixed(0)}% luminance
             </span>
           </div>
         </div>
