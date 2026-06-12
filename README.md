@@ -29,6 +29,8 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 - **Screen Reader Friendly** — ARIA labels and live regions announce contrast results
 - **Short Hex (3-digit) Support** — Supports shorthand hex like `#fff` in addition to `#ffffff`
 - **8-digit Hex (RGBA) Support** — Accepts 8-digit hex values (alpha channel ignored per WCAG spec)
+- **Color Swap** — Swap foreground and background colors with one click
+- **Copy Color Values** — Copy hex, RGB, or HSL values to clipboard from the sidebar
 - **Export Accuracy** — All exports use the full-precision contrast ratio for accurate records
 
 ## Live Demo

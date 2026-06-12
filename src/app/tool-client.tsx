@@ -109,9 +109,6 @@ export default function ToolClient() {
     }));
   }, [state]);
 
-  /**
-   * Show a brief success indicator then clear it.
-   */
   const flashSuccess = useCallback((action: "download" | "share") => {
     setSuccessAction(action);
     setTimeout(() => setSuccessAction(null), 2000);
