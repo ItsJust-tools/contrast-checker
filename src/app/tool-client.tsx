@@ -2,14 +2,37 @@
 
 import { useCallback, useRef, useState } from "react";
 import { contrastTool, ToolCanvas, ToolToolbar, ToolSidebar } from "@/tool";
+import { SpinnerIcon, CheckCircleIcon } from "@/tool/components/icons";
 import { useToolState, useExport, useShare } from "@itsjust/core";
 import type { CvdType } from "@/lib/contrast";
 
 import type { ExportFormat as ToolbarExportFormat } from "@/tool/components/tool-toolbar";
 
+/**
+ * Main client component for the Contrast Checker tool.
+ *
+ * Orchestrates the canvas, sidebar, toolbar, and share actions.
+ * Owns the tool state via useToolState and wires up export/share
+ * callbacks with individual loading and success-feedback state.
+ */
 export default function ToolClient() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [cvdType, setCvdType] = useState<CvdType>("none");
+
+  /**
+   * Per-button loading state so each share action button tracks
+   * its own async operation independently.
+   */
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+
+  /**
+   * After a successful action, briefly show a success indicator.
+   * Stores "download" | "share" to display the checkmark on the right button.
+   */
+  const [successAction, setSuccessAction] = useState<
+    "download" | "share" | null
+  >(null);
 
   const toolConfig = contrastTool.config;
 
@@ -22,6 +45,8 @@ export default function ToolClient() {
     },
   );
 
+  const { undo, redo, canUndo, canRedo } = state;
+
   const { exportTo, isExporting } = useExport(
     canvasRef,
     toolConfig,
@@ -31,9 +56,12 @@ export default function ToolClient() {
 
   const { downloadShareFile, shareViaWeb } = useShare();
 
+  /**
+   * Export the canvas to the requested format (JSON, PNG, WebP, PDF).
+   * Delegates to the core @itsjust/core export system.
+   */
   const handleExport = useCallback(
     async (format: ToolbarExportFormat) => {
-      // Toolbar and core export formats are identical unions of "png" | "webp" | "pdf" | "json"
       await exportTo(format);
     },
     [exportTo],
@@ -72,9 +100,72 @@ export default function ToolClient() {
     [state],
   );
 
+  const handleSwapColors = useCallback(() => {
+    state.setData((prev) => ({
+      ...prev,
+      fgColor: prev.bgColor,
+      bgColor: prev.fgColor,
+    }));
+  }, [state]);
+
+  const flashSuccess = useCallback((action: "download" | "share") => {
+    setSuccessAction(action);
+    setTimeout(() => setSuccessAction(null), 2000);
+  }, []);
+
+  const handleDownload = useCallback(async () => {
+    if (isDownloading || isExporting) return;
+    setIsDownloading(true);
+    try {
+      await downloadShareFile({
+        toolId: toolConfig.id,
+        content: contrastTool.serialize(state.data),
+        metadata: { schemaVersion: "1.0" },
+      });
+      flashSuccess("download");
+    } catch {
+      // Silently handle — download failures are rare and non-blocking.
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [
+    downloadShareFile,
+    toolConfig.id,
+    state.data,
+    isDownloading,
+    isExporting,
+    flashSuccess,
+  ]);
+
+  const handleShare = useCallback(async () => {
+    if (isSharing || isExporting) return;
+    setIsSharing(true);
+    try {
+      await shareViaWeb({
+        toolId: toolConfig.id,
+        content: contrastTool.serialize(state.data),
+        metadata: { schemaVersion: "1.0" },
+      });
+      flashSuccess("share");
+    } catch {
+      // Share dialog dismissal or failure is handled gracefully.
+    } finally {
+      setIsSharing(false);
+    }
+  }, [
+    shareViaWeb,
+    toolConfig.id,
+    state.data,
+    isSharing,
+    isExporting,
+    flashSuccess,
+  ]);
+
+  const isAnyActionInProgress = isExporting || isDownloading || isSharing;
+
   return (
     <div className="contrast-tool-layout">
-      <ToolToolbar onExport={handleExport} disabled={isExporting} />
+      <ToolToolbar onExport={handleExport} onSwapColors={handleSwapColors} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} disabled={isAnyActionInProgress} />
       <main className="contrast-main-content">
         <ToolCanvas
           fgColor={state.data.fgColor}
@@ -91,6 +182,7 @@ export default function ToolClient() {
             state.setData((prev) => ({ ...prev, label: label }))
           }
           onAddCombination={handleAddCombination}
+          onSwapColors={handleSwapColors}
         />
         <ToolSidebar
           fgColor={state.data.fgColor}
@@ -112,33 +204,47 @@ export default function ToolClient() {
       <div className="contrast-share-actions">
         <button
           type="button"
-          onClick={async () => {
-            await downloadShareFile({
-              toolId: toolConfig.id,
-              content: contrastTool.serialize(state.data),
-              metadata: { schemaVersion: "1.0" },
-            });
-          }}
-          disabled={isExporting}
-          className="btn-secondary"
-          aria-disabled={isExporting}
+          onClick={handleDownload}
+          disabled={isAnyActionInProgress}
+          className="btn-secondary btn-share-action"
+          aria-disabled={isAnyActionInProgress}
+          title="Download a .itsjust.json file containing your current state"
         >
-          Download .itsjust.json
+          {isDownloading ? (
+            <>
+              <SpinnerIcon />
+              <span>Downloading...</span>
+            </>
+          ) : successAction === "download" ? (
+            <>
+              <CheckCircleIcon />
+              <span>Downloaded</span>
+            </>
+          ) : (
+            "Download .itsjust.json"
+          )}
         </button>
         <button
           type="button"
-          onClick={async () => {
-            await shareViaWeb({
-              toolId: toolConfig.id,
-              content: contrastTool.serialize(state.data),
-              metadata: { schemaVersion: "1.0" },
-            });
-          }}
-          disabled={isExporting}
-          className="btn-secondary"
-          aria-disabled={isExporting}
+          onClick={handleShare}
+          disabled={isAnyActionInProgress}
+          className="btn-secondary btn-share-action"
+          aria-disabled={isAnyActionInProgress}
+          title="Share your current state via a link"
         >
-          Share
+          {isSharing ? (
+            <>
+              <SpinnerIcon />
+              <span>Sharing...</span>
+            </>
+          ) : successAction === "share" ? (
+            <>
+              <CheckCircleIcon />
+              <span>Shared</span>
+            </>
+          ) : (
+            "Share"
+          )}
         </button>
       </div>
     </div>

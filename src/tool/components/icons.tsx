@@ -1,32 +1,5 @@
 /** Shared SVG icon components used across the tool UI. */
 
-/** Eye dropper icon — pick a color from the screen via the EyeDropper API. */
-export function EyeDropperIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ width: "16px", height: "16px" }}
-      aria-hidden="true"
-    >
-      <path d="M2 22l1-1h3l9-9" />
-      <path d="M3 21l9-9" />
-      <path d="M7.5 6.5l-2 2a1 1 0 000 1.414l8.586 8.586a1 1 0 001.414 0l2-2" />
-      <path d="M17.5 10.5l2-2a1 1 0 000-1.414l-2.586-2.586a1 1 0 00-1.414 0l-2 2" />
-      <path d="M19 7l3-3-1-1-3 3" />
-      <path d="M2 22l2-8" />
-      <path d="M9 3l-2 2" />
-      <path d="M20 12l-2 2" />
-    </svg>
-  );
-}
-EyeDropperIcon.displayName = "EyeDropperIcon";
-
 /** Check icon SVG — green checkmark for passing WCAG compliance. */
 export function CheckIcon() {
   return (
@@ -151,3 +124,104 @@ export function TrashIcon() {
   );
 }
 TrashIcon.displayName = "TrashIcon";
+
+/** Swap/Exchange icon SVG — swap foreground and background colors. */
+export function SwapIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "16px", height: "16px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M5 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L6 6.414V15a1 1 0 11-2 0V6.414L2.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 015 3zm10 2a1 1 0 011 1v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414L14 13.586V6a1 1 0 011-1z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+SwapIcon.displayName = "SwapIcon";
+
+/** Spinner icon SVG — animated loading indicator for async actions. */
+export function SpinnerIcon() {
+  return (
+    <svg
+      className="animate-spin"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "14px", height: "14px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M10 3a1 1 0 011 1v1a1 1 0 11-2 0V4a1 1 0 011-1zm4.242 1.757a1 1 0 011.414 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM17 10a1 1 0 100 2h1a1 1 0 100-2h-1zm-1.757 4.242a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM10 15a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.242-1.757a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zm1.757-4.243a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+SpinnerIcon.displayName = "SpinnerIcon";
+
+/** Check circle icon SVG — success indicator for completed actions. */
+export function CheckCircleIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "14px", height: "14px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+CheckCircleIcon.displayName = "CheckCircleIcon";
+
+/** Undo icon SVG — revert the last color change or action. */
+export function UndoIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "16px", height: "16px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a5 5 0 010 10H6a1 1 0 010-2h5a3 3 0 100-6H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+UndoIcon.displayName = "UndoIcon";
+
+/** Redo icon SVG — reapply a previously undone change. */
+export function RedoIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "16px", height: "16px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H9a5 5 0 000 10h5a1 1 0 010 2H9a7 7 0 010-14h5.586l-2.293-2.293a1 1 0 010-1.414z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+RedoIcon.displayName = "RedoIcon";

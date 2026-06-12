@@ -21,22 +21,17 @@ export const exporter: Exporter = {
         ...(options?.padding && { padding: options.padding }),
       });
 
-      // Strip the data:image/png;base64, prefix
       const base64Data = pngDataUrl.replace(/^data:image\/png;base64,/, "");
       const binaryStr = atob(base64Data);
 
-      // Build a well-formed PDF with the screenshot embedded
       const title = "Contrast Checker Report";
       const serializer = stateSerializer?.() || "{}";
 
-      // Simple PDF with embedded PNG (DCTDecode / inline image)
-      // MediaBox A4: 595.28 x 841.89 points
       const pdfWidth = 595.28;
       const pdfHeight = 841.89;
-      // Scale image to fit within margins (40pt each side)
       const margin = 40;
       const maxImgWidth = pdfWidth - 2 * margin;
-      const maxImgHeight = pdfHeight - 2 * margin - 60; // leave room for title
+      const maxImgHeight = pdfHeight - 2 * margin - 60;
       const imgWidth = element.offsetWidth;
       const imgHeight = element.offsetHeight;
       const scale = Math.min(maxImgWidth / imgWidth, maxImgHeight / imgHeight, 1);
@@ -45,30 +40,19 @@ export const exporter: Exporter = {
       const imgX = Math.round((pdfWidth - displayW) / 2);
       const imgY = Math.round(pdfHeight - margin - displayH);
 
-      // Escape serializer for PDF string
-      const escapedSerializer = serializer
-        .replace(/\\/g, "\\\\")
-        .replace(/\(/g, "\\(")
-        .replace(/\)/g, "\\)");
-
-      // Build PDF structures
       const objects: string[] = [];
       let objNum = 1;
 
-      // Object 1: Catalog
       objects.push(`${objNum} 0 obj
 << /Type /Catalog /Pages 2 0 R >>
 endobj`);
       objNum++;
 
-      // Object 2: Pages
       objects.push(`${objNum} 0 obj
 << /Type /Pages /Kids [3 0 R] /Count 1 >>
 endobj`);
       objNum++;
 
-      // Object 3: Page
-      const pageObjNum = objNum;
       const contentObjNum = objNum + 1;
       const xobjectObjNum = objNum + 2;
 
@@ -91,7 +75,6 @@ Q`;
 endobj`);
       objNum++;
 
-      // Object 4: Content stream
       objects.push(`4 0 obj
 << /Length ${streamContent.length} >>
 stream
@@ -100,7 +83,6 @@ endstream
 endobj`);
       objNum++;
 
-      // Object 5: Image (embedded PNG stream)
       const streamLen = binaryStr.length;
       objects.push(`5 0 obj
 << /Type /XObject /Subtype /Image /Width ${imgWidth} /Height ${imgHeight} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Length ${streamLen} /Filter /ASCII85Decode >>
@@ -111,21 +93,18 @@ endstream
 endobj`);
       objNum++;
 
-      // Object 6: Font (Helvetica)
       objects.push(`6 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj`);
 
-      const xrefOffset = objects.join("\n").length + 1; // approximate
-      const xrefEntries = objects.length + 1; // +1 for free entry
+      const xrefEntries = objects.length + 1;
 
-      // Build xref table manually
       let xref = `xref\n0 ${xrefEntries}\n0000000000 65535 f \n`;
       let pos = 0;
       for (let i = 0; i < objects.length; i++) {
         const objStr = objects[i];
         xref += `${String(pos).padStart(10, "0")} 00000 n \n`;
-        pos += objStr.length + 1; // +1 for newline
+        pos += objStr.length + 1;
       }
 
       const pdf = `%PDF-1.4
@@ -161,18 +140,14 @@ ${pos}
 
 export default exporter;
 
-/**
- * Encode a binary string as ASCII85 (also known as btoa-compatible encoding).
- * Produces valid content for PDF's ASCII85Decode filter.
- */
 function toAscii85(data: string): string {
   let result = "";
   let i = 0;
   while (i < data.length) {
-    let b1 = data.charCodeAt(i) & 0xff;
-    let b2 = data.charCodeAt(i + 1) & 0xff;
-    let b3 = data.charCodeAt(i + 2) & 0xff;
-    let b4 = data.charCodeAt(i + 3) & 0xff;
+    const b1 = data.charCodeAt(i) & 0xff;
+    const b2 = data.charCodeAt(i + 1) & 0xff;
+    const b3 = data.charCodeAt(i + 2) & 0xff;
+    const b4 = data.charCodeAt(i + 3) & 0xff;
     i += 4;
 
     if (b1 === 0 && b2 === 0 && b3 === 0 && b4 === 0) {

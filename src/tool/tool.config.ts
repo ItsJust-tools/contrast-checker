@@ -1,19 +1,16 @@
 import type { ToolConfig } from "@itsjust/core";
-import packageJson from "../../package.json";
-
-export const templateBaseVersion = packageJson.version;
 
 const toolConfig = {
   id: "contrast-checker",
   name: "Contrast Checker",
   description:
     "Test color contrast ratios against WCAG guidelines. Check accessibility compliance for AA and AAA levels with normal and large text.",
-  version: "1.5.0",
+  version: "1.7.0",
   exportFormats: ["json", "png", "webp", "pdf"],
   features: {
     export: true,
     autoSave: false,
-    undoRedo: false,
+    undoRedo: true,
     sidebar: true,
     statusBar: true,
     darkMode: true,
@@ -38,6 +35,21 @@ const toolConfig = {
           keys: "Ctrl+Shift+P",
           label: "Export PNG",
           description: "screenshot as PNG",
+        },
+        {
+          keys: "Ctrl+Shift+X",
+          label: "Swap Colors",
+          description: "swap foreground and background colors",
+        },
+        {
+          keys: "Ctrl+Z",
+          label: "Undo",
+          description: "undo last change",
+        },
+        {
+          keys: "Ctrl+Y",
+          label: "Redo",
+          description: "redo previously undone change",
         },
       ],
     },

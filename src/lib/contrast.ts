@@ -16,8 +16,13 @@ const WCAG_THRESHOLDS = {
   AAA: { normal: 7, large: 4.5, ui: 3 },
 } as const;
 
-type WcagStandard = "AA" | "AAA";
-type TextLevel = "normal" | "large" | "ui";
+export type WcagStandard = "AA" | "AAA";
+export type TextLevel = "normal" | "large" | "ui";
+
+/**
+ * WCAG conformance level a contrast ratio satisfies.
+ */
+export type WcagLevel = "aaa" | "aa" | "fail";
 
 /**
  * Get the minimum contrast ratio required for a given WCAG level and text size.
@@ -26,13 +31,11 @@ type TextLevel = "normal" | "large" | "ui";
  * @returns Minimum required contrast ratio
  */
 function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
-  const levels = WCAG_THRESHOLDS[standard] ?? WCAG_THRESHOLDS.AA;
-  return levels[level] ?? WCAG_THRESHOLDS.AA.normal;
+  return WCAG_THRESHOLDS[standard][level];
 }
 
 /**
- * Normalize a hex color string: strips '#' prefix, validates length,
- * and returns the cleaned hex digits along with parsed R/G/B values (0-1 range).
+ * Parse a hex color string into R/G/B components (0-1 range).
  *
  * Supports 3-digit (#RGB), 6-digit (#RRGGBB), and 8-digit (#RRGGBBAA) formats.
  * Alpha channel from 8-digit values is intentionally discarded per WCAG spec.
@@ -41,46 +44,20 @@ function getRequiredRatio(standard: WcagStandard, level: TextLevel): number {
  * @returns Object with cleaned hex string and parsed r/g/b components
  * @throws {Error} If the input is not a valid hex color
  */
-function _normalizeHex(hex: string): {
+function parseHex(hex: string): {
   r: number;
   g: number;
   b: number;
   cleaned: string;
 } {
-  if (!hex || typeof hex !== "string") {
-    throw new Error("Invalid hex color: must be a non-empty string");
-  }
-
-  // Remove '#' if present and lowercase for consistent output
-  const cleaned = hex.replace(/^#/, "").toLowerCase();
-
-  let r: number, g: number, b: number;
-  if (cleaned.length === 6) {
-    r = parseInt(cleaned.slice(0, 2), 16) / 255;
-    g = parseInt(cleaned.slice(2, 4), 16) / 255;
-    b = parseInt(cleaned.slice(4, 6), 16) / 255;
-  } else if (cleaned.length === 3) {
-    // Shorthand hex like #fff → #ffffff
-    r = parseInt(cleaned[0] + cleaned[0], 16) / 255;
-    g = parseInt(cleaned[1] + cleaned[1], 16) / 255;
-    b = parseInt(cleaned[2] + cleaned[2], 16) / 255;
-  } else if (cleaned.length === 8) {
-    r = parseInt(cleaned.slice(0, 2), 16) / 255;
-    g = parseInt(cleaned.slice(2, 4), 16) / 255;
-    b = parseInt(cleaned.slice(4, 6), 16) / 255;
-    // Alpha channel (cleaned.slice(6, 8)) is intentionally ignored
-    // per WCAG spec: contrast is calculated on opaque colors only
-  } else {
-    throw new Error(
-      `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
-    );
-  }
-
-  // Validate parsed values are actual numbers
+  const normalized = normalizeHexColor(hex);
+  const cleaned = normalized.replace(/^#/, "");
+  const r = parseInt(cleaned.slice(0, 2), 16) / 255;
+  const g = parseInt(cleaned.slice(2, 4), 16) / 255;
+  const b = parseInt(cleaned.slice(4, 6), 16) / 255;
   if (isNaN(r) || isNaN(g) || isNaN(b)) {
     throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
   }
-
   return { r, g, b, cleaned };
 }
 
@@ -92,7 +69,7 @@ function _normalizeHex(hex: string): {
  * @throws {Error} If hex color format is invalid
  */
 function getRelativeLuminance(hex: string): number {
-  const { r, g, b } = _normalizeHex(hex);
+  const { r, g, b } = parseHex(hex);
 
   // Apply gamma correction using the sRGB transfer function
   const adjust = (c: number): number => {
@@ -184,12 +161,37 @@ function checkContrast(
 }
 
 /**
- * Format contrast ratio for display.
+ * Format contrast ratio for display, dropping unnecessary trailing zeros
+ * (e.g. "4.5:1" instead of "4.50:1", but keeps "4.52:1").
  *
  * @param ratio - Contrast ratio
- * @returns Formatted ratio string (e.g., "4.50:1")
+ * @param precision - Number of decimal places to preserve (default 2)
+ * @returns Formatted ratio string (e.g., "4.5:1" or "4.52:1")
  */
-const formatRatio = (ratio: number): string => `${ratio.toFixed(2)}:1`;
+const formatRatio = (ratio: number, precision: number = 2): string => {
+  const rounded = ratio.toFixed(precision);
+  const trimmed = precision > 0 ? parseFloat(rounded).toString() : rounded;
+  return `${trimmed}:1`;
+};
+
+/**
+ * Format a contrast ratio as a bullet summary string including pass/fail
+ * for both AA and AAA normal text. Handy for quick reporting.
+ *
+ * @param fgColor - Foreground hex color
+ * @param bgColor - Background hex color
+ * @returns Short human-readable summary, e.g. "4.52:1 (AA ✓, AAA ✗)"
+ */
+function getRatioSummary(fgColor: string, bgColor: string): string {
+  try {
+    const ratio = getContrastRatio(fgColor, bgColor);
+    const aa = ratio >= WCAG_THRESHOLDS.AA.normal;
+    const aaa = ratio >= WCAG_THRESHOLDS.AAA.normal;
+    return `${formatRatio(ratio)} (AA ${aa ? "\u2713" : "\u2717"}, AAA ${aaa ? "\u2713" : "\u2717"})`;
+  } catch {
+    return "Invalid colors";
+  }
+}
 
 /**
  * Get color brightness category (light, medium, or dark).
@@ -199,10 +201,40 @@ const formatRatio = (ratio: number): string => `${ratio.toFixed(2)}:1`;
  * @returns "light", "dark", or "medium" category
  */
 function getBrightnessCategory(hex: string): "light" | "dark" | "medium" {
-  const lum = getRelativeLuminance(hex);
-  if (lum > 0.18) return "light";
-  if (lum < 0.06) return "dark";
+  return getLuminanceCategory(getRelativeLuminance(hex));
+}
+
+/**
+ * Classify a luminance value into a brightness category.
+ *
+ * This is the luminance-based equivalent of {@link getBrightnessCategory}
+ * but accepts a pre-computed luminance value instead of a hex string,
+ * saving repeated calculations when the luminance is already available.
+ *
+ * @param luminance - Relative luminance value (0-1)
+ * @returns "light", "dark", or "medium" category
+ */
+function getLuminanceCategory(luminance: number): "light" | "dark" | "medium" {
+  if (luminance > 0.18) return "light";
+  if (luminance < 0.06) return "dark";
   return "medium";
+}
+
+/**
+ * Get a human-readable brightness label from a luminance value.
+ * Capitalized form suitable for UI display (e.g. "Light", "Dark", or "Medium").
+ *
+ * @param luminance - Relative luminance value (0-1)
+ * @returns "Light", "Dark", or "Medium"
+ * @example
+ * getLuminanceLabel(0.9)  // "Light"
+ * getLuminanceLabel(0.01) // "Dark"
+ * getLuminanceLabel(0.1)  // "Medium"
+ */
+function getLuminanceLabel(luminance: number): string {
+  if (luminance > 0.18) return "Light";
+  if (luminance < 0.06) return "Dark";
+  return "Medium";
 }
 
 /**
@@ -226,7 +258,7 @@ interface ColorSuggestion {
  * Ordered by likelihood of providing sufficient contrast.
  * Includes neutral, semantic, and brand-friendly tones for diverse design needs.
  */
-const SUGGESTION_PALETTE_LIGHT: string[] = [
+const SUGGESTION_PALETTE_LIGHT: readonly string[] = [
   "#ffffff",
   "#f8f9fa",
   "#e9ecef",
@@ -242,9 +274,9 @@ const SUGGESTION_PALETTE_LIGHT: string[] = [
   "#f5eef8",
   "#eaf2f8",
   "#fef9e7",
-];
+] as const;
 
-const SUGGESTION_PALETTE_DARK: string[] = [
+const SUGGESTION_PALETTE_DARK: readonly string[] = [
   "#000000",
   "#212529",
   "#343a40",
@@ -260,7 +292,55 @@ const SUGGESTION_PALETTE_DARK: string[] = [
   "#3c1053",
   "#1e3a5f",
   "#4a235a",
-];
+] as const;
+
+/**
+ * Pre-computed relative luminance values for palette colors.
+ * Computing these lazily on first access avoids repeated hex parsing
+ * and gamma-correction on every call to suggestAccessibleColor/Pair.
+ */
+/**
+ * Pre-computed relative luminance values for palette colors.
+ * Computing these lazily on first access avoids repeated hex parsing
+ * and gamma-correction across repeated calls to suggestAccessibleColor/Pair.
+ *
+ * A module-level singleton (null → Map on first use) is safe here because
+ * palette arrays are `as const` and immutable at runtime.
+ */
+let paletteLuminancesCache: Map<string, number> | null = null;
+
+function ensurePaletteCache(): Map<string, number> {
+  if (paletteLuminancesCache) return paletteLuminancesCache;
+  const cache = new Map<string, number>();
+  for (const c of SUGGESTION_PALETTE_LIGHT) {
+    cache.set(c, getRelativeLuminance(c));
+  }
+  for (const c of SUGGESTION_PALETTE_DARK) {
+    cache.set(c, getRelativeLuminance(c));
+  }
+  paletteLuminancesCache = cache;
+  return cache;
+}
+
+function getPaletteLuminance(color: string): number {
+  const cache = ensurePaletteCache();
+  const cached = cache.get(color);
+  if (cached !== undefined) return cached;
+  // Fall back for dynamically generated colors (e.g. adjustLightness results)
+  return getRelativeLuminance(color);
+}
+
+/**
+ * Fast contrast ratio using pre-cached palette luminance if available,
+ * otherwise falls through to the full getContrastRatio computation.
+ */
+function cachedContrastRatio(colorA: string, colorB: string): number {
+  const lumA = getPaletteLuminance(colorA);
+  const lumB = getPaletteLuminance(colorB);
+  const lighterLum = Math.max(lumA, lumB);
+  const darkerLum = Math.min(lumA, lumB);
+  return (lighterLum + 0.05) / (darkerLum + 0.05);
+}
 
 interface SuggestionResult {
   light: ColorSuggestion | null;
@@ -282,37 +362,46 @@ interface SuggestionResult {
  *          Each is null if no candidate in that direction meets AA normal-text.
  */
 function suggestAccessibleColor(bgColor: string): SuggestionResult {
+  // Pre-compute background luminance once for all palette comparisons
+  let bgLum: number;
+  try {
+    bgLum = getRelativeLuminance(bgColor);
+  } catch {
+    return { light: null, dark: null, best: null };
+  }
+
   const lightSuggestions: ColorSuggestion[] = [];
   const darkSuggestions: ColorSuggestion[] = [];
 
-  for (const fg of SUGGESTION_PALETTE_LIGHT) {
+  const evaluateSuggestion = (
+    fg: string,
+    brightness: "light" | "dark",
+  ): ColorSuggestion | null => {
     try {
-      const ratio = getContrastRatio(fg, bgColor);
-      lightSuggestions.push({
+      const fgLum = getPaletteLuminance(fg);
+      const lighterLum = Math.max(fgLum, bgLum);
+      const darkerLum = Math.min(fgLum, bgLum);
+      const ratio = (lighterLum + 0.05) / (darkerLum + 0.05);
+      return {
         color: fg,
         ratio: Math.round(ratio * 100) / 100,
         passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
         passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
-        brightness: "light",
-      });
+        brightness,
+      };
     } catch {
-      // ignore invalid colors
+      return null;
     }
+  };
+
+  for (const fg of SUGGESTION_PALETTE_LIGHT) {
+    const s = evaluateSuggestion(fg, "light");
+    if (s) lightSuggestions.push(s);
   }
 
   for (const fg of SUGGESTION_PALETTE_DARK) {
-    try {
-      const ratio = getContrastRatio(fg, bgColor);
-      darkSuggestions.push({
-        color: fg,
-        ratio: Math.round(ratio * 100) / 100,
-        passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
-        passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
-        brightness: "dark",
-      });
-    } catch {
-      // ignore invalid colors
-    }
+    const s = evaluateSuggestion(fg, "dark");
+    if (s) darkSuggestions.push(s);
   }
 
   // Pick best (highest ratio) passing candidate in each direction
@@ -332,43 +421,127 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
   return { light: bestLight, dark: bestDark, best };
 }
 
-export {
-  checkContrast,
-  getContrastRatio,
-  getRelativeLuminance,
-  checkCompliance,
-  formatRatio,
-  getBrightnessCategory,
-  getRequiredRatio,
-  suggestAccessibleColor,
-};
-
-export type { ColorSuggestion, SuggestionResult };
-
-// ── Color format conversion utilities ──
-
 /**
- * Convert a hex color string to an RGB tuple.
- * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
+ * A suggested accessible color pair (foreground + background).
  */
-export function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  try {
-    const { r, g, b } = _normalizeHex(hex);
-    return {
-      r: Math.round(r * 255),
-      g: Math.round(g * 255),
-      b: Math.round(b * 255),
-    };
-  } catch {
-    return { r: 0, g: 0, b: 0 };
-  }
+export interface AccessiblePair {
+  /** Suggested foreground hex color */
+  fg: string;
+  /** Suggested background hex color */
+  bg: string;
+  /** Contrast ratio achieved by this pair */
+  ratio: number;
+  /** Whether the pair passes AA normal-text */
+  passAA: boolean;
+  /** Whether the pair passes AAA normal-text */
+  passAAA: boolean;
+  /** Description of what was adjusted */
+  description: string;
 }
 
 /**
- * Convert an RGB tuple to an HSL tuple.
- * Returns values as integer degrees (H), percentage (S), percentage (L).
+ * Suggest accessible color pairs when the current fg/bg combination
+ * does not meet WCAG AA requirements.
+ *
+ * Tries several strategies in order of preference:
+ * 1. Keep background, suggest a new foreground (from curated palette)
+ * 2. Keep foreground, suggest a new background (from curated palette)
+ * 3. Adjust foreground lightness toward higher contrast
+ *
+ * Returns up to 3 suggestions sorted by contrast ratio (highest first).
+ * If the current pair already passes AA, returns an empty array.
+ *
+ * @param fgColor - Current foreground hex color
+ * @param bgColor - Current background hex color
+ * @returns Array of accessible pair suggestions (empty if already compliant)
  */
-export function rgbToHsl(
+export function suggestAccessiblePair(
+  fgColor: string,
+  bgColor: string,
+): AccessiblePair[] {
+  // Pre-compute bg luminance once (used for both initial check and strategies)
+  let bgLum: number;
+  try {
+    const currentRatio = getContrastRatio(fgColor, bgColor);
+    if (currentRatio >= WCAG_THRESHOLDS.AA.normal) return [];
+    bgLum = getRelativeLuminance(bgColor);
+  } catch {
+    return [];
+  }
+
+  const fgRgb = hexToRgb(fgColor);
+  const suggestions: AccessiblePair[] = [];
+  const seen = new Set<string>();
+
+  const addSuggestion = (fg: string, bg: string, description: string) => {
+    const key = `${fg}|${bg}`;
+    if (seen.has(key)) return;
+    try {
+      const ratio = cachedContrastRatio(fg, bg);
+      if (ratio < WCAG_THRESHOLDS.AA.normal) return;
+      seen.add(key);
+      suggestions.push({
+        fg,
+        bg,
+        ratio: Math.round(ratio * 100) / 100,
+        passAA: ratio >= WCAG_THRESHOLDS.AA.normal,
+        passAAA: ratio >= WCAG_THRESHOLDS.AAA.normal,
+        description,
+      });
+    } catch {
+      // skip invalid
+    }
+  };
+
+  // Strategy 1: Keep background, try curated foreground palette
+  for (const fg of SUGGESTION_PALETTE_DARK) {
+    addSuggestion(fg, bgColor, `Try ${fg} on current background`);
+  }
+  for (const fg of SUGGESTION_PALETTE_LIGHT) {
+    addSuggestion(fg, bgColor, `Try ${fg} on current background`);
+  }
+
+  // Strategy 2: Keep foreground, try curated background palette
+  for (const bg of SUGGESTION_PALETTE_LIGHT) {
+    addSuggestion(fgColor, bg, `Try current foreground on ${bg}`);
+  }
+  for (const bg of SUGGESTION_PALETTE_DARK) {
+    addSuggestion(fgColor, bg, `Try current foreground on ${bg}`);
+  }
+
+  // Strategy 3: Lighten/darken the foreground toward the extremes
+  try {
+    if (bgLum < 0.5) {
+      // Dark background: try lighter foregrounds
+      for (let l = 80; l <= 100; l += 5) {
+        const adjusted = adjustLightness(fgRgb.r, fgRgb.g, fgRgb.b, l);
+        addSuggestion(adjusted, bgColor, `Lighten foreground to ${l}%`);
+      }
+    } else {
+      // Light background: try darker foregrounds
+      for (let l = 0; l <= 20; l += 5) {
+        const adjusted = adjustLightness(fgRgb.r, fgRgb.g, fgRgb.b, l);
+        addSuggestion(adjusted, bgColor, `Darken foreground to ${l}%`);
+      }
+    }
+  } catch {
+    // skip adjustment strategy
+  }
+
+  // Sort by ratio descending, return top 3
+  return suggestions.sort((a, b) => b.ratio - a.ratio).slice(0, 3);
+}
+
+/**
+ * Internal float-precision RGB-to-HSL conversion.
+ *
+ * Unlike the exported {@link rgbToHsl} which rounds to integers for display,
+ * this version preserves full floating-point precision for use in color
+ * adjustment algorithms where rounding would cause hue/saturation drift.
+ *
+ * @returns Object with h (0-360), s (0-1), l (0-1) as floats
+ */
+function rgbToHslFloat(
   r: number,
   g: number,
   b: number,
@@ -394,6 +567,227 @@ export function rgbToHsl(
     }
   }
 
+  return { h, s, l };
+}
+
+/**
+ * Adjust the lightness of an RGB color to a target percentage.
+ * Converts to HSL using float precision, sets the lightness, and converts back.
+ *
+ * Uses {@link rgbToHslFloat} internally to avoid the integer rounding in
+ * the display-oriented {@link rgbToHsl}, ensuring the adjusted color
+ * preserves the original hue and saturation as closely as possible.
+ */
+function adjustLightness(
+  r: number,
+  g: number,
+  b: number,
+  targetLightness: number,
+): string {
+  const hsl = rgbToHslFloat(r, g, b);
+  // Convert targetLightness from percentage (0-100) to float (0-1)
+  const adjusted = hslToRgb(hsl.h, hsl.s * 100, targetLightness);
+  const toHex = (v: number) =>
+    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+  return `#${toHex(adjusted.r)}${toHex(adjusted.g)}${toHex(adjusted.b)}`;
+}
+
+/**
+ * Convert HSL values to an RGB object.
+ * Returns r, g, b in 0-255 range.
+ */
+function hslToRgb(
+  h: number,
+  s: number,
+  l: number,
+): { r: number; g: number; b: number } {
+  const sNorm = Math.max(0, Math.min(100, s)) / 100;
+  const lNorm = Math.max(0, Math.min(100, l)) / 100;
+  const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = lNorm - c / 2;
+  let r1 = 0,
+    g1 = 0,
+    b1 = 0;
+  if (h < 60) { r1 = c; g1 = x; }
+  else if (h < 120) { r1 = x; g1 = c; }
+  else if (h < 180) { g1 = c; b1 = x; }
+  else if (h < 240) { g1 = x; b1 = c; }
+  else if (h < 300) { r1 = x; b1 = c; }
+  else { r1 = c; b1 = x; }
+  return {
+    r: (r1 + m) * 255,
+    g: (g1 + m) * 255,
+    b: (b1 + m) * 255,
+  };
+}
+
+/**
+ * Normalize a hex color value to a canonical 6-character hex string.
+ *
+ * - Strips the `#` prefix
+ * - Expands 3-char shorthand (`#abc` → `#aabbcc`)
+ * - Strips alpha from 8-char values (`#aabbccdd` → `#aabbcc`)
+ * - Lowercases the result
+ * - Returns with `#` prefix
+ *
+ * @param hex - Raw hex color input (with or without '#' prefix)
+ * @returns Normalized 6-char hex string with '#' prefix
+ * @throws {Error} If the input is not a valid hex color
+ */
+export function normalizeHexColor(hex: string): string {
+  if (!hex || typeof hex !== "string") {
+    throw new Error("Invalid hex color: must be a non-empty string");
+  }
+  const cleaned = hex.replace(/^#/, "").toLowerCase();
+
+  // Use early returns for each length case — avoids a mutable variable.
+  if (cleaned.length === 6) {
+    if (!/^[0-9a-f]{6}$/.test(cleaned)) {
+      throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
+    }
+    return `#${cleaned}`;
+  }
+
+  if (cleaned.length === 3) {
+    // Expand 3-char shorthand to 6-char
+    const expanded =
+      cleaned[0] + cleaned[0] +
+      cleaned[1] + cleaned[1] +
+      cleaned[2] + cleaned[2];
+    if (!/^[0-9a-f]{6}$/.test(expanded)) {
+      throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
+    }
+    return `#${expanded}`;
+  }
+
+  if (cleaned.length === 8) {
+    // Strip alpha channel
+    const stripped = cleaned.slice(0, 6);
+    if (!/^[0-9a-f]{6}$/.test(stripped)) {
+      throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
+    }
+    return `#${stripped}`;
+  }
+
+  throw new Error(
+    `Invalid hex color format: expected 3, 6, or 8 hex digits, got ${cleaned.length} (${hex})`,
+  );
+}
+
+/**
+ * Safely attempt to normalize a hex color without throwing.
+ *
+ * Useful in UI code where you want to attempt normalization
+ * without wrapping every call in try/catch.
+ *
+ * @param hex - Raw hex color input (with or without '#' prefix)
+ * @returns Normalized 6-char hex string with '#' prefix, or `null` if invalid
+ */
+export function tryNormalizeHexColor(hex: string): string | null {
+  try {
+    return normalizeHexColor(hex);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Classify a contrast ratio into a WCAG conformance level for a given text size.
+ *
+ * Returns "aaa" if the ratio meets AAA requirements,
+ * "aa" if it meets AA (but not AAA),
+ * and "fail" if it doesn't meet AA.
+ *
+ * For the "ui" level, WCAG only defines a single 3:1 threshold (AA and AAA
+ * are identical), so the function returns "aa" at most — AAA is not a
+ * meaningful distinction for UI components.
+ *
+ * @param ratio - Contrast ratio (1-21)
+ * @param level - Text / UI component size (defaults to 'normal')
+ * @returns The highest WCAG level the ratio satisfies
+ */
+export function getWCAGLevel(ratio: number, level: TextLevel = "normal"): WcagLevel {
+  const aaThreshold = getRequiredRatio("AA", level);
+  const aaaThreshold = getRequiredRatio("AAA", level);
+  // When AA and AAA thresholds are identical (e.g., UI level where both are 3:1),
+  // treat AAA as unreachable and return "aa" at most
+  if (aaThreshold === aaaThreshold) {
+    if (ratio >= aaThreshold) return "aa";
+    return "fail";
+  }
+  if (ratio >= aaaThreshold) return "aaa";
+  if (ratio >= aaThreshold) return "aa";
+  return "fail";
+}
+
+export {
+  checkContrast,
+  getContrastRatio,
+  getRelativeLuminance,
+  checkCompliance,
+  formatRatio,
+  getRatioSummary,
+  getBrightnessCategory,
+  getLuminanceCategory,
+  getLuminanceLabel,
+  getRequiredRatio,
+  suggestAccessibleColor,
+};
+
+export type { ColorSuggestion, SuggestionResult };
+
+// ── Color format conversion utilities ──
+
+/**
+ * Convert a hex color string to an RGB tuple.
+ * Supports 3-, 6-, and 8-digit hex formats (8-digit discards alpha).
+ * Returns 0,0,0 as a safe fallback for invalid input.
+ *
+ * @param hex - Hex color string (e.g. "#ff0000", "#f00", or "ff000080")
+ * @returns Object with r, g, b values (0-255 range)
+ */
+export function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  try {
+    const { r, g, b } = parseHex(hex);
+    return {
+      r: Math.round(r * 255),
+      g: Math.round(g * 255),
+      b: Math.round(b * 255),
+    };
+  } catch {
+    return { r: 0, g: 0, b: 0 };
+  }
+}
+
+/**
+ * Convert an RGB tuple to an HSL tuple.
+ * Returns values as integer degrees (H), percentage (S), percentage (L).
+ *
+ * @param r - Red component (0-255)
+ * @param g - Green component (0-255)
+ * @param b - Blue component (0-255)
+ * @returns Object with h (0-360), s (0-100), l (0-100)
+ */
+/**
+ * Convert an RGB tuple to an HSL tuple.
+ * Returns values as integer degrees (H), percentage (S), percentage (L).
+ *
+ * Delegates to the float-precision {@link rgbToHslFloat} internally,
+ * then rounds the result for display-friendly integer output.
+ * This eliminates the previously duplicated HSL conversion logic.
+ *
+ * @param r - Red component (0-255)
+ * @param g - Green component (0-255)
+ * @param b - Blue component (0-255)
+ * @returns Object with h (0-360), s (0-100), l (0-100)
+ */
+export function rgbToHsl(
+  r: number,
+  g: number,
+  b: number,
+): { h: number; s: number; l: number } {
+  const { h, s, l } = rgbToHslFloat(r, g, b);
   return {
     h: Math.round(h),
     s: Math.round(s * 100),
@@ -403,6 +797,11 @@ export function rgbToHsl(
 
 /**
  * Format an RGB value as a CSS rgb() string.
+ *
+ * @param r - Red component (0-255)
+ * @param g - Green component (0-255)
+ * @param b - Blue component (0-255)
+ * @returns CSS rgb() string, e.g. "rgb(255, 0, 0)"
  */
 export function formatRgb(r: number, g: number, b: number): string {
   return `rgb(${r}, ${g}, ${b})`;
@@ -410,6 +809,11 @@ export function formatRgb(r: number, g: number, b: number): string {
 
 /**
  * Format an HSL value as a CSS hsl() string.
+ *
+ * @param h - Hue (0-360)
+ * @param s - Saturation percentage (0-100)
+ * @param l - Lightness percentage (0-100)
+ * @returns CSS hsl() string, e.g. "hsl(0, 100%, 50%)"
  */
 export function formatHsl(h: number, s: number, l: number): string {
   return `hsl(${h}, ${s}%, ${l}%)`;
@@ -431,6 +835,19 @@ export const CVD_LABELS: Record<CvdType, string> = {
   deuteranopia: "Deuteranopia (Green-blind)",
   tritanopia: "Tritanopia (Blue-blind)",
   achromatopsia: "Achromatopsia (Monochrome)",
+};
+
+/**
+ * Short CVD simulation label for display in compact UI contexts.
+ * Used in buttons, badges, and other space-constrained elements
+ * where the full CVD_LABELS description would be too verbose.
+ */
+export const CVD_SHORT_LABELS: Record<CvdType, string> = {
+  none: "Normal",
+  protanopia: "Protanopia",
+  deuteranopia: "Deuteranopia",
+  tritanopia: "Tritanopia",
+  achromatopsia: "Monochrome",
 };
 
 /**
@@ -469,6 +886,10 @@ const CVD_MATRICES: Record<Exclude<CvdType, "none">, number[]> = {
 
 /**
  * Convert an sRGB hex color to a linear RGB array [r, g, b] (0-1 range).
+ * Applies the sRGB gamma expansion (inverse companding).
+ *
+ * @param hex - Hex color string (e.g. "#ff0000")
+ * @returns Tuple of linear RGB values in 0-1 range
  */
 function srgbToLinear(hex: string): [number, number, number] {
   const { r, g, b } = hexToRgb(hex);
@@ -480,7 +901,13 @@ function srgbToLinear(hex: string): [number, number, number] {
 }
 
 /**
- * Convert linear RGB values [0-1] back to a hex color string.
+ * Convert linear RGB values [0-1] back to an sRGB hex color string.
+ * Applies the sRGB gamma compression and clamps values to [0, 1].
+ *
+ * @param r - Linear red component (0-1)
+ * @param g - Linear green component (0-1)
+ * @param b - Linear blue component (0-1)
+ * @returns sRGB hex string, e.g. "#ff0000"
  */
 function linearToSrgb(r: number, g: number, b: number): string {
   const toSrgb = (c: number): number => {
@@ -526,7 +953,8 @@ export function simulateCvd(hex: string, cvdType: CvdType): string {
  * @param fg - Foreground hex color
  * @param bg - Background hex color
  * @param cvdType - CVD type to simulate
- * @returns Simulated contrast ratio
+ * @returns Simulated contrast ratio (1:1 to 21:1). Returns the normal
+ *          contrast ratio when cvdType is "none".
  */
 export function getCvdContrastRatio(fg: string, bg: string, cvdType: CvdType): number {
   if (cvdType === "none") return getContrastRatio(fg, bg);

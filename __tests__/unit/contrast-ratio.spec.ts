@@ -5,8 +5,20 @@ import {
   getRelativeLuminance,
   checkCompliance,
   getBrightnessCategory,
+  getLuminanceCategory,
+  getLuminanceLabel,
   suggestAccessibleColor,
-} from "@/lib/contrast.js";
+  suggestAccessiblePair,
+  normalizeHexColor,
+  tryNormalizeHexColor,
+  hexToRgb,
+  rgbToHsl,
+  formatRgb,
+  formatHsl,
+  formatRatio,
+  getRatioSummary,
+  getWCAGLevel,
+} from "@/lib/contrast";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
   describe("getRelativeLuminance", () => {
@@ -140,6 +152,56 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
 
     it("should classify #404040 (luminance ~0.05) as dark", () => {
       expect(getBrightnessCategory("#404040")).toBe("dark");
+    });
+  });
+
+  describe("getLuminanceCategory", () => {
+    it("should return 'light' for luminance > 0.18", () => {
+      expect(getLuminanceCategory(1)).toBe("light");
+      expect(getLuminanceCategory(0.19)).toBe("light");
+    });
+
+    it("should return 'dark' for luminance < 0.06", () => {
+      expect(getLuminanceCategory(0)).toBe("dark");
+      expect(getLuminanceCategory(0.05)).toBe("dark");
+    });
+
+    it("should return 'medium' for luminance between 0.06 and 0.18", () => {
+      expect(getLuminanceCategory(0.1)).toBe("medium");
+      expect(getLuminanceCategory(0.12)).toBe("medium");
+    });
+
+    it("should return 'medium' for luminance exactly 0.18", () => {
+      expect(getLuminanceCategory(0.18)).toBe("medium");
+    });
+
+    it("should return 'medium' for luminance exactly 0.06", () => {
+      expect(getLuminanceCategory(0.06)).toBe("medium");
+    });
+  });
+
+  describe("getLuminanceLabel", () => {
+    it("should return 'Light' for luminance > 0.18", () => {
+      expect(getLuminanceLabel(1)).toBe("Light");
+      expect(getLuminanceLabel(0.19)).toBe("Light");
+    });
+
+    it("should return 'Dark' for luminance < 0.06", () => {
+      expect(getLuminanceLabel(0)).toBe("Dark");
+      expect(getLuminanceLabel(0.05)).toBe("Dark");
+    });
+
+    it("should return 'Medium' for luminance between 0.06 and 0.18", () => {
+      expect(getLuminanceLabel(0.1)).toBe("Medium");
+      expect(getLuminanceLabel(0.12)).toBe("Medium");
+    });
+
+    it("should return 'Medium' for luminance exactly 0.18", () => {
+      expect(getLuminanceLabel(0.18)).toBe("Medium");
+    });
+
+    it("should return 'Medium' for luminance exactly 0.06", () => {
+      expect(getLuminanceLabel(0.06)).toBe("Medium");
     });
   });
 
@@ -313,6 +375,96 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
     });
   });
 
+describe("normalizeHexColor", () => {
+    it("should preserve valid 6-char hex with #", () => {
+      expect(normalizeHexColor("#ff0000")).toBe("#ff0000");
+    });
+
+    it("should preserve valid 6-char hex without #", () => {
+      expect(normalizeHexColor("ff0000")).toBe("#ff0000");
+    });
+
+    it("should expand 3-char shorthand to 6-char", () => {
+      expect(normalizeHexColor("#fff")).toBe("#ffffff");
+      expect(normalizeHexColor("#f00")).toBe("#ff0000");
+      expect(normalizeHexColor("abc")).toBe("#aabbcc");
+    });
+
+    it("should strip alpha from 8-char hex", () => {
+      expect(normalizeHexColor("#ff000080")).toBe("#ff0000");
+      expect(normalizeHexColor("#aabbccdd")).toBe("#aabbcc");
+    });
+
+    it("should lowercase uppercase hex", () => {
+      expect(normalizeHexColor("#FF0000")).toBe("#ff0000");
+      expect(normalizeHexColor("#ABC")).toBe("#aabbcc");
+    });
+
+    it("should throw for empty string", () => {
+      expect(() => normalizeHexColor("")).toThrow(
+        "Invalid hex color: must be a non-empty string",
+      );
+    });
+
+    it("should throw for invalid length (1 digit)", () => {
+      expect(() => normalizeHexColor("#f")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for invalid length (5 digits)", () => {
+      expect(() => normalizeHexColor("#12345")).toThrow(
+        /expected 3, 6, or 8 hex digits/i,
+      );
+    });
+
+    it("should throw for null input", () => {
+      expect(() => normalizeHexColor(null as unknown as string)).toThrow(
+        "Invalid hex color: must be a non-empty string",
+      );
+    });
+  });
+
+  describe("tryNormalizeHexColor", () => {
+    it("should return normalized color for valid 6-digit hex", () => {
+      expect(tryNormalizeHexColor("#ff0000")).toBe("#ff0000");
+      expect(tryNormalizeHexColor("#ffffff")).toBe("#ffffff");
+      expect(tryNormalizeHexColor("#000000")).toBe("#000000");
+    });
+
+    it("should return normalized color for 3-digit shorthand", () => {
+      expect(tryNormalizeHexColor("#fff")).toBe("#ffffff");
+      expect(tryNormalizeHexColor("#f00")).toBe("#ff0000");
+      expect(tryNormalizeHexColor("abc")).toBe("#aabbcc");
+    });
+
+    it("should strip alpha from 8-digit hex", () => {
+      expect(tryNormalizeHexColor("#ff000080")).toBe("#ff0000");
+    });
+
+    it("should lowercase uppercase hex", () => {
+      expect(tryNormalizeHexColor("#FF0000")).toBe("#ff0000");
+    });
+
+    it("should return null for empty string", () => {
+      expect(tryNormalizeHexColor("")).toBeNull();
+    });
+
+    it("should return null for invalid hex characters", () => {
+      expect(tryNormalizeHexColor("#ffgg00")).toBeNull();
+      expect(tryNormalizeHexColor("zzz")).toBeNull();
+    });
+
+    it("should return null for invalid length", () => {
+      expect(tryNormalizeHexColor("#f")).toBeNull();
+      expect(tryNormalizeHexColor("#12345")).toBeNull();
+    });
+
+    it("should return null for null input", () => {
+      expect(tryNormalizeHexColor(null as unknown as string)).toBeNull();
+    });
+  });
+
   describe("suggestAccessibleColor", () => {
     it("should suggest white for a dark background", () => {
       const result = suggestAccessibleColor("#000000");
@@ -374,6 +526,324 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
       const result = suggestAccessibleColor("#f0f0f0");
       expect(result.dark).not.toBeNull();
       expect(result.dark!.passAA).toBe(true);
+    });
+  });
+
+  describe("hexToRgb", () => {
+    it("should convert #ff0000 to { r: 255, g: 0, b: 0 }", () => {
+      expect(hexToRgb("#ff0000")).toEqual({ r: 255, g: 0, b: 0 });
+    });
+
+    it("should convert #000000 to { r: 0, g: 0, b: 0 }", () => {
+      expect(hexToRgb("#000000")).toEqual({ r: 0, g: 0, b: 0 });
+    });
+
+    it("should convert #ffffff to { r: 255, g: 255, b: 255 }", () => {
+      expect(hexToRgb("#ffffff")).toEqual({ r: 255, g: 255, b: 255 });
+    });
+
+    it("should handle 3-digit shorthand (#f00 → #ff0000)", () => {
+      expect(hexToRgb("#f00")).toEqual({ r: 255, g: 0, b: 0 });
+    });
+
+    it("should handle 8-digit hex by discarding alpha", () => {
+      expect(hexToRgb("#ff000080")).toEqual({ r: 255, g: 0, b: 0 });
+    });
+
+    it("should handle hex without # prefix", () => {
+      expect(hexToRgb("00ff00")).toEqual({ r: 0, g: 255, b: 0 });
+    });
+
+    it("should return { r: 0, g: 0, b: 0 } for invalid hex", () => {
+      expect(hexToRgb("invalid")).toEqual({ r: 0, g: 0, b: 0 });
+    });
+
+    it("should return { r: 0, g: 0, b: 0 } for empty string", () => {
+      expect(hexToRgb("")).toEqual({ r: 0, g: 0, b: 0 });
+    });
+  });
+
+  describe("rgbToHsl", () => {
+    it("should convert black (0,0,0) to { h: 0, s: 0, l: 0 }", () => {
+      expect(rgbToHsl(0, 0, 0)).toEqual({ h: 0, s: 0, l: 0 });
+    });
+
+    it("should convert white (255,255,255) to { h: 0, s: 0, l: 100 }", () => {
+      expect(rgbToHsl(255, 255, 255)).toEqual({ h: 0, s: 0, l: 100 });
+    });
+
+    it("should convert red (255,0,0) to { h: 0, s: 100, l: 50 }", () => {
+      expect(rgbToHsl(255, 0, 0)).toEqual({ h: 0, s: 100, l: 50 });
+    });
+
+    it("should convert green (0,255,0) to { h: 120, s: 100, l: 50 }", () => {
+      expect(rgbToHsl(0, 255, 0)).toEqual({ h: 120, s: 100, l: 50 });
+    });
+
+    it("should convert blue (0,0,255) to { h: 240, s: 100, l: 50 }", () => {
+      expect(rgbToHsl(0, 0, 255)).toEqual({ h: 240, s: 100, l: 50 });
+    });
+
+    it("should convert gray (128,128,128) to { h: 0, s: 0, l: 50 }", () => {
+      expect(rgbToHsl(128, 128, 128)).toEqual({ h: 0, s: 0, l: 50 });
+    });
+
+    it("should handle mid-tone purple (128,0,128)", () => {
+      const result = rgbToHsl(128, 0, 128);
+      expect(result.h).toBe(300);
+      expect(result.s).toBe(100);
+      expect(result.l).toBe(25);
+    });
+
+    it("should handle orange (255,165,0)", () => {
+      const result = rgbToHsl(255, 165, 0);
+      expect(result.h).toBe(39);
+      expect(result.s).toBe(100);
+      expect(result.l).toBe(50);
+    });
+  });
+
+  describe("formatRgb", () => {
+    it("should format rgb(255, 0, 0) correctly", () => {
+      expect(formatRgb(255, 0, 0)).toBe("rgb(255, 0, 0)");
+    });
+
+    it("should format rgb(0, 0, 0) correctly", () => {
+      expect(formatRgb(0, 0, 0)).toBe("rgb(0, 0, 0)");
+    });
+
+    it("should format rgb(128, 128, 128) correctly", () => {
+      expect(formatRgb(128, 128, 128)).toBe("rgb(128, 128, 128)");
+    });
+  });
+
+  describe("formatHsl", () => {
+    it("should format hsl(0, 100%, 50%) correctly", () => {
+      expect(formatHsl(0, 100, 50)).toBe("hsl(0, 100%, 50%)");
+    });
+
+    it("should format hsl(120, 100%, 50%) correctly", () => {
+      expect(formatHsl(120, 100, 50)).toBe("hsl(120, 100%, 50%)");
+    });
+
+    it("should format hsl(0, 0%, 0%) correctly", () => {
+      expect(formatHsl(0, 0, 0)).toBe("hsl(0, 0%, 0%)");
+    });
+  });
+
+  describe("formatRatio", () => {
+    it("should format 21.0 as '21:1' (drops unnecessary trailing zeros)", () => {
+      expect(formatRatio(21)).toBe("21:1");
+    });
+
+    it("should format 4.5 as '4.5:1'", () => {
+      expect(formatRatio(4.5)).toBe("4.5:1");
+    });
+
+    it("should format 4.52 as '4.52:1'", () => {
+      expect(formatRatio(4.52)).toBe("4.52:1");
+    });
+
+    it("should format 1.0 as '1:1'", () => {
+      expect(formatRatio(1)).toBe("1:1");
+    });
+
+    it("should format 3.0 as '3:1'", () => {
+      expect(formatRatio(3)).toBe("3:1");
+    });
+
+    it("should format 7.0 as '7:1'", () => {
+      expect(formatRatio(7)).toBe("7:1");
+    });
+
+    it("should format with custom precision", () => {
+      expect(formatRatio(4.567, 3)).toBe("4.567:1");
+    });
+
+    it("should format 0 precision", () => {
+      expect(formatRatio(4.5, 0)).toBe("5:1");
+    });
+
+    it("should keep leading zero for sub-1 ratios", () => {
+      expect(formatRatio(0.5)).toBe("0.5:1");
+    });
+
+    it("should keep leading zero for precision-3 sub-1 ratios", () => {
+      expect(formatRatio(0.123, 3)).toBe("0.123:1");
+    });
+  });
+
+  describe("getRatioSummary", () => {
+    it("should return passing summary for black on white", () => {
+      const summary = getRatioSummary("#000000", "#ffffff");
+      expect(summary).toBe("21:1 (AA \u2713, AAA \u2713)");
+    });
+
+    it("should return failing AAA for red on white", () => {
+      const summary = getRatioSummary("#cc0000", "#ffffff");
+      expect(summary).toContain("AA \u2713");
+      expect(summary).toContain("AAA \u2717");
+    });
+
+    it("should return 'Invalid colors' for invalid input", () => {
+      expect(getRatioSummary("invalid", "#ffffff")).toBe("Invalid colors");
+    });
+  });
+
+  describe("getWCAGLevel", () => {
+    it("should return 'aaa' for ratio >= 7", () => {
+      expect(getWCAGLevel(21)).toBe("aaa");
+      expect(getWCAGLevel(7)).toBe("aaa");
+      expect(getWCAGLevel(8)).toBe("aaa");
+    });
+
+    it("should return 'aa' for ratio >= 4.5 and < 7", () => {
+      expect(getWCAGLevel(4.5)).toBe("aa");
+      expect(getWCAGLevel(5)).toBe("aa");
+      expect(getWCAGLevel(6.9)).toBe("aa");
+    });
+
+    it("should return 'fail' for ratio < 4.5", () => {
+      expect(getWCAGLevel(3)).toBe("fail");
+      expect(getWCAGLevel(4.49)).toBe("fail");
+      expect(getWCAGLevel(1)).toBe("fail");
+    });
+
+    it("should use large text thresholds when level is 'large'", () => {
+      expect(getWCAGLevel(3, "large")).toBe("aa");
+      expect(getWCAGLevel(4.5, "large")).toBe("aaa");
+      expect(getWCAGLevel(2.9, "large")).toBe("fail");
+    });
+
+    it("should use UI thresholds when level is 'ui'", () => {
+      expect(getWCAGLevel(3, "ui")).toBe("aa");
+      expect(getWCAGLevel(2.9, "ui")).toBe("fail");
+      // AA and AAA thresholds are identical for UI (3:1), so 3:1 returns "aa"
+      expect(getWCAGLevel(4.5, "ui")).toBe("aa");
+      expect(getWCAGLevel(21, "ui")).toBe("aa");
+    });
+
+    it("should default to normal text level", () => {
+      expect(getWCAGLevel(7)).toBe("aaa");
+      expect(getWCAGLevel(4.5)).toBe("aa");
+      expect(getWCAGLevel(3)).toBe("fail");
+    });
+  });
+
+  describe("suggestAccessiblePair", () => {
+    it("should return empty array when pair already passes AA normal", () => {
+      const suggestions = suggestAccessiblePair("#000000", "#ffffff");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should return empty array when pair already passes AAA normal", () => {
+      const suggestions = suggestAccessiblePair("#000000", "#ffffff");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should suggest accessible alternatives when pair fails AA", () => {
+      // Gray on white: ~3.95:1 — fails AA normal
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      expect(suggestions.length).toBeLessThanOrEqual(3);
+      // All suggestions should pass AA normal
+      suggestions.forEach((s) => {
+        expect(s.passAA).toBe(true);
+        expect(s.ratio).toBeGreaterThanOrEqual(4.5);
+      });
+    });
+
+    it("should return at most 3 suggestions", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      expect(suggestions.length).toBeLessThanOrEqual(3);
+    });
+
+    it("should return suggestions sorted by ratio descending", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      for (let i = 1; i < suggestions.length; i++) {
+        expect(suggestions[i].ratio).toBeLessThanOrEqual(suggestions[i - 1].ratio);
+      }
+    });
+
+    it("should suggest dark foregrounds on light backgrounds", () => {
+      // Light gray on white: poor contrast
+      const suggestions = suggestAccessiblePair("#cccccc", "#ffffff");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      // The best suggestion should be a darker color
+      expect(suggestions[0].passAA).toBe(true);
+    });
+
+    it("should suggest light foregrounds on dark backgrounds", () => {
+      // Dark gray on black: poor contrast
+      const suggestions = suggestAccessiblePair("#333333", "#000000");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      expect(suggestions[0].passAA).toBe(true);
+    });
+
+    it("should not duplicate the same suggestion", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      const colorPairs = suggestions.map((s) => `${s.fg}|${s.bg}`);
+      const unique = new Set(colorPairs);
+      expect(unique.size).toBe(suggestions.length);
+    });
+
+    it("should return empty array for invalid foreground", () => {
+      const suggestions = suggestAccessiblePair("invalid", "#ffffff");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should return empty array for invalid background", () => {
+      const suggestions = suggestAccessiblePair("#000000", "invalid");
+      expect(suggestions).toHaveLength(0);
+    });
+
+    it("should give each suggestion a description", () => {
+      const suggestions = suggestAccessiblePair("#808080", "#ffffff");
+      suggestions.forEach((s) => {
+        expect(s.description.length).toBeGreaterThan(0);
+      });
+    });
+
+    it("should produce passing suggestions for various failing pairs", () => {
+      const failingPairs: [string, string][] = [
+        ["#808080", "#ffffff"],   // gray on white
+        ["#cccccc", "#ffffff"],   // light gray on white
+        ["#999999", "#f0f0f0"],  // mid gray on light bg
+        ["#444444", "#555555"],  // similar dark tones
+        ["#a0a0a0", "#c0c0c0"], // similar mid tones
+      ];
+      for (const [fg, bg] of failingPairs) {
+        const suggestions = suggestAccessiblePair(fg, bg);
+        expect(suggestions.length).toBeGreaterThanOrEqual(1);
+        suggestions.forEach((s) => {
+          expect(s.passAA).toBe(true);
+        });
+      }
+    });
+
+    it("should preserve hue in lightness-adjusted suggestions", () => {
+      // Pure red on white fails AA (ratio ~3.99:1)
+      // The lightness-adjusted suggestion should keep the red hue
+      const suggestions = suggestAccessiblePair("#ff0000", "#ffffff");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      // At least one suggestion should have a red-ish hue (R >> G,B)
+      const redSuggestions = suggestions.filter((s) => {
+        const rgb = hexToRgb(s.fg);
+        return rgb.r > rgb.g * 2 && rgb.r > rgb.b * 2;
+      });
+      expect(redSuggestions.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("should preserve hue for blue foreground on dark background", () => {
+      // Dark blue on dark background fails AA
+      const suggestions = suggestAccessiblePair("#000033", "#111111");
+      expect(suggestions.length).toBeGreaterThanOrEqual(1);
+      // At least one suggestion should have a blue-ish hue (B >> R,G)
+      const blueSuggestions = suggestions.filter((s) => {
+        const rgb = hexToRgb(s.fg);
+        return rgb.b > rgb.r * 2 && rgb.b > rgb.g * 2;
+      });
+      expect(blueSuggestions.length).toBeGreaterThanOrEqual(1);
     });
   });
 });
