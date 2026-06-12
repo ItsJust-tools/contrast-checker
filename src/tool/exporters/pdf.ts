@@ -34,7 +34,11 @@ export const exporter: Exporter = {
       const maxImgHeight = pdfHeight - 2 * margin - 60;
       const imgWidth = element.offsetWidth;
       const imgHeight = element.offsetHeight;
-      const scale = Math.min(maxImgWidth / imgWidth, maxImgHeight / imgHeight, 1);
+      const scale = Math.min(
+        maxImgWidth / imgWidth,
+        maxImgHeight / imgHeight,
+        1,
+      );
       const displayW = Math.round(imgWidth * scale);
       const displayH = Math.round(imgHeight * scale);
       const imgX = Math.round((pdfWidth - displayW) / 2);

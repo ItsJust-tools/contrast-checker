@@ -375,7 +375,7 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
     });
   });
 
-describe("normalizeHexColor", () => {
+  describe("normalizeHexColor", () => {
     it("should preserve valid 6-char hex with #", () => {
       expect(normalizeHexColor("#ff0000")).toBe("#ff0000");
     });
@@ -761,7 +761,9 @@ describe("normalizeHexColor", () => {
     it("should return suggestions sorted by ratio descending", () => {
       const suggestions = suggestAccessiblePair("#808080", "#ffffff");
       for (let i = 1; i < suggestions.length; i++) {
-        expect(suggestions[i].ratio).toBeLessThanOrEqual(suggestions[i - 1].ratio);
+        expect(suggestions[i].ratio).toBeLessThanOrEqual(
+          suggestions[i - 1].ratio,
+        );
       }
     });
 
@@ -806,10 +808,10 @@ describe("normalizeHexColor", () => {
 
     it("should produce passing suggestions for various failing pairs", () => {
       const failingPairs: [string, string][] = [
-        ["#808080", "#ffffff"],   // gray on white
-        ["#cccccc", "#ffffff"],   // light gray on white
-        ["#999999", "#f0f0f0"],  // mid gray on light bg
-        ["#444444", "#555555"],  // similar dark tones
+        ["#808080", "#ffffff"], // gray on white
+        ["#cccccc", "#ffffff"], // light gray on white
+        ["#999999", "#f0f0f0"], // mid gray on light bg
+        ["#444444", "#555555"], // similar dark tones
         ["#a0a0a0", "#c0c0c0"], // similar mid tones
       ];
       for (const [fg, bg] of failingPairs) {

@@ -94,7 +94,11 @@ function ColorPreview({
           setHexInputMessage(
             "Hex color too long. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
           );
-        } else if (stripped.length === 4 || stripped.length === 5 || stripped.length === 7) {
+        } else if (
+          stripped.length === 4 ||
+          stripped.length === 5 ||
+          stripped.length === 7
+        ) {
           // Valid hex characters but wrong length — 4, 5, or 7 chars won't parse
           setHexInputError(true);
           setHexInputMessage(
@@ -323,9 +327,7 @@ function ContrastBadge({
       <div className="contrast-badge-text">
         <span className="contrast-badge-label">{standard}</span>
         <span className="contrast-badge-status">
-          {pass
-            ? "Pass"
-            : `Needs ${minRatio.toFixed(1)}:1`}
+          {pass ? "Pass" : `Needs ${minRatio.toFixed(1)}:1`}
         </span>
       </div>
     </div>
@@ -549,7 +551,7 @@ export function ToolCanvas({
           <button
             type="button"
             onClick={() => {
-              const text = `${formatRatio(ratio)} (${localFg} on ${localBg})`;
+              const text = `${formatRatio(ratio)} (${fgColor} on ${bgColor})`;
               navigator.clipboard.writeText(text).catch(() => {});
             }}
             className="btn-secondary"

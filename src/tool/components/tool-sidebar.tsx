@@ -172,8 +172,7 @@ function ColorReferenceSwatch({
   // Memoize the text color calculation to avoid recalculating getContrastRatio
   // on every render when the color hasn't changed.
   const textColor = useMemo(
-    () =>
-      getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000",
+    () => (getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000"),
     [color],
   );
   return (
@@ -207,7 +206,7 @@ ColorReferenceSwatch.displayName = "ColorReferenceSwatch";
  * Copy text to clipboard and show brief visual feedback.
  * Falls back gracefully when navigator.clipboard is unavailable.
  */
-function CopyButton({ text, label }: { text: string; label: string }) {
+function CopyButton({ text, label = text }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -263,7 +262,12 @@ function SuggestionRow({
   onApply,
   highlighted = false,
 }: {
-  suggestion: { color: string; ratio: number; passAAA: boolean; brightness: string };
+  suggestion: {
+    color: string;
+    ratio: number;
+    passAAA: boolean;
+    brightness: string;
+  };
   onApply?: (color: string) => void;
   highlighted?: boolean;
 }) {
@@ -333,7 +337,13 @@ function SuggestionRow({
           {suggestion.passAAA ? " · AAA✓" : " · AA✓"}
         </span>
       </div>
-      <span style={{ fontSize: highlighted ? "0.6875rem" : "0.65rem", color: "var(--success)", whiteSpace: "nowrap" }}>
+      <span
+        style={{
+          fontSize: highlighted ? "0.6875rem" : "0.65rem",
+          color: "var(--success)",
+          whiteSpace: "nowrap",
+        }}
+      >
         {highlighted ? "★ Best match" : "Apply"}
       </span>
     </div>
@@ -341,60 +351,6 @@ function SuggestionRow({
 }
 
 SuggestionRow.displayName = "SuggestionRow";
-
-/**
- * Small copy-to-clipboard button for a text value.
- * Shows a brief "Copied!" feedback on click, then reverts.
- */
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    } catch {
-      // Clipboard API not available
-    }
-  }, [text]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        handleCopy();
-      }
-    },
-    [handleCopy],
-  );
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      onKeyDown={handleKeyDown}
-      title={`Copy ${text} to clipboard`}
-      aria-label={`Copy ${text} to clipboard`}
-      style={{
-        padding: "0.125rem 0.375rem",
-        fontSize: "0.625rem",
-        fontFamily: "monospace",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        background: copied ? "var(--accent-subtle)" : "transparent",
-        color: copied ? "var(--accent)" : "var(--muted-foreground)",
-        cursor: "pointer",
-        transition: "all 0.12s",
-        lineHeight: "1.4",
-        outline: "none",
-      }}
-    >
-      {copied ? "Copied!" : "Copy"}
-    </button>
-  );
-}
-CopyButton.displayName = "CopyButton";
 
 /**
  * Displays the hex, RGB, and HSL values for a given color in a compact layout.
@@ -437,15 +393,36 @@ function ColorReferenceDetails({
           fontFamily: "ui-monospace, Menlo, Monaco, monospace",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.125rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.375rem",
+            marginBottom: "0.125rem",
+          }}
+        >
           <span style={{ flex: 1 }}>{hexLower}</span>
           <CopyButton text={hexLower} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.125rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.375rem",
+            marginBottom: "0.125rem",
+          }}
+        >
           <span style={{ flex: 1 }}>{rgbStr}</span>
           <CopyButton text={rgbStr} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.125rem" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.375rem",
+            marginBottom: "0.125rem",
+          }}
+        >
           <span style={{ flex: 1 }}>{hslStr}</span>
           <CopyButton text={hslStr} />
         </div>
@@ -522,7 +499,8 @@ export function ToolSidebar({
 
   /** Announceable summary of current stats, used by the screen-reader live region. */
   const liveSummary = useMemo(() => {
-    if (combinations.length === 0) return "No combinations saved yet. Use the Save Combination button on the canvas to add one.";
+    if (combinations.length === 0)
+      return "No combinations saved yet. Use the Save Combination button on the canvas to add one.";
     return (
       `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
       `Average contrast ratio ${formatRatio(averageContrast)}. ` +
@@ -531,7 +509,10 @@ export function ToolSidebar({
     );
   }, [combinations, averageContrast, passRateAA, passRateAAA]);
 
-  const levelIndicator = useMemo(() => getWCAGLevel(averageContrast, "normal"), [averageContrast]);
+  const levelIndicator = useMemo(
+    () => getWCAGLevel(averageContrast, "normal"),
+    [averageContrast],
+  );
 
   const accessibleSuggestions = useMemo<SuggestionResult>(() => {
     try {
@@ -557,7 +538,8 @@ export function ToolSidebar({
     }
   }, [fgColor, bgColor]);
 
-  const showPairSuggestions = currentContrastRatio < 4.5 && pairSuggestions.length > 0;
+  const showPairSuggestions =
+    currentContrastRatio < 4.5 && pairSuggestions.length > 0;
 
   return (
     <div className="contrast-sidebar">
@@ -612,7 +594,8 @@ export function ToolSidebar({
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
             <span style={{ fontWeight: 600 }}>Average Contrast Ratio</span>
             <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
-              FG {(fgPreview * 100).toFixed(0)}% · BG {(bgPreview * 100).toFixed(0)}% luminance
+              FG {(fgPreview * 100).toFixed(0)}% · BG{" "}
+              {(bgPreview * 100).toFixed(0)}% luminance
             </span>
           </div>
         </div>
@@ -672,13 +655,27 @@ export function ToolSidebar({
         >
           <ColorReferenceSwatch color={fgColor} label="FG" />
           <ColorReferenceDetails color={fgColor} name="Foreground" />
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              gap: "0.25rem",
+            }}
+          >
             <CopyButton text={fgColor.toLowerCase()} label="foreground hex" />
             <CopyButton text={fgRgbStr} label="foreground RGB" />
           </div>
           <ColorReferenceSwatch color={bgColor} label="BG" />
           <ColorReferenceDetails color={bgColor} name="Background" />
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              gap: "0.25rem",
+            }}
+          >
             <CopyButton text={bgColor.toLowerCase()} label="background hex" />
             <CopyButton text={bgRgbStr} label="background RGB" />
           </div>
@@ -708,14 +705,16 @@ export function ToolSidebar({
             />
             {/* Show secondary options only if they differ from best */}
             {accessibleSuggestions.light &&
-              accessibleSuggestions.light.color !== accessibleSuggestions.best.color && (
+              accessibleSuggestions.light.color !==
+                accessibleSuggestions.best.color && (
                 <SuggestionRow
                   suggestion={accessibleSuggestions.light}
                   onApply={onFgChange}
                 />
               )}
             {accessibleSuggestions.dark &&
-              accessibleSuggestions.dark.color !== accessibleSuggestions.best.color && (
+              accessibleSuggestions.dark.color !==
+                accessibleSuggestions.best.color && (
                 <SuggestionRow
                   suggestion={accessibleSuggestions.dark}
                   onApply={onFgChange}
@@ -749,8 +748,8 @@ export function ToolSidebar({
               marginBottom: "0.5rem",
             }}
           >
-            Current ratio ({formatRatio(currentContrastRatio)}) does not pass WCAG AA.
-            Click a suggestion to apply it.
+            Current ratio ({formatRatio(currentContrastRatio)}) does not pass
+            WCAG AA. Click a suggestion to apply it.
           </p>
           {pairSuggestions.slice(0, 3).map((pair, i) => (
             <div
@@ -764,7 +763,8 @@ export function ToolSidebar({
                 cursor: "pointer",
                 marginBottom: "0.375rem",
                 border: "2px solid var(--warning, #f59e0b)",
-                background: "color-mix(in srgb, var(--warning, #f59e0b) 8%, transparent)",
+                background:
+                  "color-mix(in srgb, var(--warning, #f59e0b) 8%, transparent)",
                 transition: "background-color 0.15s",
               }}
               role="button"
@@ -806,7 +806,13 @@ export function ToolSidebar({
                 />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "0.75rem", fontFamily: "monospace", fontWeight: 600 }}>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    fontFamily: "monospace",
+                    fontWeight: 600,
+                  }}
+                >
                   {pair.fg} / {pair.bg}
                 </div>
                 <div style={{ fontSize: "0.625rem", color: "var(--muted)" }}>
@@ -1076,13 +1082,23 @@ export function ToolSidebar({
               <div style={{ flex: 1 }}>
                 <div>
                   Ratio:{" "}
-                  <strong>{formatRatio(getCvdContrastRatio(fgColor, bgColor, cvdType))}</strong>
+                  <strong>
+                    {formatRatio(
+                      getCvdContrastRatio(fgColor, bgColor, cvdType),
+                    )}
+                  </strong>
                 </div>
               </div>
             </div>
-            <div style={{ fontSize: "0.625rem", color: "var(--muted-foreground)", fontFamily: "ui-monospace, Menlo, Monaco, monospace" }}>
-              Sim fg: {simulateCvd(fgColor, cvdType)} ·
-              Sim bg: {simulateCvd(bgColor, cvdType)}
+            <div
+              style={{
+                fontSize: "0.625rem",
+                color: "var(--muted-foreground)",
+                fontFamily: "ui-monospace, Menlo, Monaco, monospace",
+              }}
+            >
+              Sim fg: {simulateCvd(fgColor, cvdType)} · Sim bg:{" "}
+              {simulateCvd(bgColor, cvdType)}
             </div>
           </div>
         )}
@@ -1107,7 +1123,13 @@ export function ToolSidebar({
           <div style={{ marginBottom: "0.25rem" }}>
             <strong>UI Components:</strong> 3:1 minimum
           </div>
-          <div style={{ marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px solid var(--border)" }}>
+          <div
+            style={{
+              marginTop: "0.5rem",
+              paddingTop: "0.5rem",
+              borderTop: "1px solid var(--border)",
+            }}
+          >
             Based on{" "}
             <a
               href="https://www.w3.org/TR/WCAG22/"

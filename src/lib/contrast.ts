@@ -588,7 +588,9 @@ function adjustLightness(
   // Convert targetLightness from percentage (0-100) to float (0-1)
   const adjusted = hslToRgb(hsl.h, hsl.s * 100, targetLightness);
   const toHex = (v: number) =>
-    Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+    Math.max(0, Math.min(255, Math.round(v)))
+      .toString(16)
+      .padStart(2, "0");
   return `#${toHex(adjusted.r)}${toHex(adjusted.g)}${toHex(adjusted.b)}`;
 }
 
@@ -609,12 +611,25 @@ function hslToRgb(
   let r1 = 0,
     g1 = 0,
     b1 = 0;
-  if (h < 60) { r1 = c; g1 = x; }
-  else if (h < 120) { r1 = x; g1 = c; }
-  else if (h < 180) { g1 = c; b1 = x; }
-  else if (h < 240) { g1 = x; b1 = c; }
-  else if (h < 300) { r1 = x; b1 = c; }
-  else { r1 = c; b1 = x; }
+  if (h < 60) {
+    r1 = c;
+    g1 = x;
+  } else if (h < 120) {
+    r1 = x;
+    g1 = c;
+  } else if (h < 180) {
+    g1 = c;
+    b1 = x;
+  } else if (h < 240) {
+    g1 = x;
+    b1 = c;
+  } else if (h < 300) {
+    r1 = x;
+    b1 = c;
+  } else {
+    r1 = c;
+    b1 = x;
+  }
   return {
     r: (r1 + m) * 255,
     g: (g1 + m) * 255,
@@ -652,9 +667,12 @@ export function normalizeHexColor(hex: string): string {
   if (cleaned.length === 3) {
     // Expand 3-char shorthand to 6-char
     const expanded =
-      cleaned[0] + cleaned[0] +
-      cleaned[1] + cleaned[1] +
-      cleaned[2] + cleaned[2];
+      cleaned[0] +
+      cleaned[0] +
+      cleaned[1] +
+      cleaned[1] +
+      cleaned[2] +
+      cleaned[2];
     if (!/^[0-9a-f]{6}$/.test(expanded)) {
       throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
     }
@@ -707,7 +725,10 @@ export function tryNormalizeHexColor(hex: string): string | null {
  * @param level - Text / UI component size (defaults to 'normal')
  * @returns The highest WCAG level the ratio satisfies
  */
-export function getWCAGLevel(ratio: number, level: TextLevel = "normal"): WcagLevel {
+export function getWCAGLevel(
+  ratio: number,
+  level: TextLevel = "normal",
+): WcagLevel {
   const aaThreshold = getRequiredRatio("AA", level);
   const aaaThreshold = getRequiredRatio("AAA", level);
   // When AA and AAA thresholds are identical (e.g., UI level where both are 3:1),
@@ -824,7 +845,12 @@ export function formatHsl(h: number, s: number, l: number): string {
 /**
  * Types of color vision deficiency (CVD) supported for simulation.
  */
-export type CvdType = "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
+export type CvdType =
+  | "none"
+  | "protanopia"
+  | "deuteranopia"
+  | "tritanopia"
+  | "achromatopsia";
 
 /**
  * CVD simulation label for display.
@@ -862,25 +888,11 @@ export const CVD_SHORT_LABELS: Record<CvdType, string> = {
  * - https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html
  */
 const CVD_MATRICES: Record<Exclude<CvdType, "none">, number[]> = {
-  protanopia: [
-    0.112, 0.885, 0.003,
-    0.112, 0.885, 0.003,
-    0.000, 0.000, 1.000,
-  ],
-  deuteranopia: [
-    0.292, 0.705, 0.003,
-    0.292, 0.705, 0.003,
-    0.000, 0.000, 1.000,
-  ],
-  tritanopia: [
-    1.000, 0.000, 0.000,
-    0.000, 1.000, 0.000,
-    -0.142, 0.142, 0.000,
-  ],
+  protanopia: [0.112, 0.885, 0.003, 0.112, 0.885, 0.003, 0.0, 0.0, 1.0],
+  deuteranopia: [0.292, 0.705, 0.003, 0.292, 0.705, 0.003, 0.0, 0.0, 1.0],
+  tritanopia: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.142, 0.142, 0.0],
   achromatopsia: [
-    0.299, 0.587, 0.114,
-    0.299, 0.587, 0.114,
-    0.299, 0.587, 0.114,
+    0.299, 0.587, 0.114, 0.299, 0.587, 0.114, 0.299, 0.587, 0.114,
   ],
 };
 
@@ -912,7 +924,10 @@ function srgbToLinear(hex: string): [number, number, number] {
 function linearToSrgb(r: number, g: number, b: number): string {
   const toSrgb = (c: number): number => {
     const clamped = Math.max(0, Math.min(1, c));
-    const s = clamped <= 0.0031308 ? 12.92 * clamped : 1.055 * Math.pow(clamped, 1 / 2.4) - 0.055;
+    const s =
+      clamped <= 0.0031308
+        ? 12.92 * clamped
+        : 1.055 * Math.pow(clamped, 1 / 2.4) - 0.055;
     return Math.round(s * 255);
   };
   const rr = toSrgb(r);
@@ -956,7 +971,11 @@ export function simulateCvd(hex: string, cvdType: CvdType): string {
  * @returns Simulated contrast ratio (1:1 to 21:1). Returns the normal
  *          contrast ratio when cvdType is "none".
  */
-export function getCvdContrastRatio(fg: string, bg: string, cvdType: CvdType): number {
+export function getCvdContrastRatio(
+  fg: string,
+  bg: string,
+  cvdType: CvdType,
+): number {
   if (cvdType === "none") return getContrastRatio(fg, bg);
   const simFg = simulateCvd(fg, cvdType);
   const simBg = simulateCvd(bg, cvdType);

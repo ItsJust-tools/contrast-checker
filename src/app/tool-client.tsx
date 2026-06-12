@@ -165,7 +165,15 @@ export default function ToolClient() {
 
   return (
     <div className="contrast-tool-layout">
-      <ToolToolbar onExport={handleExport} onSwapColors={handleSwapColors} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} disabled={isAnyActionInProgress} />
+      <ToolToolbar
+        onExport={handleExport}
+        onSwapColors={handleSwapColors}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        disabled={isAnyActionInProgress}
+      />
       <main className="contrast-main-content">
         <ToolCanvas
           fgColor={state.data.fgColor}
