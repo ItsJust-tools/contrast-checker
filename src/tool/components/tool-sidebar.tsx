@@ -156,8 +156,13 @@ function ColorReferenceSwatch({
   color: string;
   label: string;
 }) {
-  const textColor =
-    getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000";
+  // Memoize the text color calculation to avoid recalculating getContrastRatio
+  // on every render when the color hasn't changed.
+  const textColor = useMemo(
+    () =>
+      getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000",
+    [color],
+  );
   return (
     <div
       style={{
