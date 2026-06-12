@@ -46,8 +46,8 @@
     "@itsjust/core": "*",
     "html-to-image": "1.11.13",
     "next": "16.2.6",
-    "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
   },
   "engines": {
     "node": ">=22.0.0",
