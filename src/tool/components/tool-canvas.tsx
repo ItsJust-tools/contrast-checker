@@ -1,13 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   getRelativeLuminance,
   getContrastRatio,
   getRequiredRatio,
   formatRatio,
+  normalizeHexColor,
 } from "@/lib/contrast";
-import { CheckIcon, XIcon, PlusIcon } from "./icons";
+import { CheckIcon, XIcon, PlusIcon, SwapIcon } from "./icons";
 
 interface ToolCanvasProps {
   fgColor: string;
@@ -15,6 +16,7 @@ interface ToolCanvasProps {
   canvasRef?: React.RefObject<HTMLDivElement | null>;
   onFgChange?: (color: string) => void;
   onBgChange?: (color: string) => void;
+  onSwapColors?: () => void;
   label?: string;
   onLabelChange?: (label: string) => void;
   onAddCombination?: (combination: {
@@ -64,34 +66,45 @@ function ColorPreview({
   const handleHexInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value.trim();
-      // Allow typing a hex value, auto-complete with # if missing
+      if (!val) {
+        setHexInputError(false);
+        setHexInputMessage(null);
+        return;
+      }
       const fullHex = val.startsWith("#") ? val : `#${val}`;
-      if (/^#[0-9a-fA-F]{6}$/.test(fullHex)) {
+
+      // Accept valid hex while typing — validate and normalize
+      try {
+        const normalized = normalizeHexColor(fullHex);
         setHexInputError(false);
         setHexInputMessage(null);
-        onChange?.(fullHex);
-      } else if (/^#[0-9a-fA-F]{3}$/.test(fullHex)) {
-        // Convert shorthand 3-char hex to 6-char
-        const expanded =
-          "#" +
-          fullHex[1] +
-          fullHex[1] +
-          fullHex[2] +
-          fullHex[2] +
-          fullHex[3] +
-          fullHex[3];
-        setHexInputError(false);
-        setHexInputMessage(null);
-        onChange?.(expanded);
-      } else if (/^#[0-9a-fA-F]{8}$/.test(fullHex)) {
-        // 8-digit hex (#RRGGBBAA) — accept it; alpha channel ignored per WCAG spec
-        setHexInputError(false);
-        setHexInputMessage(null);
-        onChange?.(fullHex);
-      } else if (val.length >= 7) {
-        setHexInputError(true);
-      } else {
-        setHexInputError(false);
+        onChange?.(normalized);
+      } catch {
+        // Show error only when the user has typed enough to reasonably expect
+        // a valid color. Partial entries (e.g. "#f", "#ff") are left without
+        // error so the user can keep typing.
+        const stripped = val.replace(/^#/, "");
+        if (stripped.length >= 4 && !/^[0-9a-fA-F]+$/.test(stripped)) {
+          setHexInputError(true);
+          setHexInputMessage(
+            "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+          );
+        } else if (stripped.length > 8) {
+          setHexInputError(true);
+          setHexInputMessage(
+            "Hex color too long. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
+          );
+        } else if (stripped.length === 4 || stripped.length === 5 || stripped.length === 7) {
+          // Valid hex characters but wrong length — 4, 5, or 7 chars won't parse
+          setHexInputError(true);
+          setHexInputMessage(
+            `Invalid hex length (${stripped.length} characters). Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA`,
+          );
+        } else {
+          // Still typing a valid hex — no error yet
+          setHexInputError(false);
+          setHexInputMessage(null);
+        }
       }
     },
     [onChange],
@@ -106,16 +119,15 @@ function ColorPreview({
         return;
       }
       const cleaned = val.startsWith("#") ? val : `#${val}`;
-      const isValidFull = /^#[0-9a-fA-F]{6}$/.test(cleaned);
-      const isValidShort = /^#[0-9a-fA-F]{3}$/.test(cleaned);
-      const isValid8digit = /^#[0-9a-fA-F]{8}$/.test(cleaned);
-      setHexInputError(!isValidFull && !isValidShort && !isValid8digit);
-      if (!isValidFull && !isValidShort && !isValid8digit) {
+      try {
+        normalizeHexColor(cleaned);
+        setHexInputError(false);
+        setHexInputMessage(null);
+      } catch {
+        setHexInputError(true);
         setHexInputMessage(
           "Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
         );
-      } else {
-        setHexInputMessage(null);
       }
     },
     [],
@@ -129,6 +141,26 @@ function ColorPreview({
       e.target.select();
     },
     [],
+  );
+
+  /**
+   * Handle paste events on the hex input to scrub whitespace and
+   * accept the color immediately without extra focus juggling.
+   */
+  const handleHexInputPaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      const pasted = e.clipboardData.getData("text").trim();
+      if (!pasted) return;
+      const cleaned = pasted.startsWith("#") ? pasted : `#${pasted}`;
+      try {
+        const normalized = normalizeHexColor(cleaned);
+        e.preventDefault();
+        onChange?.(normalized);
+      } catch {
+        // Paste was not a valid hex color; let the input handle it naturally
+      }
+    },
+    [onChange],
   );
 
   /**
@@ -208,6 +240,7 @@ function ColorPreview({
             onBlur={handleHexInputBlur}
             onFocus={handleHexInputFocus}
             onKeyDown={handleHexInputKeyDown}
+            onPaste={handleHexInputPaste}
             style={{
               width: "100%",
               padding: "0.375rem 0.5rem",
@@ -225,6 +258,7 @@ function ColorPreview({
             aria-invalid={hexInputError}
             aria-describedby={hexInputError ? `${hexInputId}-error` : undefined}
             title="Type a hex color value (e.g. #ff0000, #f00, or #ff000080). Press Enter to confirm."
+            placeholder="#RRGGBB"
           />
           <span
             style={{
@@ -257,6 +291,8 @@ function ColorPreview({
   );
 }
 
+ColorPreview.displayName = "ColorPreview";
+
 /** Minimum contrast ratio needed per WCAG level (normal text). */
 const WCAG_MIN_RATIO: Record<"AA" | "AAA", number> = {
   AA: getRequiredRatio("AA", "normal"),
@@ -276,11 +312,12 @@ function ContrastBadge({
   /** WCAG conformance level to display. */
   standard: "AA" | "AAA";
 }) {
+  const minRatio = WCAG_MIN_RATIO[standard];
   return (
     <div
       className={`contrast-badge ${pass ? "pass" : "fail"}`}
       role="status"
-      aria-label={`WCAG ${standard}: ${pass ? "Pass" : "Fail"}`}
+      aria-label={`WCAG ${standard} normal text: ${pass ? "Pass" : "Fail — needs ${minRatio.toFixed(1)}:1 minimum"}`}
     >
       {pass ? <CheckIcon /> : <XIcon />}
       <div className="contrast-badge-text">
@@ -288,12 +325,14 @@ function ContrastBadge({
         <span className="contrast-badge-status">
           {pass
             ? "Pass"
-            : `Needs ${WCAG_MIN_RATIO[standard].toFixed(1)}:1`}
+            : `Needs ${minRatio.toFixed(1)}:1`}
         </span>
       </div>
     </div>
   );
 }
+
+ContrastBadge.displayName = "ContrastBadge";
 
 /**
  * Main canvas component for the Contrast Checker tool.
@@ -310,50 +349,38 @@ export function ToolCanvas({
   canvasRef,
   onFgChange,
   onBgChange,
+  onSwapColors,
   label = "",
   onLabelChange,
   onAddCombination,
 }: ToolCanvasProps) {
-  const [localFg, setLocalFg] = useState(fgColor);
-  const [localBg, setLocalBg] = useState(bgColor);
-  const [localLabel, setLocalLabel] = useState(label);
-
-  // Sync props to local state (intentional controlled-component pattern)
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    setLocalFg(fgColor);
-  }, [fgColor]);
-  useEffect(() => {
-    setLocalBg(bgColor);
-  }, [bgColor]);
-  useEffect(() => {
-    setLocalLabel(label);
-  }, [label]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  // Use props directly as the single source of truth.
+  // The parent (ToolClient) owns the state; we just read and forward changes.
+  // This avoids the useEffect-sync anti-pattern that caused unnecessary re-renders.
 
   const ratio = useMemo(() => {
     try {
-      return getContrastRatio(localFg, localBg);
+      return getContrastRatio(fgColor, bgColor);
     } catch {
       return 0;
     }
-  }, [localFg, localBg]);
+  }, [fgColor, bgColor]);
 
   const fgBrightness = useMemo(() => {
     try {
-      return getRelativeLuminance(localFg);
+      return getRelativeLuminance(fgColor);
     } catch {
       return 0;
     }
-  }, [localFg]);
+  }, [fgColor]);
 
   const bgBrightness = useMemo(() => {
     try {
-      return getRelativeLuminance(localBg);
+      return getRelativeLuminance(bgColor);
     } catch {
       return 0;
     }
-  }, [localBg]);
+  }, [bgColor]);
 
   const passAA = useMemo(
     () => ratio >= getRequiredRatio("AA", "normal"),
@@ -372,27 +399,9 @@ export function ToolCanvas({
     [ratio],
   );
 
-  const handleFgChange = useCallback(
-    (color: string) => {
-      setLocalFg(color);
-      onFgChange?.(color);
-    },
-    [onFgChange],
-  );
-
-  const handleBgChange = useCallback(
-    (color: string) => {
-      setLocalBg(color);
-      onBgChange?.(color);
-    },
-    [onBgChange],
-  );
-
   const handleLabelChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newLabel = e.target.value;
-      setLocalLabel(newLabel);
-      onLabelChange?.(newLabel);
+      onLabelChange?.(e.target.value);
     },
     [onLabelChange],
   );
@@ -418,9 +427,9 @@ export function ToolCanvas({
             </span>
           </div>
           <ColorPreview
-            color={localFg}
+            color={fgColor}
             label="Foreground"
-            onChange={handleFgChange}
+            onChange={onFgChange}
             instanceId="fg"
           />
         </div>
@@ -435,9 +444,9 @@ export function ToolCanvas({
             </span>
           </div>
           <ColorPreview
-            color={localBg}
+            color={bgColor}
             label="Background"
-            onChange={handleBgChange}
+            onChange={onBgChange}
             instanceId="bg"
           />
         </div>
@@ -461,14 +470,14 @@ export function ToolCanvas({
             style={{
               width: "100%",
               height: "48px",
-              background: localBg,
+              background: bgColor,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",
               marginTop: "0.5rem",
               position: "relative",
               overflow: "hidden",
             }}
-            aria-label={`Contrast preview bar showing ${localFg} on ${localBg}`}
+            aria-label={`Contrast preview bar showing ${fgColor} on ${bgColor}`}
           >
             <div
               className="contrast-preview-overlay"
@@ -481,10 +490,10 @@ export function ToolCanvas({
                 gap: "1rem",
                 fontSize: "0.875rem",
                 fontWeight: 500,
-                color: localFg,
+                color: fgColor,
                 textShadow: passAA
-                  ? `0 0 2px ${localBg}, 0 0 1px ${localBg}`
-                  : `0 0 3px ${localBg}, 0 0 1px ${localBg}`,
+                  ? `0 0 2px ${bgColor}, 0 0 1px ${bgColor}`
+                  : `0 0 3px ${bgColor}, 0 0 1px ${bgColor}`,
               }}
             >
               <span
@@ -492,9 +501,9 @@ export function ToolCanvas({
                   display: "inline-block",
                   width: "24px",
                   height: "24px",
-                  background: localFg,
+                  background: fgColor,
                   borderRadius: "4px",
-                  border: `1px solid ${localBg}`,
+                  border: `1px solid ${bgColor}`,
                 }}
               />
               <span
@@ -517,17 +526,6 @@ export function ToolCanvas({
             aria-live="polite"
             aria-atomic="true"
             className="sr-only"
-            style={{
-              position: "absolute",
-              width: "1px",
-              height: "1px",
-              padding: 0,
-              margin: "-1px",
-              overflow: "hidden",
-              clip: "rect(0, 0, 0, 0)",
-              whiteSpace: "nowrap",
-              border: 0,
-            }}
           >
             Contrast ratio {formatRatio(ratio)}. WCAG AA{" "}
             {passAA ? "pass" : "fail"} for normal text. WCAG AAA{" "}
@@ -594,14 +592,34 @@ export function ToolCanvas({
           </div>
         </div>
 
+        {/* Swap Colors Button */}
+        {onSwapColors && (
+          <button
+            type="button"
+            onClick={onSwapColors}
+            className="btn-secondary"
+            style={{
+              alignSelf: "flex-start",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.375rem",
+            }}
+            aria-label="Swap foreground and background colors"
+            title="Swap foreground and background colors"
+          >
+            <SwapIcon />
+            Swap Colors
+          </button>
+        )}
+
         {/* Save Combination Button */}
         {onAddCombination && (
           <button
             type="button"
             onClick={() =>
               onAddCombination({
-                fg: localFg,
-                bg: localBg,
+                fg: fgColor,
+                bg: bgColor,
                 ratio: Math.round(ratio * 100) / 100,
                 passAA,
                 passAAA,
@@ -609,7 +627,7 @@ export function ToolCanvas({
             }
             className="btn-secondary"
             style={{ alignSelf: "flex-start", marginTop: "0.25rem" }}
-            aria-label={`Save current combination ${localFg} on ${localBg} (ratio ${formatRatio(ratio)})`}
+            aria-label={`Save current combination ${fgColor} on ${bgColor} (ratio ${formatRatio(ratio)})`}
           >
             <PlusIcon />
             Save Combination
@@ -631,16 +649,16 @@ export function ToolCanvas({
           <input
             id="contrast-label-input"
             type="text"
-            value={localLabel}
+            value={label}
             onChange={handleLabelChange}
-            placeholder="Sample text preview"
+            placeholder="Type sample text to preview..."
             style={{
               flex: 1,
               padding: "0.5rem 0.75rem",
               fontSize: "0.875rem",
               fontFamily: "inherit",
-              background: localBg,
-              color: localFg,
+              background: bgColor,
+              color: fgColor,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",
               outline: "none",
@@ -653,15 +671,15 @@ export function ToolCanvas({
           style={{
             marginTop: "0.5rem",
             padding: "0.75rem",
-            background: localBg,
-            color: localFg,
+            background: bgColor,
+            color: fgColor,
             border: "1px solid var(--border)",
             borderRadius: "var(--radius)",
             fontSize: "1rem",
             lineHeight: "1.5",
           }}
         >
-          {localLabel ||
+          {label ||
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
         </div>
       </div>

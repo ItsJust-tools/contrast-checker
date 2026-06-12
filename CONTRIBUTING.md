@@ -4,11 +4,53 @@ Thanks for your interest in contributing! This document covers the basics.
 
 ## Development Setup
 
+### Prerequisites
+
+- **Node.js >= 22.0.0** (check with `node --version`)
+- **pnpm >= 9.0.0** or **yarn >= 1.22.0** (optional, but recommended for workspace speed)
+- A modern browser (Chrome, Firefox, Edge, or Safari)
+
+### Quick Start
+
 ```bash
 git clone https://github.com/ItsJust-tools/contrast-checker.git
 cd contrast-checker
 npm install
+npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000) to see the tool.
+
+### Editor Config (Recommended)
+
+This tool uses an `.editorconfig` to enforce consistent formatting across editors. To activate it:
+
+1. Install an EditorConfig plugin for your editor:
+   - VS Code: [EditorConfig for VS Code](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
+   - JetBrains (WebStorm/IntelliJ): Built-in support
+   - Vim/Neovim: [editorconfig-vim](https://github.com/editorconfig/editorconfig-vim)
+2. The `.editorconfig` file is generated from the template at build time and sourced in `.gitignore`. Create your own at the repo root:
+
+```ini
+# .editorconfig (create manually if needed)
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{ts,tsx,js,jsx}]
+indent_style = space
+indent_size = 2
+
+[*.{json,yml,yaml,md}]
+indent_style = space
+indent_size = 2
+```
+
+Formatting is also automatically enforced via Prettier (run `npm run format` to reformat all files).
 
 ## Branching Strategy
 
@@ -98,11 +140,31 @@ Visual regression tests use Playwright screenshots. To keep snapshots stable:
 
 ## Pull Request Process
 
+### Before You Commit
+
+Run these checks locally to catch issues early:
+
+```bash
+# Lint your changes
+npm run lint
+
+# Run unit tests
+npm test
+
+# Check formatting
+npm run format:check
+```
+
+If you add new dependencies, run `npm run deps:check` to flag unused packages.
+
+### Creating a PR
+
 1. Create a feature branch from `main`.
 2. Make your changes with tests.
 3. Ensure `npm run build` and `npm test` pass.
 4. Update `CHANGELOG.md` under `[Unreleased]`.
-5. Open a PR with a clear description of the change and motivation.
+5. Create a pull request targeting `main`. Include a clear description of the change and motivation.
+6. If your change is user-visible, include a screenshot or video preview.
 
 ## Reporting Issues
 

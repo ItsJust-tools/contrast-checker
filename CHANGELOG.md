@@ -21,13 +21,15 @@ All notable changes to the Contrast Checker will be documented in this file.
 
 ### Added
 
-- CVD simulation unit tests for `simulateCvd` and `getCvdContrastRatio` functions
-  covering all four CVD types (protanopia, deuteranopia, tritanopia, achromatopsia)
-- `displayName` to all exported React components (ToolCanvas, ToolSidebar,
-  ToolToolbar, EyeDropperIcon, CheckIcon, XIcon, PlusIcon, ChevronDownIcon,
-  DownloadIcon, TrashIcon) for better React DevTools debugging
+- **Undo/Redo buttons** in the toolbar with keyboard shortcuts (Ctrl+Z / Ctrl+Y or Ctrl+Shift+Z on Mac).
+  The state `useToolState` hook already supported undo/redo history, but there was no UI to access it.
+  - New `UndoIcon` and `RedoIcon` SVG components in the shared icons module
+  - Toolbar now renders undo/redo action buttons that disable when history is at limit
+  - Keyboard shortcuts routed through the existing shortcut mapper
+  - Added `undoRedo: true` to tool config features
+- New keyboard shortcuts documented in tool config: Ctrl+Z (Undo), Ctrl+Y / Ctrl+Shift+Z (Redo)
 
-## [1.5.0] - 2026-06-03
+## [1.6.0] - 2026-06-03
 
 ### Added
 

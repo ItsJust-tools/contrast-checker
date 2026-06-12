@@ -1,20 +1,24 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   getRelativeLuminance,
   getContrastRatio,
   formatRatio,
   suggestAccessibleColor,
+  suggestAccessiblePair,
   hexToRgb,
   rgbToHsl,
   formatRgb,
   formatHsl,
   simulateCvd,
   getCvdContrastRatio,
+  getWCAGLevel,
+  getLuminanceLabel,
   CVD_LABELS,
+  CVD_SHORT_LABELS,
 } from "@/lib/contrast";
-import type { SuggestionResult, CvdType } from "@/lib/contrast";
+import type { AccessiblePair, SuggestionResult, CvdType } from "@/lib/contrast";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
 
 interface ToolSidebarProps {
@@ -54,7 +58,6 @@ function ColorSwatch({
   const handleClick = useCallback(() => {
     const input = document.getElementById(inputId) as HTMLInputElement | null;
     if (input) {
-      input.focus();
       input.click();
     }
   }, [inputId]);
@@ -68,20 +71,14 @@ function ColorSwatch({
 
   return (
     <div
-      className="color-swatch"
+      className="color-swatch-small"
       style={{
-        width: "48px",
-        height: "48px",
         background: color,
-        border: "2px solid var(--foreground)",
-        borderRadius: "var(--radius)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontSize: "0.6875rem",
-        cursor: "pointer",
         position: "relative",
-        transition: "transform 0.1s, box-shadow 0.1s",
         outline: "none",
       }}
       role="button"
@@ -117,6 +114,8 @@ function ColorSwatch({
     </div>
   );
 }
+
+ColorSwatch.displayName = "ColorSwatch";
 
 /**
  * Displays a WCAG compliance badge with pass/fail visual indicator.
@@ -157,6 +156,8 @@ function ComplianceBadge({
   );
 }
 
+ComplianceBadge.displayName = "ComplianceBadge";
+
 /**
  * Small color swatch displaying the abbreviation label with contrasting text.
  * Reads the hex color and shows the abbreviation in an optimally readable color.
@@ -168,8 +169,13 @@ function ColorReferenceSwatch({
   color: string;
   label: string;
 }) {
-  const textColor =
-    getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000";
+  // Memoize the text color calculation to avoid recalculating getContrastRatio
+  // on every render when the color hasn't changed.
+  const textColor = useMemo(
+    () =>
+      getContrastRatio(color, "#ffffff") > 4.5 ? "#ffffff" : "#000000",
+    [color],
+  );
   return (
     <div
       style={{
@@ -195,16 +201,71 @@ function ColorReferenceSwatch({
   );
 }
 
+ColorReferenceSwatch.displayName = "ColorReferenceSwatch";
+
+/**
+ * Copy text to clipboard and show brief visual feedback.
+ * Falls back gracefully when navigator.clipboard is unavailable.
+ */
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      // clipboard API may not be available; silently ignore
+    }
+  }, [text]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(id);
+  }, [copied]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={`Copy ${label}: ${text}`}
+      title={`Copy ${label}`}
+      style={{
+        fontSize: "0.625rem",
+        padding: "0.125rem 0.375rem",
+        border: `1px solid var(--border)`,
+        borderRadius: "3px",
+        background: copied ? "var(--accent-subtle)" : "transparent",
+        color: copied ? "var(--success)" : "var(--muted-foreground)",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        transition: "background 0.15s, color 0.15s",
+        marginTop: "0.125rem",
+      }}
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+CopyButton.displayName = "CopyButton";
+
 /**
  * Suggested foreground color row with click-to-apply behavior.
  * Shared between light and dark suggestion display.
+ *
+ * Uses the pre-calculated `brightness` label from {@link ColorSuggestion}
+ * instead of recalculating contrast against white on every render.
  */
 function SuggestionRow({
   suggestion,
   onApply,
+  highlighted = false,
 }: {
-  suggestion: { color: string; ratio: number; passAAA: boolean };
+  suggestion: { color: string; ratio: number; passAAA: boolean; brightness: string };
   onApply?: (color: string) => void;
+  highlighted?: boolean;
 }) {
   const handleClick = useCallback(() => {
     onApply?.(suggestion.color);
@@ -220,8 +281,8 @@ function SuggestionRow({
     [onApply, suggestion.color],
   );
 
-  const brightnessLabel =
-    getContrastRatio(suggestion.color, "#ffffff") > 4.5 ? "Light" : "Dark";
+  // Use the pre-calculated brightness label instead of recalculating
+  const brightnessLabel = suggestion.brightness === "dark" ? "Dark" : "Light";
 
   return (
     <div
@@ -230,23 +291,27 @@ function SuggestionRow({
         display: "flex",
         alignItems: "center",
         gap: "0.5rem",
-        padding: "0.375rem 0.5rem",
+        padding: highlighted ? "0.5rem" : "0.375rem 0.5rem",
         borderRadius: "var(--radius)",
         cursor: "pointer",
-        marginBottom: "0.25rem",
+        marginBottom: "0.375rem",
         transition: "background-color 0.15s",
+        border: highlighted ? "2px solid var(--success)" : "none",
+        background: highlighted
+          ? "color-mix(in srgb, var(--success) 8%, transparent)"
+          : "transparent",
       }}
       role="button"
       tabIndex={0}
-      title={`Apply ${suggestion.color}`}
-      aria-label={`Apply ${brightnessLabel.toLocaleLowerCase()} foreground ${suggestion.color} with ratio ${formatRatio(suggestion.ratio)}`}
+      title={`Apply ${suggestion.color} (best match)`}
+      aria-label={`Best match: apply ${brightnessLabel.toLocaleLowerCase()} foreground ${suggestion.color} with ratio ${formatRatio(suggestion.ratio)}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
       <div
         style={{
-          width: "28px",
-          height: "28px",
+          width: highlighted ? "32px" : "28px",
+          height: highlighted ? "32px" : "28px",
           background: suggestion.color,
           border: "1px solid var(--border)",
           borderRadius: "4px",
@@ -256,9 +321,9 @@ function SuggestionRow({
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         <span
           style={{
-            fontSize: "0.75rem",
+            fontSize: highlighted ? "0.8125rem" : "0.75rem",
             fontFamily: "monospace",
-            fontWeight: 500,
+            fontWeight: highlighted ? 600 : 500,
           }}
         >
           {suggestion.color}
@@ -268,12 +333,14 @@ function SuggestionRow({
           {suggestion.passAAA ? " · AAA✓" : " · AA✓"}
         </span>
       </div>
-      <span style={{ fontSize: "0.65rem", color: "var(--muted)" }}>
-        Click to apply
+      <span style={{ fontSize: highlighted ? "0.6875rem" : "0.65rem", color: "var(--success)", whiteSpace: "nowrap" }}>
+        {highlighted ? "★ Best match" : "Apply"}
       </span>
     </div>
   );
 }
+
+SuggestionRow.displayName = "SuggestionRow";
 
 /**
  * Small copy-to-clipboard button for a text value.
@@ -345,7 +412,14 @@ function ColorReferenceDetails({
   const rgbStr = useMemo(() => formatRgb(rgb.r, rgb.g, rgb.b), [rgb]);
   const hslStr = useMemo(() => formatHsl(hsl.h, hsl.s, hsl.l), [hsl]);
   const hexLower = useMemo(() => color.toLowerCase(), [color]);
-
+  const luminance = useMemo(() => {
+    try {
+      return getRelativeLuminance(color);
+    } catch {
+      return 0;
+    }
+  }, [color]);
+  const brightnessLabel = getLuminanceLabel(luminance);
   return (
     <div style={{ fontSize: "0.625rem", lineHeight: "1.5", minWidth: 0 }}>
       <div
@@ -371,14 +445,19 @@ function ColorReferenceDetails({
           <span style={{ flex: 1 }}>{rgbStr}</span>
           <CopyButton text={rgbStr} />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginBottom: "0.125rem" }}>
           <span style={{ flex: 1 }}>{hslStr}</span>
           <CopyButton text={hslStr} />
+        </div>
+        <div style={{ marginTop: "0.25rem", fontSize: "0.6rem" }}>
+          Luminance: {(luminance * 100).toFixed(1)}% · {brightnessLabel}
         </div>
       </div>
     </div>
   );
 }
+
+ColorReferenceDetails.displayName = "ColorReferenceDetails";
 
 /**
  * Sidebar panel for the Contrast Checker tool.
@@ -418,6 +497,11 @@ export function ToolSidebar({
     }
   }, [bgColor]);
 
+  const fgRgb = useMemo(() => hexToRgb(fgColor), [fgColor]);
+  const bgRgb = useMemo(() => hexToRgb(bgColor), [bgColor]);
+  const fgRgbStr = useMemo(() => formatRgb(fgRgb.r, fgRgb.g, fgRgb.b), [fgRgb]);
+  const bgRgbStr = useMemo(() => formatRgb(bgRgb.r, bgRgb.g, bgRgb.b), [bgRgb]);
+
   const averageContrast = useMemo(() => {
     if (combinations.length === 0) return 0;
     const sum = combinations.reduce((acc, c) => acc + c.ratio, 0);
@@ -438,21 +522,16 @@ export function ToolSidebar({
 
   /** Announceable summary of current stats, used by the screen-reader live region. */
   const liveSummary = useMemo(() => {
-    if (combinations.length === 0) return "No combinations saved yet.";
+    if (combinations.length === 0) return "No combinations saved yet. Use the Save Combination button on the canvas to add one.";
     return (
       `${combinations.length} combination${combinations.length === 1 ? "" : "s"} saved. ` +
-      `Average contrast ratio ${averageContrast.toFixed(2)}:1. ` +
+      `Average contrast ratio ${formatRatio(averageContrast)}. ` +
       `AA pass rate ${passRateAA.toFixed(0)}%. ` +
       `AAA pass rate ${passRateAAA.toFixed(0)}%.`
     );
   }, [combinations, averageContrast, passRateAA, passRateAAA]);
 
-  const levelIndicator =
-    averageContrast >= 7
-      ? ("aaa" as const)
-      : averageContrast >= 4.5
-        ? ("aa" as const)
-        : ("fail" as const);
+  const levelIndicator = useMemo(() => getWCAGLevel(averageContrast, "normal"), [averageContrast]);
 
   const accessibleSuggestions = useMemo<SuggestionResult>(() => {
     try {
@@ -461,6 +540,24 @@ export function ToolSidebar({
       return { light: null, dark: null, best: null };
     }
   }, [bgColor]);
+
+  const currentContrastRatio = useMemo(() => {
+    try {
+      return getContrastRatio(fgColor, bgColor);
+    } catch {
+      return 0;
+    }
+  }, [fgColor, bgColor]);
+
+  const pairSuggestions = useMemo<AccessiblePair[]>(() => {
+    try {
+      return suggestAccessiblePair(fgColor, bgColor);
+    } catch {
+      return [];
+    }
+  }, [fgColor, bgColor]);
+
+  const showPairSuggestions = currentContrastRatio < 4.5 && pairSuggestions.length > 0;
 
   return (
     <div className="contrast-sidebar">
@@ -508,7 +605,7 @@ export function ToolSidebar({
                 color: fgPreview > bgPreview ? fgColor : bgColor,
               }}
             >
-              {averageContrast.toFixed(2)}
+              {formatRatio(averageContrast).replace(/:1$/, "")}
             </span>
             <span style={{ fontSize: "0.6875rem" }}>:1</span>
           </div>
@@ -548,15 +645,6 @@ export function ToolSidebar({
       {/* Click-to-select Color Section */}
       <div className="sidebar-section">
         <h3>Click to Pick Colors</h3>
-        <p
-          style={{
-            fontSize: "0.6875rem",
-            color: "var(--muted)",
-            marginBottom: "0.75rem",
-          }}
-        >
-          Click any color swatch to open the color picker
-        </p>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
           <ColorSwatch
             color={fgColor}
@@ -579,14 +667,22 @@ export function ToolSidebar({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "auto 1fr",
+            gridTemplateColumns: "auto 1fr auto",
             gap: "0.5rem",
           }}
         >
           <ColorReferenceSwatch color={fgColor} label="FG" />
           <ColorReferenceDetails color={fgColor} name="Foreground" />
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
+            <CopyButton text={fgColor.toLowerCase()} label="foreground hex" />
+            <CopyButton text={fgRgbStr} label="foreground RGB" />
+          </div>
           <ColorReferenceSwatch color={bgColor} label="BG" />
           <ColorReferenceDetails color={bgColor} name="Background" />
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: "0.25rem" }}>
+            <CopyButton text={bgColor.toLowerCase()} label="background hex" />
+            <CopyButton text={bgRgbStr} label="background RGB" />
+          </div>
         </div>
       </div>
 
@@ -604,21 +700,32 @@ export function ToolSidebar({
           Click a suggestion to apply it.
         </p>
 
-        {accessibleSuggestions.light && (
-          <SuggestionRow
-            suggestion={accessibleSuggestions.light}
-            onApply={onFgChange}
-          />
+        {accessibleSuggestions.best && (
+          <>
+            <SuggestionRow
+              suggestion={accessibleSuggestions.best}
+              onApply={onFgChange}
+              highlighted={true}
+            />
+            {/* Show secondary options only if they differ from best */}
+            {accessibleSuggestions.light &&
+              accessibleSuggestions.light.color !== accessibleSuggestions.best.color && (
+                <SuggestionRow
+                  suggestion={accessibleSuggestions.light}
+                  onApply={onFgChange}
+                />
+              )}
+            {accessibleSuggestions.dark &&
+              accessibleSuggestions.dark.color !== accessibleSuggestions.best.color && (
+                <SuggestionRow
+                  suggestion={accessibleSuggestions.dark}
+                  onApply={onFgChange}
+                />
+              )}
+          </>
         )}
 
-        {accessibleSuggestions.dark && (
-          <SuggestionRow
-            suggestion={accessibleSuggestions.dark}
-            onApply={onFgChange}
-          />
-        )}
-
-        {!accessibleSuggestions.light && !accessibleSuggestions.dark && (
+        {!accessibleSuggestions.best && (
           <div
             style={{
               fontSize: "0.75rem",
@@ -632,8 +739,89 @@ export function ToolSidebar({
         )}
       </div>
 
+      {/* Fix Contrast - shown when current pair fails WCAG AA */}
+      {showPairSuggestions && (
+        <div className="sidebar-section">
+          <h3>Fix This Contrast</h3>
+          <p
+            style={{
+              fontSize: "0.6875rem",
+              color: "var(--muted)",
+              marginBottom: "0.5rem",
+            }}
+          >
+            Current ratio ({formatRatio(currentContrastRatio)}) does not pass WCAG AA.
+            Click a suggestion to apply it.
+          </p>
+          {pairSuggestions.slice(0, 3).map((pair, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.5rem",
+                borderRadius: "var(--radius)",
+                cursor: "pointer",
+                marginBottom: "0.375rem",
+                border: "2px solid var(--warning, #f59e0b)",
+                background: "color-mix(in srgb, var(--warning, #f59e0b) 8%, transparent)",
+                transition: "background-color 0.15s",
+              }}
+              role="button"
+              tabIndex={0}
+              title={pair.description}
+              aria-label={`${pair.description}: ratio ${formatRatio(pair.ratio)}`}
+              onClick={() => {
+                onFgChange?.(pair.fg);
+                onBgChange?.(pair.bg);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onFgChange?.(pair.fg);
+                  onBgChange?.(pair.bg);
+                }
+              }}
+            >
+              <div style={{ display: "flex", gap: "0.25rem", flexShrink: 0 }}>
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: pair.fg,
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                  }}
+                  aria-label={`Foreground: ${pair.fg}`}
+                />
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    background: pair.bg,
+                    border: "2px solid var(--foreground)",
+                    borderRadius: "4px",
+                  }}
+                  aria-label={`Background: ${pair.bg}`}
+                />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "0.75rem", fontFamily: "monospace", fontWeight: 600 }}>
+                  {pair.fg} / {pair.bg}
+                </div>
+                <div style={{ fontSize: "0.625rem", color: "var(--muted)" }}>
+                  {formatRatio(pair.ratio)}
+                  {pair.passAAA ? " · AAA✓" : " · AA✓"}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Combinations Export */}
-      {combinations.length > 0 && (
+      {combinations.length > 0 ? (
         <div className="sidebar-section">
           <div
             style={{
@@ -718,7 +906,7 @@ export function ToolSidebar({
                     color: c.passAA ? "var(--foreground)" : "var(--error)",
                   }}
                 >
-                  {c.ratio.toFixed(2)}:1
+                  {formatRatio(c.ratio)}
                 </span>
                 <div
                   style={{
@@ -774,6 +962,21 @@ export function ToolSidebar({
             ))}
           </div>
         </div>
+      ) : (
+        <div className="sidebar-section" aria-live="polite">
+          <h3>Combinations</h3>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--muted)",
+              fontStyle: "italic",
+              padding: "0.5rem 0",
+            }}
+          >
+            No saved combinations yet. Use the “Save Combination” button on the
+            canvas to add one.
+          </p>
+        </div>
       )}
 
       {/* Color-Blindness Simulation */}
@@ -790,6 +993,8 @@ export function ToolSidebar({
           deficiency.
         </p>
         <div
+          role="radiogroup"
+          aria-label="Color-vision deficiency simulation type"
           style={{
             display: "flex",
             gap: "0.375rem",
@@ -801,6 +1006,8 @@ export function ToolSidebar({
               <button
                 key={type}
                 type="button"
+                role="radio"
+                aria-checked={cvdType === type}
                 onClick={() => onCvdTypeChange?.(type)}
                 style={{
                   fontSize: "0.6875rem",
@@ -814,10 +1021,9 @@ export function ToolSidebar({
                   fontFamily: "inherit",
                   transition: "all 0.1s",
                 }}
-                aria-pressed={cvdType === type}
                 aria-label={`${label}${cvdType === type ? " (active)" : ""}`}
               >
-                {type === "none" ? label : label.split(" (")[0]}
+                {CVD_SHORT_LABELS[type]}
               </button>
             ),
           )}
@@ -833,15 +1039,49 @@ export function ToolSidebar({
               fontSize: "0.6875rem",
               lineHeight: "1.5",
             }}
+            role="region"
+            aria-label={`Color-Vision Simulation: ${CVD_LABELS[cvdType]}`}
           >
             <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
               Simulated Contrast
             </div>
-            <div>
-              Ratio:{" "}
-              {formatRatio(getCvdContrastRatio(fgColor, bgColor, cvdType))}
+            <div
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                marginBottom: "0.375rem",
+              }}
+            >
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "4px",
+                  background: simulateCvd(fgColor, cvdType),
+                  border: "1px solid var(--border)",
+                  flexShrink: 0,
+                }}
+                aria-label={`Simulated foreground: ${simulateCvd(fgColor, cvdType)}`}
+              />
+              <div
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "4px",
+                  background: simulateCvd(bgColor, cvdType),
+                  border: "1px solid var(--border)",
+                  flexShrink: 0,
+                }}
+                aria-label={`Simulated background: ${simulateCvd(bgColor, cvdType)}`}
+              />
+              <div style={{ flex: 1 }}>
+                <div>
+                  Ratio:{" "}
+                  <strong>{formatRatio(getCvdContrastRatio(fgColor, bgColor, cvdType))}</strong>
+                </div>
+              </div>
             </div>
-            <div>
+            <div style={{ fontSize: "0.625rem", color: "var(--muted-foreground)", fontFamily: "ui-monospace, Menlo, Monaco, monospace" }}>
               Sim fg: {simulateCvd(fgColor, cvdType)} ·
               Sim bg: {simulateCvd(bgColor, cvdType)}
             </div>
@@ -865,8 +1105,28 @@ export function ToolSidebar({
           <div style={{ marginBottom: "0.25rem" }}>
             <strong>Large text (18pt+ or 14pt bold):</strong> 3:1 minimum
           </div>
-          <div>
+          <div style={{ marginBottom: "0.25rem" }}>
             <strong>UI Components:</strong> 3:1 minimum
+          </div>
+          <div style={{ marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px solid var(--border)" }}>
+            Based on{" "}
+            <a
+              href="https://www.w3.org/TR/WCAG22/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--accent)", textDecoration: "underline" }}
+            >
+              WCAG 2.2
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://www.w3.org/TR/WCAG21/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--accent)", textDecoration: "underline" }}
+            >
+              WCAG 2.1
+            </a>
           </div>
         </div>
       </div>

@@ -120,7 +120,7 @@ describe("Contrast Checker Tool", () => {
     it("should have feature flags correct", () => {
       expect(contrastTool.config.features.export).toBe(true);
       expect(contrastTool.config.features.autoSave).toBe(false);
-      expect(contrastTool.config.features.undoRedo).toBe(false);
+      expect(contrastTool.config.features.undoRedo).toBe(true);
     });
 
     it("should have accent color configured", () => {

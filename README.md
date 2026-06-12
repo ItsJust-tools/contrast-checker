@@ -2,7 +2,7 @@
 
 A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines. Check any color combination against WCAG 2.1 AA and AAA standards.
 
-[![Version](https://img.shields.io/badge/Version-1.6.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
+[![Version](https://img.shields.io/badge/Version-1.7.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/LICENSE)
 [![CI](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md)
@@ -22,6 +22,9 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 - **Text Level Support** — Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
 - **Share & Export** — Export results as JSON, PNG, WebP, or PDF; share via `.itsjust.json` files
 - **Dark Mode** — Full dark mode support with system preference detection
+- **Undo/Redo** — Full history with undo/redo buttons and keyboard shortcuts (Ctrl+Z / Ctrl+Y)
+- **Smart Contrast Fix Suggestions** — When your color pair fails WCAG AA, the sidebar shows up to 3 accessible alternatives with one-click apply, including curated palette matches and lightness-adjusted variants
+- **Color-Vision Deficiency (CVD) Simulation** — Preview how colors appear under protanopia, deuteranopia, tritanopia, and achromatopsia
 - **Keyboard Accessible** — Full keyboard navigation with focus indicators
 - **Screen Reader Friendly** — ARIA labels and live regions announce contrast results
 - **Short Hex (3-digit) Support** — Supports shorthand hex like `#fff` in addition to `#ffffff`
@@ -91,6 +94,22 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 | `Esc`               | Close color picker          |
 | `Ctrl+Shift+E`      | Export as JSON              |
 | `Ctrl+Shift+P`      | Export as PNG               |
+| `Ctrl+Shift+X`      | Swap foreground/background  |
+| `Ctrl+Z`            | Undo last change            |
+| `Ctrl+Y`            | Redo undone change          |
+
+## Color-Vision Deficiency Simulation
+
+This tool includes a Brettel 1997-based CVD simulation that lets you preview how your color combinations appear under different types of color vision deficiency:
+
+| Type | Description |
+| ---- | ----------- |
+| **Protanopia** | Red-blind — reduced sensitivity to long wavelengths (red) |
+| **Deuteranopia** | Green-blind — reduced sensitivity to medium wavelengths (green) |
+| **Tritanopia** | Blue-blind — reduced sensitivity to short wavelengths (blue) |
+| **Achromatopsia** | Monochrome — complete color blindness (grayscale) |
+
+Select a CVD type in the sidebar to see simulated swatches and the recalculated contrast ratio. This helps ensure your designs remain accessible to users with color vision deficiencies.
 
 ## Accessibility
 
