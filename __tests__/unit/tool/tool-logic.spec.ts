@@ -14,7 +14,7 @@ describe('Contrast tool definition', () => {
   it('has correct metadata', () => {
     expect(contrastTool.id).toBe('contrast-checker');
     expect(contrastTool.name).toBe('Contrast Checker');
-    expect(contrastTool.version).toBe('1.6.0');
+    expect(contrastTool.version).toBe('1.7.0');
   });
 
   it('serializes state correctly', () => {

@@ -18,7 +18,7 @@ import {
   formatRatio,
   getRatioSummary,
   getWCAGLevel,
-} from "@/lib/contrast.js";
+} from "@/lib/contrast";
 
 describe("contrast.js - WCAG Contrast Calculator", () => {
   describe("getRelativeLuminance", () => {

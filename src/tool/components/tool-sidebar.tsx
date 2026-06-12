@@ -907,6 +907,8 @@ export function ToolSidebar({
           deficiency.
         </p>
         <div
+          role="radiogroup"
+          aria-label="Color-vision deficiency simulation type"
           style={{
             display: "flex",
             gap: "0.375rem",
@@ -918,6 +920,8 @@ export function ToolSidebar({
               <button
                 key={type}
                 type="button"
+                role="radio"
+                aria-checked={cvdType === type}
                 onClick={() => onCvdTypeChange?.(type)}
                 style={{
                   fontSize: "0.6875rem",
@@ -931,7 +935,6 @@ export function ToolSidebar({
                   fontFamily: "inherit",
                   transition: "all 0.1s",
                 }}
-                aria-pressed={cvdType === type}
                 aria-label={`${label}${cvdType === type ? " (active)" : ""}`}
               >
                 {CVD_SHORT_LABELS[type]}
