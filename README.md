@@ -2,7 +2,7 @@
 
 A client-side WCAG contrast checker tool for testing color contrast ratios against accessibility guidelines. Check any color combination against WCAG 2.1 AA and AAA standards.
 
-[![Version](https://img.shields.io/badge/Version-1.6.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
+[![Version](https://img.shields.io/badge/Version-1.7.0-blue)](https://github.com/ItsJust-tools/contrast-checker)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/LICENSE)
 [![CI](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/ItsJust-tools/contrast-checker/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ItsJust-tools/contrast-checker/blob/main/CONTRIBUTING.md)
@@ -22,6 +22,7 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 - **Text Level Support** — Check compliance for normal text, large text (18pt+ or 14pt bold), and UI components
 - **Share & Export** — Export results as JSON, PNG, WebP, or PDF; share via `.itsjust.json` files
 - **Dark Mode** — Full dark mode support with system preference detection
+- **Undo/Redo** — Full history with undo/redo buttons and keyboard shortcuts (Ctrl+Z / Ctrl+Y)
 - **Smart Contrast Fix Suggestions** — When your color pair fails WCAG AA, the sidebar shows up to 3 accessible alternatives with one-click apply, including curated palette matches and lightness-adjusted variants
 - **Color-Vision Deficiency (CVD) Simulation** — Preview how colors appear under protanopia, deuteranopia, tritanopia, and achromatopsia
 - **Keyboard Accessible** — Full keyboard navigation with focus indicators
@@ -91,7 +92,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the tool.
 | `Esc`               | Close color picker          |
 | `Ctrl+Shift+E`      | Export as JSON              |
 | `Ctrl+Shift+P`      | Export as PNG               |
-| `Ctrl+Shift+X`      | Swap foreground/background   |
+| `Ctrl+Shift+X`      | Swap foreground/background  |
+| `Ctrl+Z`            | Undo last change            |
+| `Ctrl+Y`            | Redo undone change          |
 
 ## Color-Vision Deficiency Simulation
 

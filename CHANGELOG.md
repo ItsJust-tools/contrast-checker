@@ -4,39 +4,17 @@ All notable changes to the Contrast Checker will be documented in this file.
 
 ## [Unreleased]
 
-### Fixed
-
-- Fixed 2 ESLint errors (`react/no-unescaped-entities`) in the sidebar — unescaped double
-  quotes around "Save Combination" now use curly quotes (`\u201c` / `\u201d`) to comply with
-  the JSX rule.
-
-### Changed
-
-- Improved `CONTRIBUTING.md` with expanded development setup, EditorConfig guidance,
-  and a "Before You Commit" section for running lint/tests locally.
-
 ### Added
 
-- `normalizeHexColor()` utility function in `src/lib/contrast.ts` — normalizes hex colors
-  to canonical 6-character form, expanding 3-char shorthand and stripping alpha from
-  8-char values. Replaces duplicated inline expansion logic in `tool-canvas.tsx`.
-- `getWCAGLevel()` utility function that classifies a contrast ratio into WCAG conformance
-  level (`"aaa"`, `"aa"`, `"fail"`) for a given text size. Replaces hardcoded threshold
-  comparisons in `tool-sidebar.tsx`.
-- `WcagLevel` export type (`"aaa" | "aa" | "fail"`).
+- **Undo/Redo buttons** in the toolbar with keyboard shortcuts (Ctrl+Z / Ctrl+Y or Ctrl+Shift+Z on Mac).
+  The state `useToolState` hook already supported undo/redo history, but there was no UI to access it.
+  - New `UndoIcon` and `RedoIcon` SVG components in the shared icons module
+  - Toolbar now renders undo/redo action buttons that disable when history is at limit
+  - Keyboard shortcuts routed through the existing shortcut mapper
+  - Added `undoRedo: true` to tool config features
+- New keyboard shortcuts documented in tool config: Ctrl+Z (Undo), Ctrl+Y / Ctrl+Shift+Z (Redo)
 
-### Changed
-
-- Updated version to 1.6.0
-- Refactored hex color input in `ColorPreview` component (`tool-canvas.tsx`) to use
-  the shared `normalizeHexColor` utility instead of duplicating expansion/validation
-  logic across `handleHexInputChange`, `handleHexInputPaste`, and `handleHexInputBlur`.
-- Sidebar stats now use the shared `formatRatio()` utility instead of raw `toFixed()`
-  for ratio display (drops unnecessary trailing zeros).
-- Sidebar `levelIndicator` now uses the new `getWCAGLevel()` function instead of
-  manual threshold comparisons.
-
-## [1.5.0] - 2026-06-03
+## [1.6.0] - 2026-06-03
 
 ### Added
 

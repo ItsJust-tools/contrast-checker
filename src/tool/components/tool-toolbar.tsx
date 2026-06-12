@@ -1,13 +1,17 @@
 "use client";
 
 import { useCallback, useState, useRef, useEffect } from "react";
-import { DownloadIcon, ChevronDownIcon } from "./icons";
+import { DownloadIcon, ChevronDownIcon, UndoIcon, RedoIcon } from "./icons";
 
 export type ExportFormat = "json" | "png" | "webp" | "pdf";
 
 interface ToolToolbarProps {
   onExport?: (format: ExportFormat) => void;
   onSwapColors?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
   disabled?: boolean;
 }
 
@@ -31,7 +35,7 @@ const EXPORT_FORMATS: { format: ExportFormat; label: string; shortcut?: string }
  * Home/End to jump to first/last item, and Enter/Space to select.
  * Escape closes the dropdown and returns focus to the trigger button.
  */
-export function ToolToolbar({ onExport, onSwapColors, disabled = false }: ToolToolbarProps) {
+export function ToolToolbar({ onExport, onSwapColors, onUndo, onRedo, canUndo = false, canRedo = false, disabled = false }: ToolToolbarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -42,13 +46,17 @@ export function ToolToolbar({ onExport, onSwapColors, disabled = false }: ToolTo
    * Map keyboard shortcuts to their export format.
    * Stable reference via useRef to avoid re-creating the effect on every render.
    */
-  const shortcutMapRef = useRef<Record<string, "json" | "png" | "swap">>({
+  const shortcutMapRef = useRef<Record<string, "json" | "png" | "swap" | "undo" | "redo">>({
     "ctrl+shift+e": "json",
     "meta+shift+e": "json",
     "ctrl+shift+p": "png",
     "meta+shift+p": "png",
     "ctrl+shift+x": "swap",
     "meta+shift+x": "swap",
+    "ctrl+z": "undo",
+    "meta+z": "undo",
+    "ctrl+y": "redo",
+    "meta+shift+z": "redo",
   });
 
   /** Global keyboard shortcut handler. */
@@ -67,6 +75,12 @@ export function ToolToolbar({ onExport, onSwapColors, disabled = false }: ToolTo
       if (action === "swap") {
         e.preventDefault();
         onSwapColors?.();
+      } else if (action === "undo") {
+        e.preventDefault();
+        onUndo?.();
+      } else if (action === "redo") {
+        e.preventDefault();
+        onRedo?.();
       } else if (action) {
         e.preventDefault();
         setDropdownOpen(false);
@@ -75,7 +89,7 @@ export function ToolToolbar({ onExport, onSwapColors, disabled = false }: ToolTo
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [disabled, onExport, onSwapColors]);
+  }, [disabled, onExport, onSwapColors, onUndo, onRedo]);
 
   /** Close dropdown on outside click. */
   useEffect(() => {
@@ -178,6 +192,51 @@ export function ToolToolbar({ onExport, onSwapColors, disabled = false }: ToolTo
 
   return (
     <div className="contrast-toolbar" ref={dropdownRef}>
+      {/* Undo / Redo buttons */}
+      <div style={{ display: "flex", gap: "0.25rem", marginRight: "auto" }}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUndo?.();
+          }}
+          disabled={disabled || !canUndo}
+          className="btn-secondary"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "32px",
+            height: "28px",
+            padding: 0,
+          }}
+          aria-label="Undo last action (Ctrl+Z)"
+          title="Undo (Ctrl+Z)"
+        >
+          <UndoIcon />
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRedo?.();
+          }}
+          disabled={disabled || !canRedo}
+          className="btn-secondary"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "32px",
+            height: "28px",
+            padding: 0,
+          }}
+          aria-label="Redo last undone action (Ctrl+Shift+Z)"
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          <RedoIcon />
+        </button>
+      </div>
       <div className="export-dropdown" style={{ position: "relative" }}>
         <button
           ref={triggerRef}

@@ -46,6 +46,8 @@ export default function ToolClient() {
     },
   );
 
+  const { undo, redo, canUndo, canRedo } = state;
+
   const { exportTo, isExporting } = useExport(
     canvasRef,
     toolConfig,
@@ -167,7 +169,7 @@ export default function ToolClient() {
 
   return (
     <div className="contrast-tool-layout">
-      <ToolToolbar onExport={handleExport} onSwapColors={handleSwapColors} disabled={isAnyActionInProgress} />
+      <ToolToolbar onExport={handleExport} onSwapColors={handleSwapColors} onUndo={undo} onRedo={redo} canUndo={canUndo} canRedo={canRedo} disabled={isAnyActionInProgress} />
       <main className="contrast-main-content">
         <ToolCanvas
           fgColor={state.data.fgColor}

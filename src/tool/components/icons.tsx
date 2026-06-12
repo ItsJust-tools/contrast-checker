@@ -185,3 +185,43 @@ export function CheckCircleIcon() {
   );
 }
 CheckCircleIcon.displayName = "CheckCircleIcon";
+
+/** Undo icon SVG — revert the last color change or action. */
+export function UndoIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "16px", height: "16px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a5 5 0 010 10H6a1 1 0 010-2h5a3 3 0 100-6H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+UndoIcon.displayName = "UndoIcon";
+
+/** Redo icon SVG — reapply a previously undone change. */
+export function RedoIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      style={{ width: "16px", height: "16px" }}
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H9a5 5 0 000 10h5a1 1 0 010 2H9a7 7 0 010-14h5.586l-2.293-2.293a1 1 0 010-1.414z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+RedoIcon.displayName = "RedoIcon";
