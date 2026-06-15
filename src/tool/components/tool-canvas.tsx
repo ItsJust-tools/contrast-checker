@@ -35,6 +35,36 @@ interface ColorPreviewProps {
   instanceId?: string;
 }
 
+const HEX_ERROR_INVALID_CHAR =
+  "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA";
+const HEX_ERROR_TOO_LONG =
+  "Hex color too long. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA";
+const HEX_ERROR_FORMAT =
+  "Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA";
+
+/**
+ * Generate a user-friendly error message for an invalid hex color input.
+ *
+ * Returns `null` when the input is still a plausible partial entry
+ * (e.g. "#f", "#ff", "#fff") so the user can keep typing without
+ * premature error feedback.
+ *
+ * @param stripped - Hex string without the "#" prefix
+ * @returns Error message string, or null if no error should be shown yet
+ */
+function getHexInputErrorMessage(stripped: string): string | null {
+  if (stripped.length >= 4 && !/^[0-9a-fA-F]+$/.test(stripped)) {
+    return HEX_ERROR_INVALID_CHAR;
+  }
+  if (stripped.length > 8) {
+    return HEX_ERROR_TOO_LONG;
+  }
+  if (stripped.length === 4 || stripped.length === 5 || stripped.length === 7) {
+    return `Invalid hex length (${stripped.length} characters). ${HEX_ERROR_FORMAT}`;
+  }
+  return null;
+}
+
 /**
  * Interactive color preview with native color picker and hex text input.
  *
@@ -84,26 +114,10 @@ function ColorPreview({
         // a valid color. Partial entries (e.g. "#f", "#ff") are left without
         // error so the user can keep typing.
         const stripped = val.replace(/^#/, "");
-        if (stripped.length >= 4 && !/^[0-9a-fA-F]+$/.test(stripped)) {
+        const errorMsg = getHexInputErrorMessage(stripped);
+        if (errorMsg) {
           setHexInputError(true);
-          setHexInputMessage(
-            "Invalid hex character. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
-          );
-        } else if (stripped.length > 8) {
-          setHexInputError(true);
-          setHexInputMessage(
-            "Hex color too long. Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
-          );
-        } else if (
-          stripped.length === 4 ||
-          stripped.length === 5 ||
-          stripped.length === 7
-        ) {
-          // Valid hex characters but wrong length — 4, 5, or 7 chars won't parse
-          setHexInputError(true);
-          setHexInputMessage(
-            `Invalid hex length (${stripped.length} characters). Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA`,
-          );
+          setHexInputMessage(errorMsg);
         } else {
           // Still typing a valid hex — no error yet
           setHexInputError(false);
@@ -129,9 +143,7 @@ function ColorPreview({
         setHexInputMessage(null);
       } catch {
         setHexInputError(true);
-        setHexInputMessage(
-          "Expected format: #RRGGBB (e.g. #ff0000), #RGB, or #RRGGBBAA",
-        );
+        setHexInputMessage(HEX_ERROR_FORMAT);
       }
     },
     [],

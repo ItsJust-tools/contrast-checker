@@ -30,6 +30,24 @@ const EXPORT_FORMATS: {
 ];
 
 /**
+ * Map keyboard shortcuts to their export format.
+ * Module-level constant — stable reference avoids re-creating the effect on every render.
+ */
+const SHORTCUT_MAP: Record<string, "json" | "png" | "swap" | "undo" | "redo"> =
+  {
+    "ctrl+shift+e": "json",
+    "meta+shift+e": "json",
+    "ctrl+shift+p": "png",
+    "meta+shift+p": "png",
+    "ctrl+shift+x": "swap",
+    "meta+shift+x": "swap",
+    "ctrl+z": "undo",
+    "meta+z": "undo",
+    "ctrl+y": "redo",
+    "meta+shift+z": "redo",
+  };
+
+/**
  * Toolbar component for the Contrast Checker.
  *
  * Displays an Export button with a dropdown to select the desired format
@@ -54,28 +72,8 @@ export function ToolToolbar({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  /**
-   * Map keyboard shortcuts to their export format.
-   * Stable reference via useRef to avoid re-creating the effect on every render.
-   */
-  const shortcutMapRef = useRef<
-    Record<string, "json" | "png" | "swap" | "undo" | "redo">
-  >({
-    "ctrl+shift+e": "json",
-    "meta+shift+e": "json",
-    "ctrl+shift+p": "png",
-    "meta+shift+p": "png",
-    "ctrl+shift+x": "swap",
-    "meta+shift+x": "swap",
-    "ctrl+z": "undo",
-    "meta+z": "undo",
-    "ctrl+y": "redo",
-    "meta+shift+z": "redo",
-  });
-
   /** Global keyboard shortcut handler. */
   useEffect(() => {
-    const shortcutMap = shortcutMapRef.current;
     const handler = (e: KeyboardEvent) => {
       if (disabled) return;
       const key = [
@@ -85,7 +83,7 @@ export function ToolToolbar({
       ]
         .filter(Boolean)
         .join("+");
-      const action = shortcutMap[key];
+      const action = SHORTCUT_MAP[key];
       if (action === "swap") {
         e.preventDefault();
         onSwapColors?.();

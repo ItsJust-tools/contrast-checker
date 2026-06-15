@@ -43,6 +43,13 @@ interface ToolSidebarProps {
  * Clickable color swatch that opens a native color picker on click.
  * Displays a two-letter abbreviation (first two chars of label) centered
  * on the swatch, rendered in an accessible contrasting color.
+ *
+ * Keyboard accessible: responds to Enter and Space keys.
+ *
+ * @param color - Current hex color value
+ * @param label - Display label (first 2 chars shown on swatch)
+ * @param onColorChange - Callback when color changes via picker
+ * @param inputId - Unique HTML id for the hidden color input element
  */
 function ColorSwatch({
   color,
@@ -121,6 +128,10 @@ ColorSwatch.displayName = "ColorSwatch";
  * Displays a WCAG compliance badge with pass/fail visual indicator.
  * Shows the pass rate percentage for the given standard across all saved combinations.
  * When no combinations exist (`count === 0`), renders a neutral badge with N/A.
+ *
+ * Note: This badge does NOT use `role="status"` because the parent sidebar
+ * already has an `aria-live="polite"` region that announces aggregate stats.
+ * Adding `role="status"` here would create redundant screen-reader announcements.
  */
 function ComplianceBadge({
   pass,
@@ -136,7 +147,6 @@ function ComplianceBadge({
   return (
     <div
       className={`contrast-badge sidebar-compliance ${count === 0 ? "neutral" : pass ? "pass" : "fail"}`}
-      role="status"
       aria-label={`WCAG ${label}: ${count === 0 ? "No combinations saved yet" : pass ? "Passing" : "Failing"}`}
     >
       {count === 0 ? (
@@ -161,6 +171,12 @@ ComplianceBadge.displayName = "ComplianceBadge";
 /**
  * Small color swatch displaying the abbreviation label with contrasting text.
  * Reads the hex color and shows the abbreviation in an optimally readable color.
+ *
+ * The text color (white or black) is memoized based on the contrast ratio
+ * against white to ensure readability without recalculating on every render.
+ *
+ * @param color - Hex color value for the swatch background
+ * @param label - Short label text displayed on the swatch (e.g. "FG", "BG")
  */
 function ColorReferenceSwatch({
   color,
@@ -205,6 +221,12 @@ ColorReferenceSwatch.displayName = "ColorReferenceSwatch";
 /**
  * Copy text to clipboard and show brief visual feedback.
  * Falls back gracefully when navigator.clipboard is unavailable.
+ *
+ * Shows "Copied" feedback for 1.5 seconds after a successful copy,
+ * then reverts to the default label.
+ *
+ * @param text - The text string to copy to clipboard
+ * @param label - Accessible label describing what is being copied (defaults to text)
  */
 function CopyButton({ text, label = text }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -256,6 +278,13 @@ CopyButton.displayName = "CopyButton";
  *
  * Uses the pre-calculated `brightness` label from {@link ColorSuggestion}
  * instead of recalculating contrast against white on every render.
+ *
+ * When `highlighted` is true, the row is visually emphasized with a
+ * success border and larger swatch to indicate the best match.
+ *
+ * @param suggestion - Color suggestion with hex, ratio, pass status, and brightness
+ * @param onApply - Callback invoked with the suggested color hex when clicked
+ * @param highlighted - Whether this is the best match (visually emphasized)
  */
 function SuggestionRow({
   suggestion,
@@ -355,6 +384,12 @@ SuggestionRow.displayName = "SuggestionRow";
 /**
  * Displays the hex, RGB, and HSL values for a given color in a compact layout.
  * Each value row includes a copy button for quick clipboard access.
+ *
+ * Also shows the relative luminance percentage and a human-readable
+ * brightness label (Light / Dark / Medium).
+ *
+ * @param color - Hex color string to display details for
+ * @param name - Display name for the color (e.g. "Foreground", "Background")
  */
 function ColorReferenceDetails({
   color,

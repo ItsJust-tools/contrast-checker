@@ -359,7 +359,8 @@ body {
   /* ── Export dropdown ── */
   .contrast-toolbar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
     padding: 0.5rem;
   }
 
