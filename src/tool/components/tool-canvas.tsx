@@ -88,49 +88,61 @@ function ColorPreview({
 
   const handleColorPickerChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLocalInput(null);
       onChange?.(e.target.value);
     },
     [onChange],
   );
 
+  /**
+   * Internal state to track the raw user input during typing.
+   * When empty, falls back to the controlled `color` prop.
+   * This avoids prematurely normalizing hex (e.g. #fff -> #ffffff)
+   * while the user is still typing.
+   */
+  const [localInput, setLocalInput] = useState<string | null>(null);
+
+  /** Display value: show local input while typing, otherwise the prop color */
+  const displayValue = localInput !== null ? localInput : color;
+
   const handleHexInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value.trim();
-      if (!val) {
+      const val = e.target.value;
+      setLocalInput(val);
+
+      const trimmed = val.trim();
+      if (!trimmed) {
         setHexInputError(false);
         setHexInputMessage(null);
         return;
       }
-      const fullHex = val.startsWith("#") ? val : `#${val}`;
+      const fullHex = trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
 
-      // Accept valid hex while typing — validate and normalize
+      // Validate without calling onChange — that happens on blur/Enter/paste
+      // so the user can type partial hex freely.
       try {
-        const normalized = normalizeHexColor(fullHex);
+        normalizeHexColor(fullHex);
         setHexInputError(false);
         setHexInputMessage(null);
-        onChange?.(normalized);
       } catch {
-        // Show error only when the user has typed enough to reasonably expect
-        // a valid color. Partial entries (e.g. "#f", "#ff") are left without
-        // error so the user can keep typing.
-        const stripped = val.replace(/^#/, "");
+        const stripped = trimmed.replace(/^#/, "");
         const errorMsg = getHexInputErrorMessage(stripped);
         if (errorMsg) {
           setHexInputError(true);
           setHexInputMessage(errorMsg);
         } else {
-          // Still typing a valid hex — no error yet
           setHexInputError(false);
           setHexInputMessage(null);
         }
       }
     },
-    [onChange],
+    []
   );
 
   const handleHexInputBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const val = e.target.value.trim();
+      setLocalInput(null); // stop showing local input, revert to prop
       if (!val) {
         setHexInputError(false);
         setHexInputMessage(null);
@@ -157,9 +169,10 @@ function ColorPreview({
    */
   const handleHexInputFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
+      setLocalInput(null); // start fresh from the committed prop value
       e.target.select();
     },
-    [],
+    [setLocalInput],
   );
 
   /**
@@ -189,10 +202,11 @@ function ColorPreview({
   const handleHexInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
+        setLocalInput(null);
         (e.target as HTMLInputElement).blur();
       }
     },
-    [],
+    [setLocalInput],
   );
 
   const openColorPicker = useCallback(() => {
@@ -254,7 +268,7 @@ function ColorPreview({
           <input
             id={hexInputId}
             type="text"
-            value={color}
+            value={displayValue}
             onChange={handleHexInputChange}
             onBlur={handleHexInputBlur}
             onFocus={handleHexInputFocus}
