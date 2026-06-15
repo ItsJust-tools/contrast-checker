@@ -10,7 +10,7 @@ import type { Exporter } from "@itsjust/core";
 
 export const exporter: Exporter = {
   format: "pdf",
-  export: async (element, options, stateSerializer) => {
+  export: async (element, options, _stateSerializer) => {
     try {
       const { toPng } = await import("html-to-image");
       const pngDataUrl = await toPng(element, {
@@ -25,8 +25,6 @@ export const exporter: Exporter = {
       const binaryStr = atob(base64Data);
 
       const title = "Contrast Checker Report";
-      const serializer = stateSerializer?.() || "{}";
-
       const pdfWidth = 595.28;
       const pdfHeight = 841.89;
       const margin = 40;

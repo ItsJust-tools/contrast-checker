@@ -83,17 +83,6 @@ function ColorPreview({
   const colorInputId = `color-picker-${instanceId}`;
   const hexInputId = `hex-input-${instanceId}`;
 
-  const [hexInputError, setHexInputError] = useState(false);
-  const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
-
-  const handleColorPickerChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setLocalInput(null);
-      onChange?.(e.target.value);
-    },
-    [onChange],
-  );
-
   /**
    * Internal state to track the raw user input during typing.
    * When empty, falls back to the controlled `color` prop.
@@ -102,8 +91,19 @@ function ColorPreview({
    */
   const [localInput, setLocalInput] = useState<string | null>(null);
 
+  const [hexInputError, setHexInputError] = useState(false);
+  const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
+
   /** Display value: show local input while typing, otherwise the prop color */
   const displayValue = localInput !== null ? localInput : color;
+
+  const handleColorPickerChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLocalInput(null);
+      onChange?.(e.target.value);
+    },
+    [onChange, setLocalInput],
+  );
 
   const handleHexInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,7 +136,7 @@ function ColorPreview({
         }
       }
     },
-    []
+    [onChange, setLocalInput],
   );
 
   const handleHexInputBlur = useCallback(
@@ -161,7 +161,7 @@ function ColorPreview({
         setHexInputMessage(HEX_ERROR_FORMAT);
       }
     },
-    [onChange],
+    [onChange, setLocalInput],
   );
 
   /**
