@@ -297,11 +297,6 @@ const SUGGESTION_PALETTE_DARK: readonly string[] = [
 /**
  * Pre-computed relative luminance values for palette colors.
  * Computing these lazily on first access avoids repeated hex parsing
- * and gamma-correction on every call to suggestAccessibleColor/Pair.
- */
-/**
- * Pre-computed relative luminance values for palette colors.
- * Computing these lazily on first access avoids repeated hex parsing
  * and gamma-correction across repeated calls to suggestAccessibleColor/Pair.
  *
  * A module-level singleton (null → Map on first use) is safe here because
@@ -309,6 +304,14 @@ const SUGGESTION_PALETTE_DARK: readonly string[] = [
  */
 let paletteLuminancesCache: Map<string, number> | null = null;
 
+/**
+ * Ensure the palette luminance cache is populated and return it.
+ * Lazily computes relative luminance for all palette colors on first access,
+ * avoiding repeated hex parsing and gamma-correction on subsequent calls.
+ *
+ * The cache is a module-level singleton (null → Map on first use),
+ * safe because palette arrays are `as const` and immutable at runtime.
+ */
 function ensurePaletteCache(): Map<string, number> {
   if (paletteLuminancesCache) return paletteLuminancesCache;
   const cache = new Map<string, number>();
@@ -322,6 +325,16 @@ function ensurePaletteCache(): Map<string, number> {
   return cache;
 }
 
+/**
+ * Get the relative luminance of a color, using the palette cache when possible.
+ *
+ * Checks the pre-computed palette cache first for an O(1) lookup;
+ * falls through to the full {@link getRelativeLuminance} computation
+ * for dynamically generated colors (e.g. adjustLightness results).
+ *
+ * @param color - Hex color string
+ * @returns Relative luminance value (0-1)
+ */
 function getPaletteLuminance(color: string): number {
   const cache = ensurePaletteCache();
   const cached = cache.get(color);
@@ -331,8 +344,16 @@ function getPaletteLuminance(color: string): number {
 }
 
 /**
- * Fast contrast ratio using pre-cached palette luminance if available,
- * otherwise falls through to the full getContrastRatio computation.
+ * Fast contrast ratio using pre-cached palette luminance when available.
+ *
+ * Computes the WCAG contrast ratio between two colors using cached luminance
+ * values from the palette cache where possible, falling through to the full
+ * calculation for non-palette colors. Useful when calling suggestAccessiblePair
+ * iteratively across many palette candidates.
+ *
+ * @param colorA - First hex color
+ * @param colorB - Second hex color
+ * @returns Contrast ratio (1:1 to 21:1)
  */
 function cachedContrastRatio(colorA: string, colorB: string): number {
   const lumA = getPaletteLuminance(colorA);

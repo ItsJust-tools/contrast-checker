@@ -39,6 +39,13 @@ A client-side WCAG contrast checker tool for testing color contrast ratios again
 
 ## Quick Start
 
+### Prerequisites
+
+- **Node.js** — v22+ (see `.nvmrc` for exact version)
+- **npm** — v10+
+
+The project uses npm workspaces; do not use `yarn` or `pnpm`.
+
 ```bash
 cd contrast-checker
 npm install
@@ -46,6 +53,14 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the tool.
+
+### Build for production
+
+```bash
+npm run build
+```
+
+This builds the `@itsjust/core` shared package first, then generates the production Next.js bundle.
 
 ## How It Works
 

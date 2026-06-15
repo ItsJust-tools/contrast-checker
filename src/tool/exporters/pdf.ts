@@ -144,6 +144,22 @@ ${pos}
 
 export default exporter;
 
+/**
+ * Encode a binary string to ASCII85 (also known as btoa) encoding.
+ *
+ * ASCII85 encodes every 4 bytes of binary data as 5 ASCII characters,
+ * providing a ~25% size overhead compared to Base64's ~33%.
+ * The encoded data uses printable ASCII characters (33-117) and
+ * compresses runs of four zero bytes to the single character 'z'.
+ *
+ * This implementation is tailored for embedding PNG image data in PDF
+ * documents, where ASCII85 is the standard encoding format.
+ *
+ * @param data - Raw binary data as a string of byte characters
+ * @returns ASCII85-encoded string (without newlines or framing)
+ *
+ * @see Adobe PDF Specification 1.7, Section 7.4.3 (ASCIIHexDecode / ASCII85Decode)
+ */
 function toAscii85(data: string): string {
   let result = "";
   let i = 0;
