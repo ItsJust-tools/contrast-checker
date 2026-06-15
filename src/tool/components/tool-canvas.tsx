@@ -102,7 +102,7 @@ function ColorPreview({
       setLocalInput(null);
       onChange?.(e.target.value);
     },
-    [onChange, setLocalInput],
+    [onChange],
   );
 
   const handleHexInputChange = useCallback(
@@ -136,7 +136,7 @@ function ColorPreview({
         }
       }
     },
-    [onChange, setLocalInput],
+    [onChange],
   );
 
   const handleHexInputBlur = useCallback(
@@ -161,7 +161,7 @@ function ColorPreview({
         setHexInputMessage(HEX_ERROR_FORMAT);
       }
     },
-    [onChange, setLocalInput],
+    [onChange],
   );
 
   /**
@@ -172,7 +172,7 @@ function ColorPreview({
       setLocalInput(null); // start fresh from the committed prop value
       e.target.select();
     },
-    [setLocalInput],
+    [],
   );
 
   /**
@@ -206,7 +206,7 @@ function ColorPreview({
         (e.target as HTMLInputElement).blur();
       }
     },
-    [setLocalInput],
+    [],
   );
 
   const openColorPicker = useCallback(() => {
@@ -500,7 +500,6 @@ export function ToolCanvas({
             className="contrast-preview-bar"
             style={{
               width: "100%",
-              height: "48px",
               background: bgColor,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",

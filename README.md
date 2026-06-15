@@ -102,16 +102,16 @@ This builds the `@itsjust/core` shared package first, then generates the product
 
 ## Keyboard Navigation
 
-| Key                 | Action                      |
-| ------------------- | --------------------------- |
-| `Tab` / `Shift+Tab` | Navigate between controls   |
-| `Enter` / `Space`   | Activate clickable elements |
-| `Esc`               | Close color picker          |
-| `Ctrl+Shift+E`      | Export as JSON              |
-| `Ctrl+Shift+P`      | Export as PNG               |
-| `Ctrl+Shift+X`      | Swap foreground/background  |
-| `Ctrl+Z`            | Undo last change            |
-| `Ctrl+Y`            | Redo undone change          |
+| Key                       | Action                      |
+| ------------------------- | --------------------------- |
+| `Tab` / `Shift+Tab`       | Navigate between controls   |
+| `Enter` / `Space`         | Activate clickable elements |
+| `Esc`                     | Close color picker          |
+| `Ctrl+Shift+E`            | Export as JSON              |
+| `Ctrl+Shift+P`            | Export as PNG               |
+| `Ctrl+Shift+X`            | Swap foreground/background  |
+| `Ctrl+Z`                  | Undo last change            |
+| `Ctrl+Y` / `Ctrl+Shift+Z` | Redo undone change          |
 
 ## Color-Vision Deficiency Simulation
 
