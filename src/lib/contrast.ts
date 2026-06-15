@@ -383,10 +383,9 @@ interface SuggestionResult {
  *          Each is null if no candidate in that direction meets AA normal-text.
  */
 function suggestAccessibleColor(bgColor: string): SuggestionResult {
-  // Pre-compute background luminance once for all palette comparisons
-  let bgLum: number;
+  // Validate background color early — if invalid, return no suggestions
   try {
-    bgLum = getRelativeLuminance(bgColor);
+    getRelativeLuminance(bgColor);
   } catch {
     return { light: null, dark: null, best: null };
   }
@@ -399,10 +398,7 @@ function suggestAccessibleColor(bgColor: string): SuggestionResult {
     brightness: "light" | "dark",
   ): ColorSuggestion | null => {
     try {
-      const fgLum = getPaletteLuminance(fg);
-      const lighterLum = Math.max(fgLum, bgLum);
-      const darkerLum = Math.min(fgLum, bgLum);
-      const ratio = (lighterLum + 0.05) / (darkerLum + 0.05);
+      const ratio = cachedContrastRatio(fg, bgColor);
       return {
         color: fg,
         ratio: Math.round(ratio * 100) / 100,

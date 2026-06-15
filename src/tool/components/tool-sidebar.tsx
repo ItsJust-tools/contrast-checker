@@ -513,6 +513,10 @@ export function ToolSidebar({
   const bgRgb = useMemo(() => hexToRgb(bgColor), [bgColor]);
   const fgRgbStr = useMemo(() => formatRgb(fgRgb.r, fgRgb.g, fgRgb.b), [fgRgb]);
   const bgRgbStr = useMemo(() => formatRgb(bgRgb.r, bgRgb.g, bgRgb.b), [bgRgb]);
+  const fgHsl = useMemo(() => rgbToHsl(fgRgb.r, fgRgb.g, fgRgb.b), [fgRgb]);
+  const bgHsl = useMemo(() => rgbToHsl(bgRgb.r, bgRgb.g, bgRgb.b), [bgRgb]);
+  const fgHslStr = useMemo(() => formatHsl(fgHsl.h, fgHsl.s, fgHsl.l), [fgHsl]);
+  const bgHslStr = useMemo(() => formatHsl(bgHsl.h, bgHsl.s, bgHsl.l), [bgHsl]);
 
   const averageContrast = useMemo(() => {
     if (combinations.length === 0) return 0;
@@ -700,6 +704,7 @@ export function ToolSidebar({
           >
             <CopyButton text={fgColor.toLowerCase()} label="foreground hex" />
             <CopyButton text={fgRgbStr} label="foreground RGB" />
+            <CopyButton text={fgHslStr} label="foreground HSL" />
           </div>
           <ColorReferenceSwatch color={bgColor} label="BG" />
           <ColorReferenceDetails color={bgColor} name="Background" />
@@ -713,6 +718,7 @@ export function ToolSidebar({
           >
             <CopyButton text={bgColor.toLowerCase()} label="background hex" />
             <CopyButton text={bgRgbStr} label="background RGB" />
+            <CopyButton text={bgHslStr} label="background HSL" />
           </div>
         </div>
       </div>

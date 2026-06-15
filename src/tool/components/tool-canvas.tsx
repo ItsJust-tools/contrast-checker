@@ -138,15 +138,18 @@ function ColorPreview({
       }
       const cleaned = val.startsWith("#") ? val : `#${val}`;
       try {
-        normalizeHexColor(cleaned);
+        const normalized = normalizeHexColor(cleaned);
         setHexInputError(false);
         setHexInputMessage(null);
+        // Apply the normalized color on blur so shorthand (#fff → #ffffff)
+        // and other valid-but-not-canonical forms are resolved
+        onChange?.(normalized);
       } catch {
         setHexInputError(true);
         setHexInputMessage(HEX_ERROR_FORMAT);
       }
     },
-    [],
+    [onChange],
   );
 
   /**
