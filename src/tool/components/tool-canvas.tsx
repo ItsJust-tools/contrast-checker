@@ -94,6 +94,17 @@ function ColorPreview({
   const [hexInputError, setHexInputError] = useState(false);
   const [hexInputMessage, setHexInputMessage] = useState<string | null>(null);
 
+  /**
+   * Use the color prop as a key to force re-mount of the hex input
+   * when the color changes from outside (e.g., clicking a suggestion
+   * in the sidebar, undo/redo, or import). This avoids stale typed
+   * input persisting after an external color change.
+   *
+   * The key is only applied to the hex input, not the entire ColorPreview,
+   * so the color swatch and picker remain stable.
+   */
+  const hexInputKey = `hex-${instanceId}-${color}`;
+
   /** Display value: show local input while typing, otherwise the prop color */
   const displayValue = localInput !== null ? localInput : color;
 
@@ -266,6 +277,7 @@ function ColorPreview({
         </label>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <input
+            key={hexInputKey}
             id={hexInputId}
             type="text"
             value={displayValue}

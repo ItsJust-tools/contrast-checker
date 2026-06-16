@@ -259,6 +259,12 @@ body {
     color: var(--foreground);
   }
 
+  .sidebar-compliance.neutral {
+    background: var(--muted);
+    color: var(--muted-foreground);
+    border-color: var(--border);
+  }
+
   .contrast-badge-text {
     display: flex;
     flex-direction: column;
