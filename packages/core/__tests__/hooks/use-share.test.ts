@@ -171,6 +171,23 @@ describe("useShare", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("suppresses DOMException AbortError from web share silently", async () => {
+    Object.assign(navigator, {
+      share: vi
+        .fn()
+        .mockRejectedValue(new DOMException("Share canceled", "AbortError")),
+      canShare: vi.fn().mockReturnValue(true),
+    });
+    const { result } = renderHook(() => useShare());
+
+    const success = await act(async () => {
+      return result.current.shareViaWeb({ toolId: "test", content: "{}" });
+    });
+
+    expect(success).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
   it("returns false and sets error on web share failure", async () => {
     Object.assign(navigator, {
       share: vi.fn().mockRejectedValue(new Error("Share failed")),
