@@ -174,7 +174,7 @@ export default function ToolClient() {
         canRedo={canRedo}
         disabled={isAnyActionInProgress}
       />
-      <main className="contrast-main-content">
+      <main id="main-content" className="contrast-main-content">
         <ToolCanvas
           fgColor={state.data.fgColor}
           bgColor={state.data.bgColor}
