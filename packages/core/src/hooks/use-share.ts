@@ -13,6 +13,24 @@ const SEMVER_RE =
   /^\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
 /**
+ * Detect a user-initiated abort of the Web Share dialog.
+ *
+ * When the user closes the native share sheet or taps "Cancel", the browser
+ * rejects the `navigator.share(...)` promise with a `DOMException` whose
+ * `name` is `"AbortError"`. This is an expected user action, not a real
+ * failure, so it should be caught and suppressed silently rather than being
+ * surfaced as an error or triggering global error handlers.
+ */
+function isUserAbort(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "name" in err &&
+    (err as { name?: unknown }).name === "AbortError"
+  );
+}
+
+/**
  * Client-side only share functionality - no server required.
  * Supports:
  * - Download as .itsjust.json file
@@ -128,7 +146,8 @@ export function useShare() {
         });
         return true;
       }).catch((err) => {
-        if (!(err instanceof Error) || err.name !== "AbortError") {
+        // Suppress user aborts of the share sheet (AbortError) silently.
+        if (!isUserAbort(err)) {
           const message =
             err instanceof Error ? err.message : "Web share failed";
           setError(message);
