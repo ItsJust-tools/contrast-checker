@@ -4,6 +4,7 @@
  */
 
 import type { Exporter } from "@itsjust/core";
+import { sanitizeFilename } from "@/lib/filename-sanitizer";
 
 export const exporter: Exporter = {
   format: "webp",
@@ -36,10 +37,13 @@ export const exporter: Exporter = {
         };
       }
 
+      const sanitizedFilename = sanitizeFilename(
+        options?.filename ?? `contrast-check-${Date.now()}`,
+      );
       return {
         success: true,
         data: blob,
-        filename: options?.filename ?? `contrast-check-${Date.now()}.webp`,
+        filename: sanitizedFilename,
         format: "webp",
       };
     } catch (error) {
@@ -47,7 +51,9 @@ export const exporter: Exporter = {
       return {
         success: false,
         data: null,
-        filename: options?.filename ?? `contrast-check-${Date.now()}`,
+        filename: sanitizeFilename(
+          options?.filename ?? `contrast-check-${Date.now()}`,
+        ),
         format: "webp",
         error: error instanceof Error ? error.message : "Export failed",
       };

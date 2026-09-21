@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { ShareData, ShareResult } from "../types";
 import { copyToClipboard } from "../utils/copy-to-clipboard";
+import { sanitizeFilename } from "../utils/sanitize";
 
 export interface ShareFileResult extends ShareResult {
   isFile: boolean;
@@ -86,9 +87,9 @@ export function useShare() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = (
-          filename ?? `${data.toolId}-${Date.now()}.itsjust.json`
-        ).replace(/[\/\\:?*"<>|]/g, "_");
+        link.download = sanitizeFilename(
+          filename ?? `${data.toolId}-${Date.now()}.itsjust.json`,
+        );
         link.style.display = "none";
         document.body.appendChild(link);
         link.click();

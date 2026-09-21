@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { ExportFormat } from "../types";
+import { sanitizeFilename } from "../utils/sanitize";
 
 export type ImportResult =
   | {
@@ -79,11 +80,6 @@ function safeJsonParse(text: string): unknown {
   });
 }
 
-function sanitizeFileName(name: string): string {
-  const safe = name.replace(/[/\\<>:"|?*\x00-\x1F]/g, "_").trim();
-  return safe.length > 0 ? safe : "imported-file";
-}
-
 export interface UseImportOptions {
   /** Accepted file formats (default: json) */
   acceptedFormats?: ImportFormat[];
@@ -135,7 +131,7 @@ export function useImport({
 
   const parseFile = useCallback(
     async (file: File): Promise<ImportResult> => {
-      const fileName = sanitizeFileName(file.name);
+      const fileName = sanitizeFilename(file.name);
       if (file.size > maxFileSize) {
         return {
           success: false,
