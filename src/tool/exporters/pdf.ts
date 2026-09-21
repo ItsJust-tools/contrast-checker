@@ -105,6 +105,7 @@ endobj`);
       let pos = 0;
       for (let i = 0; i < objects.length; i++) {
         const objStr = objects[i];
+        if (objStr === undefined) continue;
         xref += `${String(pos).padStart(10, "0")} 00000 n \n`;
         pos += objStr.length + 1;
       }
