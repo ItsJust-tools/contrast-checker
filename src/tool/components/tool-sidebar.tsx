@@ -1065,7 +1065,7 @@ export function ToolSidebar({
                   color: "var(--foreground)",
                   cursor: "pointer",
                   fontFamily: "inherit",
-                  transition: "all 0.1s",
+                  transition: "background-color 0.1s, border-color 0.1s",
                 }}
                 aria-label={`${label}${cvdType === type ? " (active)" : ""}`}
               >
