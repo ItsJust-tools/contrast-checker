@@ -5,6 +5,7 @@ import type {
   Exporter,
   ExporterLoader,
 } from "../types";
+import { sanitizeFilename } from "../utils/sanitize";
 import { jsonExporter, exporterLoaders } from "./exporters";
 
 const ALLOWED_DOWNLOAD_TYPES = new Set([
@@ -32,7 +33,7 @@ function triggerDownload(result: ExportResult): void {
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = result.filename.replace(/[\/\\:?*"<>|]/g, "_");
+  link.download = sanitizeFilename(result.filename);
   link.style.display = "none";
   if (!document.body) {
     console.error("[triggerDownload] Document body is not ready");
@@ -118,7 +119,7 @@ export class ExportEngine {
       return {
         success: false,
         data: null,
-        filename: options.filename ?? `export-${Date.now()}`,
+        filename: sanitizeFilename(options.filename ?? `export-${Date.now()}`),
         format: options.format,
         error: `No exporter registered for format: ${options.format}`,
       };
