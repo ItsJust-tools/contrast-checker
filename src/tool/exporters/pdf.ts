@@ -7,6 +7,7 @@
  */
 
 import type { Exporter } from "@itsjust/core";
+import { sanitizeFilename } from "@/lib/filename-sanitizer";
 
 export const exporter: Exporter = {
   format: "pdf",
@@ -121,11 +122,14 @@ ${pos}
 
       const blob = new Blob([pdf], { type: "application/pdf" });
 
+      const sanitizedFilename = sanitizeFilename(
+        options?.filename ?? `contrast-check-report-${Date.now()}.pdf`,
+      );
+
       return {
         success: true,
         data: blob,
-        filename:
-          options?.filename ?? `contrast-check-report-${Date.now()}.pdf`,
+        filename: sanitizedFilename,
         format: "pdf",
       };
     } catch (error) {
@@ -133,7 +137,9 @@ ${pos}
       return {
         success: false,
         data: null,
-        filename: options?.filename ?? `contrast-check-report-${Date.now()}`,
+        filename: sanitizeFilename(
+          options?.filename ?? `contrast-check-report-${Date.now()}`,
+        ),
         format: "pdf",
         error: error instanceof Error ? error.message : "PDF export failed",
       };
