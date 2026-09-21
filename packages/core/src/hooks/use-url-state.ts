@@ -6,6 +6,7 @@ import {
   decompressFromEncodedURIComponent,
 } from "lz-string";
 import type { DeserializeResult } from "../tool";
+import { copyToClipboard } from "../utils/copy-to-clipboard";
 
 interface UseUrlStateOptions {
   /** Tool ID for the shared URL query param. */
@@ -91,7 +92,7 @@ export function useUrlState(options: UseUrlStateOptions): UseUrlStateReturn {
             return shareUrl;
           }
         } else {
-          await navigator.clipboard.writeText(shareUrl);
+          await copyToClipboard(shareUrl);
         }
         showToast("Share URL copied to clipboard", "success");
         return shareUrl;

@@ -19,6 +19,7 @@ import {
   CVD_SHORT_LABELS,
 } from "@/lib/contrast";
 import type { AccessiblePair, SuggestionResult, CvdType } from "@/lib/contrast";
+import { copyToClipboard } from "@itsjust/core";
 import { CheckIcon, XIcon, TrashIcon } from "./icons";
 
 interface ToolSidebarProps {
@@ -233,7 +234,7 @@ function CopyButton({ text, label = text }: { text: string; label?: string }) {
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copyToClipboard(text);
       setCopied(true);
     } catch {
       // clipboard API may not be available; silently ignore
