@@ -683,13 +683,13 @@ export function normalizeHexColor(hex: string): string {
 
   if (cleaned.length === 3) {
     // Expand 3-char shorthand to 6-char
-    const expanded =
-      cleaned[0] +
-      cleaned[0] +
-      cleaned[1] +
-      cleaned[1] +
-      cleaned[2] +
-      cleaned[2];
+    const c0 = cleaned[0];
+    const c1 = cleaned[1];
+    const c2 = cleaned[2];
+    if (!c0 || !c1 || !c2) {
+      throw new Error(`Invalid hex color: "${hex}"`);
+    }
+    const expanded = c0 + c0 + c1 + c1 + c2 + c2;
     if (!/^[0-9a-f]{6}$/.test(expanded)) {
       throw new Error(`Invalid hex color: non-hex characters in "${hex}"`);
     }
@@ -967,6 +967,21 @@ export function simulateCvd(hex: string, cvdType: CvdType): string {
   if (cvdType === "none") return hex;
 
   const matrix = CVD_MATRICES[cvdType];
+  if (
+    !matrix ||
+    matrix.length < 9 ||
+    matrix[0] === undefined ||
+    matrix[1] === undefined ||
+    matrix[2] === undefined ||
+    matrix[3] === undefined ||
+    matrix[4] === undefined ||
+    matrix[5] === undefined ||
+    matrix[6] === undefined ||
+    matrix[7] === undefined ||
+    matrix[8] === undefined
+  ) {
+    throw new Error(`Invalid CVD matrix for type ${cvdType}`);
+  }
   const [r, g, b] = srgbToLinear(hex);
 
   // Apply the 3x3 simulation matrix

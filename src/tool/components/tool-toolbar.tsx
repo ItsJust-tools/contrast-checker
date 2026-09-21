@@ -191,10 +191,14 @@ export function ToolToolbar({
           setFocusedIndex(lastIndex);
           break;
         case "Enter":
-        case " ":
+        case " ": {
           e.preventDefault();
-          handleFormatSelect(EXPORT_FORMATS[focusedIndex].format);
+          const item = EXPORT_FORMATS[focusedIndex];
+          if (item) {
+            handleFormatSelect(item.format);
+          }
           break;
+        }
         case "Escape":
           e.preventDefault();
           setDropdownOpen(false);
