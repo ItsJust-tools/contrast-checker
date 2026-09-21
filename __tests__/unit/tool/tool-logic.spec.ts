@@ -88,9 +88,12 @@ describe("Contrast tool definition", () => {
       label: "Test",
     });
     expect(result.success).toBe(true);
-    if (result.success) {
+    if (result.success && result.data && result.data.combinations) {
       expect(result.data.combinations).toHaveLength(1);
-      expect(result.data.combinations[0].ratio).toBe(4.5);
+      const firstCombo = result.data.combinations[0];
+      if (firstCombo) {
+        expect(firstCombo.ratio).toBe(4.5);
+      }
     }
   });
 
@@ -101,7 +104,7 @@ describe("Contrast tool definition", () => {
       combinations: [],
     });
     expect(result.success).toBe(true);
-    if (result.success) {
+    if (result.success && result.data) {
       expect(result.data.label).toBe("");
     }
   });

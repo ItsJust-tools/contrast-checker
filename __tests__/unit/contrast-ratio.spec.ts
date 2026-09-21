@@ -761,9 +761,11 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
     it("should return suggestions sorted by ratio descending", () => {
       const suggestions = suggestAccessiblePair("#808080", "#ffffff");
       for (let i = 1; i < suggestions.length; i++) {
-        expect(suggestions[i].ratio).toBeLessThanOrEqual(
-          suggestions[i - 1].ratio,
-        );
+        const current = suggestions[i];
+        const prev = suggestions[i - 1];
+        if (current && prev) {
+          expect(current.ratio).toBeLessThanOrEqual(prev.ratio);
+        }
       }
     });
 
@@ -772,14 +774,20 @@ describe("contrast.js - WCAG Contrast Calculator", () => {
       const suggestions = suggestAccessiblePair("#cccccc", "#ffffff");
       expect(suggestions.length).toBeGreaterThanOrEqual(1);
       // The best suggestion should be a darker color
-      expect(suggestions[0].passAA).toBe(true);
+      const best = suggestions[0];
+      if (best) {
+        expect(best.passAA).toBe(true);
+      }
     });
 
     it("should suggest light foregrounds on dark backgrounds", () => {
       // Dark gray on black: poor contrast
       const suggestions = suggestAccessiblePair("#333333", "#000000");
       expect(suggestions.length).toBeGreaterThanOrEqual(1);
-      expect(suggestions[0].passAA).toBe(true);
+      const best = suggestions[0];
+      if (best) {
+        expect(best.passAA).toBe(true);
+      }
     });
 
     it("should not duplicate the same suggestion", () => {
