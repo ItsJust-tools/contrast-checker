@@ -89,6 +89,14 @@ export { useKeyboardShortcuts } from "./components/tool-shell/tool-shell-shortcu
 /** usePlugins — Organize declarative tool plugins by slot. */
 export { usePlugins } from "./hooks/use-plugins";
 
+// Utils
+/**
+ * copyToClipboard — Copy text via the Clipboard API with a graceful
+ * `document.execCommand("copy")` fallback for insecure origins (HTTP),
+ * unauthenticated iframes, and denied clipboard permissions.
+ */
+export { copyToClipboard } from "./utils/copy-to-clipboard";
+
 // Components
 /** ToolShell — Root layout component for every itsjust tool. */
 export { ToolShell, type ToolbarActions } from "./components/tool-shell";

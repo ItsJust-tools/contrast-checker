@@ -8,6 +8,7 @@ import {
   formatRatio,
   normalizeHexColor,
 } from "@/lib/contrast";
+import { copyToClipboard } from "@itsjust/core";
 import { CheckIcon, XIcon, PlusIcon, SwapIcon } from "./icons";
 
 interface ToolCanvasProps {
@@ -592,7 +593,7 @@ export function ToolCanvas({
             type="button"
             onClick={() => {
               const text = `${formatRatio(ratio)} (${fgColor} on ${bgColor})`;
-              navigator.clipboard.writeText(text).catch(() => {});
+              copyToClipboard(text).catch(() => {});
             }}
             className="btn-secondary"
             style={{
