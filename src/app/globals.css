@@ -686,3 +686,46 @@ body {
     font-size: 0.8125rem;
   }
 }
+
+/* Print styles: hide non-printable UI chrome for clean document printing */
+@media print {
+  .contrast-toolbar,
+  .contrast-sidebar,
+  .export-dropdown,
+  .export-dropdown-trigger,
+  .export-dropdown-menu,
+  .btn-icon,
+  .btn-secondary,
+  .sidebar-section,
+  .sidebar-suggestion-row,
+  .export-shortcut-hint,
+  .wcag-guidelines {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #171717 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .contrast-canvas {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .contrast-preview-bar,
+  .contrast-preview-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
