@@ -98,6 +98,34 @@ describe("Contrast Checker Tool", () => {
       );
       expect(result.success).toBe(false);
     });
+    it("should fail to deserialize combination entries with invalid shapes", () => {
+      const result = contrastTool.deserialize(
+        JSON.stringify({
+          fgColor: "#000000",
+          bgColor: "#ffffff",
+          combinations: [{ fg: 1, bg: "#ffffff", ratio: "4.5" }],
+        }),
+      );
+      expect(result.success).toBe(false);
+    });
+
+    it("should fail to deserialize non-object payloads", () => {
+      for (const payload of [null, 42, ["#000000"], true]) {
+        const result = contrastTool.deserialize(JSON.stringify(payload));
+        expect(result.success).toBe(false);
+      }
+    });
+
+    it("should accept state objects directly, not just JSON strings", () => {
+      const result = contrastTool.deserialize({
+        fgColor: "#000000",
+        bgColor: "#ffffff",
+        combinations: [],
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.label).toBe("");
+    });
   });
 
   describe("tool config", () => {
