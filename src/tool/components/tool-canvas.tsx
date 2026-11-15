@@ -8,6 +8,12 @@ import {
   formatRatio,
   normalizeHexColor,
 } from "@/lib/contrast";
+import {
+  analyzeApca,
+  formatApca,
+  getApcaPolarity,
+  isApcaColorValid,
+} from "@/lib/apca";
 import { copyToClipboard } from "@itsjust/core";
 import { CheckIcon, XIcon, PlusIcon, SwapIcon } from "./icons";
 
@@ -26,7 +32,12 @@ interface ToolCanvasProps {
     ratio: number;
     passAA: boolean;
     passAAA: boolean;
+    apcaLc?: number;
   }) => void;
+  /** Whether APCA (WCAG 3) contrast analysis is displayed. */
+  apcaMode?: boolean;
+  /** Toggle the APCA analysis panel. */
+  onApcaModeChange?: (enabled: boolean) => void;
 }
 
 interface ColorPreviewProps {
@@ -397,6 +408,8 @@ export function ToolCanvas({
   label = "",
   onLabelChange,
   onAddCombination,
+  apcaMode = false,
+  onApcaModeChange,
 }: ToolCanvasProps) {
   // Use props directly as the single source of truth.
   // The parent (ToolClient) owns the state; we just read and forward changes.
@@ -442,6 +455,16 @@ export function ToolCanvas({
     () => ratio >= getRequiredRatio("AA", "ui"),
     [ratio],
   );
+
+  /**
+   * APCA analysis for the current pair. Computed only while APCA mode is on
+   * so the default WCAG 2.x experience stays unchanged.
+   */
+  const apca = useMemo(() => {
+    if (!apcaMode) return null;
+    if (!isApcaColorValid(fgColor) || !isApcaColorValid(bgColor)) return null;
+    return analyzeApca(fgColor, bgColor);
+  }, [apcaMode, fgColor, bgColor]);
 
   const handleLabelChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -610,6 +633,95 @@ export function ToolCanvas({
             Copy Ratio
           </button>
 
+          {/* APCA Toggle */}
+          {onApcaModeChange && (
+            <button
+              type="button"
+              onClick={() => onApcaModeChange(!apcaMode)}
+              className="btn-secondary"
+              style={{
+                fontSize: "0.6875rem",
+                padding: "0.25rem 0.5rem",
+                marginTop: "0.375rem",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.25rem",
+              }}
+              aria-pressed={apcaMode}
+              aria-label={`${apcaMode ? "Hide" : "Show"} APCA (WCAG 3) contrast metrics`}
+              title={
+                apcaMode
+                  ? "Click to hide APCA contrast metrics"
+                  : "Click to show APCA (WCAG 3) contrast metrics"
+              }
+            >
+              {apcaMode ? "APCA On" : "APCA"}
+            </button>
+          )}
+
+          {/* APCA Metrics (only shown when apcaMode is true) */}
+          {apcaMode && apca && (
+            <div
+              style={{
+                marginTop: "0.5rem",
+                padding: "0.5rem",
+                background: "var(--accent-subtle, rgba(99, 102, 241, 0.08))",
+                borderRadius: "var(--radius)",
+                fontSize: "0.6875rem",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>APCA Contrast (WCAG 3)</span>
+                <span style={{ fontFamily: "ui-monospace, monospace" }}>
+                  {getApcaPolarity(apca.lc)}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "1.25rem",
+                    fontWeight: 700,
+                    fontFamily: "ui-monospace, Menlo, Monaco, monospace",
+                    color:
+                      Math.abs(apca.lc) >= 75
+                        ? "var(--success, #10b981)"
+                        : Math.abs(apca.lc) >= 45
+                          ? "var(--warning, #f59e0b)"
+                          : "var(--error, #ef4444)",
+                  }}
+                >
+                  {formatApca(apca.lc)}
+                </span>
+                <span style={{ fontSize: "0.6875rem", color: "var(--muted)" }}>
+                  Lc
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: "0.6875rem",
+                  marginTop: "0.25rem",
+                  color: "var(--muted)",
+                }}
+              >
+                {apca.recommendation}
+              </div>
+            </div>
+          )}
+
           {/* WCAG Guidelines Info */}
           <div
             className="wcag-guidelines"
@@ -666,6 +778,7 @@ export function ToolCanvas({
                 ratio: Math.round(ratio * 100) / 100,
                 passAA,
                 passAAA,
+                apcaLc: apcaMode ? apca?.lc : undefined,
               })
             }
             className="btn-secondary"

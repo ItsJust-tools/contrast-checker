@@ -9,6 +9,7 @@ function isContrastState(value: unknown): value is ContrastState {
     bgColor?: unknown;
     combinations?: unknown;
     label?: unknown;
+    apcaMode?: unknown;
   };
   if (typeof v.fgColor !== "string") return false;
   if (typeof v.bgColor !== "string") return false;
@@ -21,6 +22,7 @@ function isContrastState(value: unknown): value is ContrastState {
       ratio: unknown;
       passAA?: unknown;
       passAAA?: unknown;
+      apcaLc?: unknown;
     };
     if (
       typeof c.fg !== "string" ||
@@ -30,6 +32,7 @@ function isContrastState(value: unknown): value is ContrastState {
       return false;
     if (c.passAA !== undefined && typeof c.passAA !== "boolean") return false;
     if (c.passAAA !== undefined && typeof c.passAAA !== "boolean") return false;
+    if (c.apcaLc !== undefined && typeof c.apcaLc !== "number") return false;
   }
   return true;
 }
@@ -44,6 +47,7 @@ export const contrastTool: Tool<ContrastState> = {
     bgColor: "#ffffff",
     combinations: [],
     label: "",
+    apcaMode: false,
   },
   serialize: (state) =>
     JSON.stringify(
@@ -52,6 +56,7 @@ export const contrastTool: Tool<ContrastState> = {
         bgColor: state.bgColor,
         combinations: state.combinations,
         label: state.label,
+        apcaMode: state.apcaMode,
       },
       null,
       2,
@@ -77,6 +82,7 @@ export const contrastTool: Tool<ContrastState> = {
           bgColor: parsed.bgColor,
           combinations: parsed.combinations,
           label: parsed.label || "",
+          apcaMode: parsed.apcaMode === true,
         },
       };
     }
