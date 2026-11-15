@@ -74,6 +74,7 @@ export default function ToolClient() {
       ratio: number;
       passAA: boolean;
       passAAA: boolean;
+      apcaLc?: number;
     }) => {
       state.setData((prev) => ({
         ...prev,
@@ -191,6 +192,10 @@ export default function ToolClient() {
           }
           onAddCombination={handleAddCombination}
           onSwapColors={handleSwapColors}
+          apcaMode={state.data.apcaMode ?? false}
+          onApcaModeChange={(enabled) =>
+            state.setData((prev) => ({ ...prev, apcaMode: enabled }))
+          }
         />
         <ToolSidebar
           fgColor={state.data.fgColor}
