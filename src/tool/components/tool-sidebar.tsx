@@ -87,7 +87,6 @@ function ColorSwatch({
         justifyContent: "center",
         fontSize: "0.6875rem",
         position: "relative",
-        outline: "none",
       }}
       role="button"
       tabIndex={0}
@@ -809,6 +808,7 @@ export function ToolSidebar({
                   "color-mix(in srgb, var(--warning, #f59e0b) 8%, transparent)",
                 transition: "background-color 0.15s",
               }}
+              className="sidebar-fix-pair"
               role="button"
               tabIndex={0}
               title={pair.description}

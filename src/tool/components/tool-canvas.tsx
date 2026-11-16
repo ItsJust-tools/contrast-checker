@@ -257,7 +257,6 @@ function ColorPreview({
           boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
           cursor: "pointer",
           transition: "transform 0.1s",
-          outline: "none",
         }}
         aria-label={label || `Color preview: ${color}`}
         role="button"
@@ -309,7 +308,6 @@ function ColorPreview({
                 ? "1px solid var(--error)"
                 : "1px solid var(--border)",
               borderRadius: "var(--radius)",
-              outline: "none",
             }}
             aria-label={`Hex value for ${label || "color"}`}
             aria-invalid={hexInputError}
@@ -817,7 +815,6 @@ export function ToolCanvas({
               color: fgColor,
               border: "1px solid var(--border)",
               borderRadius: "var(--radius)",
-              outline: "none",
             }}
             aria-label="Text preview label"
           />
