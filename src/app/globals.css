@@ -365,6 +365,12 @@ body {
     outline-offset: 2px;
   }
 
+  /* Accessible focus ring for clickable pair rows ("Fix This Contrast") */
+  .sidebar-fix-pair:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   /* ── Export dropdown ── */
   .contrast-toolbar {
     display: flex;
