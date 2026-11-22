@@ -151,7 +151,7 @@ This tool is fully accessible:
 
 ## Project Structure
 
-```
+```text
 contrast-checker/
 ├── src/
 │   ├── app/           # Next.js app router pages
