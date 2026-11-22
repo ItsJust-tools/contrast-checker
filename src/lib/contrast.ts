@@ -863,11 +863,7 @@ export function formatHsl(h: number, s: number, l: number): string {
  * Types of color vision deficiency (CVD) supported for simulation.
  */
 export type CvdType =
-  | "none"
-  | "protanopia"
-  | "deuteranopia"
-  | "tritanopia"
-  | "achromatopsia";
+  "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
 
 /**
  * CVD simulation label for display.
